@@ -1,0 +1,24 @@
+{
+    "name": "Est3lar Pool",
+    "short_name": "Est3lar",
+    "description": "Sistema de monitoramento de mineração e pool de criptomoedas",
+    "icons": [
+        {
+            "src": "/favicon/android-chrome-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/favicon/android-chrome-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ],
+    "theme_color": "#4067D6",
+    "background_color": "#0a0a0a",
+    "display": "standalone",
+    "start_url": "/",
+    "orientation": "portrait",
+    "scope": "/",
+    "lang": "pt-BR"
+}

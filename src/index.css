@@ -1,0 +1,105 @@
+@import 'tailwindcss';
+
+/* Tema escuro (PADRÃO - extraído do v1) */
+:root {
+  /* Opacidades de preto */
+  --black: #000;
+  --black-10: rgba(0, 0, 0, 0.10);
+  --black-15: rgba(0, 0, 0, 0.15);
+  --black-20: rgba(0, 0, 0, 0.20);
+  --black-25: rgba(0, 0, 0, 0.25);
+  --black-30: rgba(0, 0, 0, 0.30);
+  --black-35: rgba(0, 0, 0, 0.35);
+  --black-40: rgba(0, 0, 0, 0.40);
+  --black-50: rgba(0, 0, 0, 0.50);
+
+  /* Design System Colors - Dark Mode */
+  --background: #0B0F14;           /* Background (page) */
+  --card: #0F1720;                 /* Surface / panels */
+  --surface: #0F1720;              /* Surface / panels (alias) */
+  --text-primary: #FFFFFF;         /* Texto primário */
+  --text-secondary: #94A3B8;       /* Texto secundário / muted */
+  --text-inverse: #0B0F14;         /* Texto em fundo claro */
+
+  /* Primary (neutral blue-tinted white) */
+  --primary: #E2E8F0;
+  --primary-light: rgba(226, 232, 240, 0.8);
+  --primary-dark: #E2E8F0;
+  --primary-foreground: #0B0F14;
+
+  /* Secondary (não definido no v1, usando primary como fallback) */
+  --secondary: #E2E8F0;
+  --secondary-light: rgba(226, 232, 240, 0.8);
+  --secondary-dark: #0F1720;
+  --secondary-foreground: #0B0F14;
+
+  /* Borders e Rings */
+  --border: rgba(255, 255, 255, 0.06);      /* Border soft */
+  --border-emphasis: rgba(255, 255, 255, 0.12);  /* Emphasis stroke */
+  --ring: rgba(226, 232, 240, 0.3);
+
+  /* Shadows */
+  --shadow-1: 0 1px 1px var(--black-35);
+  --shadow-2: 0 2px 10px var(--black-40);
+
+  /* Semantic Colors */
+  --success: #10B981;
+  --warning: #F59E0B;
+  --error: #EF4444;
+  --info: #3B82F6;
+
+  /* Status Colors */
+  --status-online: #10b981;
+  --status-degraded: #f59e0b;
+  --status-offline: #ef4444;
+
+  /* Role Colors */
+  --role-owner: #9333ea;
+  --role-admin: #3b82f6;
+  --role-operator: #10b981;
+  --role-viewer: #6b7280;
+
+  /* Badge Gradient (v1) */
+  --gradient-badge: linear-gradient(to right, #C26ECB, #3352AB, #6CC997);
+
+  /* Raio de borda padrão */
+  --radius: 0.625rem;  /* 10px - igual ao v1 */
+}
+
+/* Base styles */
+* {
+  border-color: var(--border);
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', sans-serif;
+  background-color: var(--background);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* Scrollbar customization */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--surface);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}

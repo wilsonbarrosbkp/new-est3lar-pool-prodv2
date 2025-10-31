@@ -1,0 +1,1 @@
+aqui, nova stack vite do projeto estelar. 
