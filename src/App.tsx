@@ -3,6 +3,19 @@ import { Toaster } from 'sonner'
 import LoginPage from '@/pages/Login'
 import ForgotPasswordPage from '@/pages/ForgotPassword'
 import ResetPasswordPage from '@/pages/ResetPassword'
+import { SuperAdminLayout } from '@/components/layout/SuperAdminLayout'
+import SuperAdminDashboard from '@/pages/super-admin/index'
+import OrganizationsPage from '@/pages/super-admin/Organizations'
+
+// Placeholder para páginas ainda não implementadas
+function PlaceholderPage({ title }: { title: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center h-[60vh] text-center">
+      <h1 className="text-2xl font-bold text-text-primary mb-2">{title}</h1>
+      <p className="text-text-secondary">Em desenvolvimento</p>
+    </div>
+  )
+}
 
 function DevNavigation() {
   const pages = [
@@ -10,7 +23,7 @@ function DevNavigation() {
     { path: '/forgot-password', label: 'Esqueci a Senha', description: 'Formulario de recuperacao de senha' },
     { path: '/reset-password', label: 'Redefinir Senha', description: 'Formulario para criar nova senha' },
     { path: '/dashboard', label: 'Dashboard', description: 'Area do usuario (placeholder)' },
-    { path: '/super-admin', label: 'Super Admin', description: 'Area administrativa (placeholder)' },
+    { path: '/super-admin', label: 'Super Admin', description: 'Painel administrativo do sistema' },
   ]
 
   return (
@@ -56,9 +69,27 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
 
-        {/* Placeholder for future routes */}
+        {/* Dashboard placeholder */}
         <Route path="/dashboard" element={<div className="min-h-screen p-8"><div className="max-w-4xl mx-auto"><Link to="/" className="text-[#94A3B8] hover:text-white mb-4 inline-block">&larr; Voltar</Link><h1 className="text-2xl font-bold text-white">Dashboard</h1><p className="text-[#94A3B8] mt-2">Em desenvolvimento</p></div></div>} />
-        <Route path="/super-admin" element={<div className="min-h-screen p-8"><div className="max-w-4xl mx-auto"><Link to="/" className="text-[#94A3B8] hover:text-white mb-4 inline-block">&larr; Voltar</Link><h1 className="text-2xl font-bold text-white">Super Admin</h1><p className="text-[#94A3B8] mt-2">Em desenvolvimento</p></div></div>} />
+
+        {/* Super Admin routes */}
+        <Route path="/super-admin" element={<SuperAdminLayout />}>
+          <Route index element={<SuperAdminDashboard />} />
+          <Route path="organizations" element={<OrganizationsPage />} />
+          <Route path="users" element={<PlaceholderPage title="Usuários" />} />
+          <Route path="permissions" element={<PlaceholderPage title="Permissões" />} />
+          <Route path="currencies" element={<PlaceholderPage title="Moedas" />} />
+          <Route path="pools" element={<PlaceholderPage title="Pools" />} />
+          <Route path="wallets" element={<PlaceholderPage title="Carteiras" />} />
+          <Route path="hardware" element={<PlaceholderPage title="Hardware" />} />
+          <Route path="workers" element={<PlaceholderPage title="Workers" />} />
+          <Route path="payments" element={<PlaceholderPage title="Pagamentos" />} />
+          <Route path="revenue" element={<PlaceholderPage title="Revenue" />} />
+          <Route path="audit" element={<PlaceholderPage title="Auditoria" />} />
+          <Route path="endpoints" element={<PlaceholderPage title="Endpoints" />} />
+          <Route path="rounds" element={<PlaceholderPage title="Rounds" />} />
+          <Route path="webhooks" element={<PlaceholderPage title="Webhooks" />} />
+        </Route>
 
         {/* 404 */}
         <Route path="*" element={<div className="min-h-screen p-8 text-center"><h1 className="text-2xl font-bold text-white mb-4">404 - Pagina nao encontrada</h1><Link to="/" className="text-[#94A3B8] hover:text-white">Voltar para navegacao</Link></div>} />
