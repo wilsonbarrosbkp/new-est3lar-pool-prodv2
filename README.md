@@ -447,14 +447,22 @@ Configure os templates de email em:
 
 ---
 
-## Documentação Adicional
+## Documentacao Adicional
 
-Documentação técnica completa em `/docs`:
+Documentacao tecnica completa em `/docs`:
 
+### Design e Arquitetura
 - **01-design-system.md** - Sistema de design (cores, fontes, tokens CSS)
-- **02-login-page-spec.md** - Especificação da página de login
-- **04-permissions-simplified.md** - Sistema RBAC simplificado (8 → 3 tabelas)
-- **IMPLEMENTACAO-COMPLETA.md** - Detalhes completos da implementação
+- **CORES-ATUALIZADAS.md** - Paleta de cores extraida do v1 (dark mode)
+- **04-permissions-simplified.md** - Sistema RBAC simplificado (8 para 3 tabelas)
+
+### Implementacao
+- **IMPLEMENTACAO-COMPLETA.md** - Detalhes do sistema de autenticacao implementado
+
+### Referencia (Migracao do v1)
+- **RESUMO-EST3LAR-V1.md** - Resumo da stack e estrutura do projeto v1
+- **SUPER-ADMIN-ANALISE.md** - Analise da area Super Admin do v1
+- **SUPER-ADMIN-PLANEJAMENTO.md** - Planejamento de implementacao do Super Admin
 
 ---
 
@@ -550,6 +558,6 @@ Para questões técnicas ou bugs:
 
 ---
 
-**Versão:** 2.0.0
-**Última atualização:** 2025-10-31
-**Status:** Sistema de autenticação completo e funcional
+**Versao:** 2.0.0
+**Ultima atualizacao:** 2025-12-17
+**Status:** Sistema de autenticacao completo + Layout Super Admin com shadcn Sidebar

@@ -1,6 +1,80 @@
 @import 'tailwindcss';
 
-/* Tema escuro (PADRÃO - extraído do v1) */
+/* Tailwind CSS 4 Theme Configuration */
+@theme {
+  /* Base Colors */
+  --color-background: #0B0F14;
+  --color-card: #0F1720;
+  --color-surface: #0F1720;
+  --color-border: rgba(255, 255, 255, 0.06);
+  --color-border-emphasis: rgba(255, 255, 255, 0.12);
+
+  /* Text Colors */
+  --color-text-primary: #FFFFFF;
+  --color-text-secondary: #94A3B8;
+  --color-text-inverse: #0B0F14;
+
+  /* Primary */
+  --color-primary: #E2E8F0;
+  --color-primary-light: rgba(226, 232, 240, 0.8);
+  --color-primary-dark: #E2E8F0;
+  --color-primary-foreground: #0B0F14;
+
+  /* Secondary */
+  --color-secondary: #E2E8F0;
+  --color-secondary-light: rgba(226, 232, 240, 0.8);
+  --color-secondary-dark: #0F1720;
+  --color-secondary-foreground: #0B0F14;
+
+  /* Semantic Colors */
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-error: #EF4444;
+  --color-info: #3B82F6;
+
+  /* Focus Ring */
+  --color-ring: rgba(226, 232, 240, 0.3);
+
+  /* Sidebar Colors */
+  --color-sidebar: #0F1720;
+  --color-sidebar-foreground: #FFFFFF;
+  --color-sidebar-primary: #E2E8F0;
+  --color-sidebar-primary-foreground: #0B0F14;
+  --color-sidebar-accent: #0F1720;
+  --color-sidebar-accent-foreground: #FFFFFF;
+  --color-sidebar-border: rgba(255, 255, 255, 0.06);
+  --color-sidebar-ring: rgba(226, 232, 240, 0.3);
+
+  /* Muted */
+  --color-muted: #0F1720;
+  --color-muted-foreground: #94A3B8;
+
+  /* Accent */
+  --color-accent: #0F1720;
+  --color-accent-foreground: #FFFFFF;
+
+  /* Destructive */
+  --color-destructive: #EF4444;
+  --color-destructive-foreground: #FFFFFF;
+
+  /* Popover */
+  --color-popover: #0F1720;
+  --color-popover-foreground: #FFFFFF;
+
+  /* Input */
+  --color-input: rgba(255, 255, 255, 0.06);
+
+  /* Card Foreground */
+  --color-card-foreground: #FFFFFF;
+
+  /* Foreground */
+  --color-foreground: #FFFFFF;
+
+  /* Radius */
+  --radius: 0.625rem;
+}
+
+/* Tema escuro (PADRAO - extraido do v1) */
 :root {
   /* Opacidades de preto */
   --black: #000;
