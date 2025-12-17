@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import { Link } from 'react-router-dom'
 import {
   Shield,
   Clock,
@@ -20,6 +21,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
+import { Skeleton } from '@/components/ui/Skeleton'
 import {
   Select,
   SelectContent,
@@ -29,50 +31,110 @@ import {
 } from '@/components/ui/Select'
 import { cn } from '@/lib/utils'
 import { formatHashrate, formatNumber, formatRelativeTime } from '@/lib/formatters'
+import { supabase } from '@/lib/supabase/client'
+import { toast } from 'sonner'
 
-// Mock data - será substituído por dados reais do Supabase
-const mockSystemStats: {
+interface SystemStats {
   totalOrganizations: number
   totalUsers: number
   activeEndpoints: number
   systemHealth: 'healthy' | 'degraded' | 'critical'
   uptime: number
-} = {
-  totalOrganizations: 12,
-  totalUsers: 156,
-  activeEndpoints: 8,
-  systemHealth: 'healthy',
-  uptime: 99.87,
 }
 
-const mockCkpoolStats = {
-  hashrate1m: 1.23e15, // 1.23 PH/s
-  hashrate1h: 1.21e15,
-  hashrate1d: 1.18e15,
-  workersTotal: 245,
-  workersActive: 231,
-  workersIdle: 8,
-  workersOff: 6,
+interface PoolStats {
+  hashrate1m: number
+  hashrate1h: number
+  hashrate1d: number
+  workersTotal: number
+  workersActive: number
+  workersIdle: number
+  workersOff: number
+}
+
+const emptySystemStats: SystemStats = {
+  totalOrganizations: 0,
+  totalUsers: 0,
+  activeEndpoints: 0,
+  systemHealth: 'healthy',
+  uptime: 100,
+}
+
+const emptyPoolStats: PoolStats = {
+  hashrate1m: 0,
+  hashrate1h: 0,
+  hashrate1d: 0,
+  workersTotal: 0,
+  workersActive: 0,
+  workersIdle: 0,
+  workersOff: 0,
 }
 
 export default function SuperAdminDashboard() {
   const [period, setPeriod] = useState<'1h' | '6h' | '24h' | '7d'>('24h')
   const [isRefreshing, setIsRefreshing] = useState(false)
-  const [lastUpdate] = useState(new Date())
+  const [loading, setLoading] = useState(true)
+  const [lastUpdate, setLastUpdate] = useState(new Date())
+  const [systemStats, setSystemStats] = useState<SystemStats>(emptySystemStats)
+  const [poolStats, setPoolStats] = useState<PoolStats>(emptyPoolStats)
+
+  const loadData = useCallback(async () => {
+    try {
+      // Carregar contagens do banco
+      const [orgsResult, usersResult, endpointsResult, poolStatsResult] = await Promise.all([
+        supabase.from('organizations').select('id', { count: 'exact', head: true }),
+        supabase.from('users').select('id', { count: 'exact', head: true }),
+        supabase.from('endpoints').select('id', { count: 'exact', head: true }).eq('status', 'ativo'),
+        supabase.from('pool_stats').select('*').order('collected_at', { ascending: false }).limit(1),
+      ])
+
+      // Atualizar stats do sistema
+      setSystemStats({
+        totalOrganizations: orgsResult.count || 0,
+        totalUsers: usersResult.count || 0,
+        activeEndpoints: endpointsResult.count || 0,
+        systemHealth: 'healthy',
+        uptime: 100,
+      })
+
+      // Atualizar stats da pool (se houver dados)
+      if (poolStatsResult.data && poolStatsResult.data.length > 0) {
+        const stats = poolStatsResult.data[0]
+        setPoolStats({
+          hashrate1m: stats.hashrate_1m || 0,
+          hashrate1h: stats.hashrate_1h || 0,
+          hashrate1d: stats.hashrate_1d || 0,
+          workersTotal: stats.workers_total || 0,
+          workersActive: stats.workers_active || 0,
+          workersIdle: stats.workers_idle || 0,
+          workersOff: stats.workers_off || 0,
+        })
+      }
+
+      setLastUpdate(new Date())
+    } catch (error) {
+      console.error('Erro ao carregar dados:', error)
+      toast.error('Erro ao carregar dados do dashboard')
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    loadData()
+  }, [loadData])
 
   const handleRefresh = async () => {
     setIsRefreshing(true)
-    // Simular refresh
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    await loadData()
     setIsRefreshing(false)
+    toast.success('Dados atualizados')
   }
 
   // Calcular variação do hashrate
   const hashrateChange =
-    mockCkpoolStats.hashrate1h > 0
-      ? ((mockCkpoolStats.hashrate1m - mockCkpoolStats.hashrate1h) /
-          mockCkpoolStats.hashrate1h) *
-        100
+    poolStats.hashrate1h > 0
+      ? ((poolStats.hashrate1m - poolStats.hashrate1h) / poolStats.hashrate1h) * 100
       : 0
 
   return (
@@ -118,10 +180,18 @@ export default function SuperAdminDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold tabular-nums">
-              {mockSystemStats.totalOrganizations}
-            </div>
-            <p className="text-xs text-text-secondary mt-0.5">Ativas</p>
+            {loading ? (
+              <Skeleton className="h-8 w-12" />
+            ) : (
+              <>
+                <div className="text-2xl font-bold tabular-nums">
+                  {systemStats.totalOrganizations}
+                </div>
+                <p className="text-xs text-text-secondary mt-0.5">
+                  {systemStats.totalOrganizations === 0 ? 'Nenhuma' : 'Ativas'}
+                </p>
+              </>
+            )}
           </CardContent>
         </Card>
 
@@ -134,10 +204,18 @@ export default function SuperAdminDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold tabular-nums">
-              {mockSystemStats.totalUsers}
-            </div>
-            <p className="text-xs text-text-secondary mt-0.5">Cadastrados</p>
+            {loading ? (
+              <Skeleton className="h-8 w-12" />
+            ) : (
+              <>
+                <div className="text-2xl font-bold tabular-nums">
+                  {systemStats.totalUsers}
+                </div>
+                <p className="text-xs text-text-secondary mt-0.5">
+                  {systemStats.totalUsers === 0 ? 'Nenhum' : 'Cadastrados'}
+                </p>
+              </>
+            )}
           </CardContent>
         </Card>
 
@@ -149,34 +227,49 @@ export default function SuperAdminDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-lg font-bold tabular-nums truncate">
-              {formatHashrate(mockCkpoolStats.hashrate1m)}
-            </div>
-            <p className="text-xs text-text-secondary mt-0.5 truncate">
-              1h: {formatHashrate(mockCkpoolStats.hashrate1h)}
-            </p>
-            <div className="flex items-center gap-1 mt-2">
-              {Math.abs(hashrateChange) < 0.5 ? (
-                <>
-                  <Minus className="h-3 w-3 text-text-secondary" />
-                  <span className="text-xs text-text-secondary">Estável</span>
-                </>
-              ) : hashrateChange > 0 ? (
-                <>
-                  <TrendingUp className="h-3 w-3 text-success" />
-                  <span className="text-xs text-success">
-                    +{hashrateChange.toFixed(1)}%
-                  </span>
-                </>
-              ) : (
-                <>
-                  <TrendingDown className="h-3 w-3 text-error" />
-                  <span className="text-xs text-error">
-                    {hashrateChange.toFixed(1)}%
-                  </span>
-                </>
-              )}
-            </div>
+            {loading ? (
+              <Skeleton className="h-8 w-20" />
+            ) : poolStats.hashrate1m === 0 ? (
+              <>
+                <div className="text-lg font-bold tabular-nums text-text-secondary">
+                  --
+                </div>
+                <p className="text-xs text-text-secondary mt-0.5">
+                  Sem dados
+                </p>
+              </>
+            ) : (
+              <>
+                <div className="text-lg font-bold tabular-nums truncate">
+                  {formatHashrate(poolStats.hashrate1m)}
+                </div>
+                <p className="text-xs text-text-secondary mt-0.5 truncate">
+                  1h: {formatHashrate(poolStats.hashrate1h)}
+                </p>
+                <div className="flex items-center gap-1 mt-2">
+                  {Math.abs(hashrateChange) < 0.5 ? (
+                    <>
+                      <Minus className="h-3 w-3 text-text-secondary" />
+                      <span className="text-xs text-text-secondary">Estável</span>
+                    </>
+                  ) : hashrateChange > 0 ? (
+                    <>
+                      <TrendingUp className="h-3 w-3 text-success" />
+                      <span className="text-xs text-success">
+                        +{hashrateChange.toFixed(1)}%
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <TrendingDown className="h-3 w-3 text-error" />
+                      <span className="text-xs text-error">
+                        {hashrateChange.toFixed(1)}%
+                      </span>
+                    </>
+                  )}
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
 
@@ -188,27 +281,42 @@ export default function SuperAdminDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-lg font-bold tabular-nums truncate">
-              {formatNumber(mockCkpoolStats.workersActive)}/
-              {formatNumber(mockCkpoolStats.workersTotal)}
-            </div>
-            <p className="text-xs text-text-secondary mt-0.5 truncate">
-              Idle: {formatNumber(mockCkpoolStats.workersIdle)}
-            </p>
-            <div className="flex items-center gap-2 mt-2">
-              <div className="flex items-center gap-1">
-                <div className="w-2 h-2 rounded-full bg-success" />
-                <span className="text-xs">{mockCkpoolStats.workersActive}</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <div className="w-2 h-2 rounded-full bg-warning" />
-                <span className="text-xs">{mockCkpoolStats.workersIdle}</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <div className="w-2 h-2 rounded-full bg-text-secondary" />
-                <span className="text-xs">{mockCkpoolStats.workersOff}</span>
-              </div>
-            </div>
+            {loading ? (
+              <Skeleton className="h-8 w-16" />
+            ) : poolStats.workersTotal === 0 ? (
+              <>
+                <div className="text-lg font-bold tabular-nums text-text-secondary">
+                  --
+                </div>
+                <p className="text-xs text-text-secondary mt-0.5">
+                  Sem workers
+                </p>
+              </>
+            ) : (
+              <>
+                <div className="text-lg font-bold tabular-nums truncate">
+                  {formatNumber(poolStats.workersActive)}/
+                  {formatNumber(poolStats.workersTotal)}
+                </div>
+                <p className="text-xs text-text-secondary mt-0.5 truncate">
+                  Idle: {formatNumber(poolStats.workersIdle)}
+                </p>
+                <div className="flex items-center gap-2 mt-2">
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 rounded-full bg-success" />
+                    <span className="text-xs">{poolStats.workersActive}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 rounded-full bg-warning" />
+                    <span className="text-xs">{poolStats.workersIdle}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 rounded-full bg-text-secondary" />
+                    <span className="text-xs">{poolStats.workersOff}</span>
+                  </div>
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
 
@@ -221,14 +329,27 @@ export default function SuperAdminDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold tabular-nums text-success">
-              {mockSystemStats.activeEndpoints}
-            </div>
-            <p className="text-xs text-text-secondary mt-0.5">Configurados</p>
-            <div className="flex items-center gap-1 mt-1.5">
-              <CheckCircle className="h-3 w-3 text-success" />
-              <span className="text-xs text-success">Ativos</span>
-            </div>
+            {loading ? (
+              <Skeleton className="h-8 w-8" />
+            ) : (
+              <>
+                <div className={cn(
+                  "text-2xl font-bold tabular-nums",
+                  systemStats.activeEndpoints > 0 ? "text-success" : "text-text-secondary"
+                )}>
+                  {systemStats.activeEndpoints}
+                </div>
+                <p className="text-xs text-text-secondary mt-0.5">
+                  {systemStats.activeEndpoints === 0 ? 'Nenhum' : 'Configurados'}
+                </p>
+                {systemStats.activeEndpoints > 0 && (
+                  <div className="flex items-center gap-1 mt-1.5">
+                    <CheckCircle className="h-3 w-3 text-success" />
+                    <span className="text-xs text-success">Ativos</span>
+                  </div>
+                )}
+              </>
+            )}
           </CardContent>
         </Card>
 
@@ -241,39 +362,45 @@ export default function SuperAdminDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div
-              className={cn(
-                'text-2xl font-bold tabular-nums',
-                mockSystemStats.uptime >= 99
-                  ? 'text-success'
-                  : mockSystemStats.uptime >= 95
-                    ? 'text-warning'
-                    : 'text-error'
-              )}
-            >
-              {mockSystemStats.uptime.toFixed(2)}%
-            </div>
-            <p className="text-xs text-text-secondary mt-0.5">Uptime</p>
-            <div className="flex items-center gap-1 mt-2">
-              {mockSystemStats.systemHealth === 'healthy' && (
-                <>
-                  <CheckCircle className="h-3 w-3 text-success" />
-                  <span className="text-xs text-success">Saudável</span>
-                </>
-              )}
-              {mockSystemStats.systemHealth === 'degraded' && (
-                <>
-                  <AlertTriangle className="h-3 w-3 text-warning" />
-                  <span className="text-xs text-warning">Degradado</span>
-                </>
-              )}
-              {mockSystemStats.systemHealth === 'critical' && (
-                <>
-                  <XCircle className="h-3 w-3 text-error" />
-                  <span className="text-xs text-error">Crítico</span>
-                </>
-              )}
-            </div>
+            {loading ? (
+              <Skeleton className="h-8 w-16" />
+            ) : (
+              <>
+                <div
+                  className={cn(
+                    'text-2xl font-bold tabular-nums',
+                    systemStats.uptime >= 99
+                      ? 'text-success'
+                      : systemStats.uptime >= 95
+                        ? 'text-warning'
+                        : 'text-error'
+                  )}
+                >
+                  {systemStats.uptime.toFixed(2)}%
+                </div>
+                <p className="text-xs text-text-secondary mt-0.5">Uptime</p>
+                <div className="flex items-center gap-1 mt-2">
+                  {systemStats.systemHealth === 'healthy' && (
+                    <>
+                      <CheckCircle className="h-3 w-3 text-success" />
+                      <span className="text-xs text-success">Saudável</span>
+                    </>
+                  )}
+                  {systemStats.systemHealth === 'degraded' && (
+                    <>
+                      <AlertTriangle className="h-3 w-3 text-warning" />
+                      <span className="text-xs text-warning">Degradado</span>
+                    </>
+                  )}
+                  {systemStats.systemHealth === 'critical' && (
+                    <>
+                      <XCircle className="h-3 w-3 text-error" />
+                      <span className="text-xs text-error">Crítico</span>
+                    </>
+                  )}
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -308,8 +435,8 @@ export default function SuperAdminDashboard() {
           <div className="h-[300px] flex items-center justify-center text-text-secondary">
             <div className="text-center">
               <BarChart3 className="h-12 w-12 mx-auto mb-2 opacity-50" />
-              <p>Gráfico será implementado com Recharts</p>
-              <p className="text-xs mt-1">Período selecionado: {period}</p>
+              <p>Sem dados de hashrate</p>
+              <p className="text-xs mt-1">Configure pools e workers para visualizar métricas</p>
             </div>
           </div>
         </CardContent>
@@ -317,61 +444,69 @@ export default function SuperAdminDashboard() {
 
       {/* Ações Rápidas */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="cursor-pointer hover:shadow-md transition-shadow">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <UserCheck className="h-4 w-4 text-primary" />
-              Gerenciar Usuários
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-xs text-text-secondary">
-              Criar admins, editar permissões e gerenciar acessos
-            </p>
-          </CardContent>
-        </Card>
+        <Link to="/super-admin/users">
+          <Card className="cursor-pointer hover:shadow-md transition-shadow h-full">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <UserCheck className="h-4 w-4 text-primary" />
+                Gerenciar Usuários
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-xs text-text-secondary">
+                Criar admins, editar permissões e gerenciar acessos
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
 
-        <Card className="cursor-pointer hover:shadow-md transition-shadow">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Settings className="h-4 w-4 text-primary" />
-              Configurações
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-xs text-text-secondary">
-              Ajustar parâmetros do sistema e integrações
-            </p>
-          </CardContent>
-        </Card>
+        <Link to="/super-admin/organizations">
+          <Card className="cursor-pointer hover:shadow-md transition-shadow h-full">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Settings className="h-4 w-4 text-primary" />
+                Organizações
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-xs text-text-secondary">
+                Gerenciar organizações e suas configurações
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
 
-        <Card className="cursor-pointer hover:shadow-md transition-shadow">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Shield className="h-4 w-4 text-success" />
-              Auditoria
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-xs text-text-secondary">
-              Ver logs de ações e monitorar segurança
-            </p>
-          </CardContent>
-        </Card>
+        <Link to="/super-admin/audit">
+          <Card className="cursor-pointer hover:shadow-md transition-shadow h-full">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Shield className="h-4 w-4 text-success" />
+                Auditoria
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-xs text-text-secondary">
+                Ver logs de ações e monitorar segurança
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
 
-        <Card className="cursor-pointer hover:shadow-md transition-shadow">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Database className="h-4 w-4 text-warning" />
-              Sistema
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-xs text-text-secondary">
-              Monitorar endpoints, hardware e webhooks
-            </p>
-          </CardContent>
-        </Card>
+        <Link to="/super-admin/endpoints">
+          <Card className="cursor-pointer hover:shadow-md transition-shadow h-full">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Database className="h-4 w-4 text-warning" />
+                Sistema
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-xs text-text-secondary">
+                Monitorar endpoints, hardware e webhooks
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
       </div>
     </div>
   )

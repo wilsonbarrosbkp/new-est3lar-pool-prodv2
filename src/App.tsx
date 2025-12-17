@@ -6,6 +6,7 @@ import ResetPasswordPage from '@/pages/ResetPassword'
 import { SuperAdminLayout } from '@/components/layout/SuperAdminLayout'
 import SuperAdminDashboard from '@/pages/super-admin/index'
 import OrganizationsPage from '@/pages/super-admin/Organizations'
+import UsersPage from '@/pages/super-admin/Users'
 
 // Placeholder para páginas ainda não implementadas
 function PlaceholderPage({ title }: { title: string }) {
@@ -76,7 +77,7 @@ function App() {
         <Route path="/super-admin" element={<SuperAdminLayout />}>
           <Route index element={<SuperAdminDashboard />} />
           <Route path="organizations" element={<OrganizationsPage />} />
-          <Route path="users" element={<PlaceholderPage title="Usuários" />} />
+          <Route path="users" element={<UsersPage />} />
           <Route path="permissions" element={<PlaceholderPage title="Permissões" />} />
           <Route path="currencies" element={<PlaceholderPage title="Moedas" />} />
           <Route path="pools" element={<PlaceholderPage title="Pools" />} />

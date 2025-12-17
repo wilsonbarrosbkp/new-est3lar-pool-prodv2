@@ -1,0 +1,635 @@
+import { useState, useEffect, useCallback } from 'react'
+import {
+  Wallet,
+  Plus,
+  MoreHorizontal,
+  Search,
+  Star,
+  Copy,
+  Check,
+} from 'lucide-react'
+import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
+import { Label } from '@/components/ui/Label'
+import { Badge } from '@/components/ui/Badge'
+import { Card, CardContent } from '@/components/ui/Card'
+import { Skeleton } from '@/components/ui/Skeleton'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/Table'
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/Sheet'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/DropdownMenu'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/Select'
+import { toast } from 'sonner'
+import { supabase } from '@/lib/supabase/client'
+
+interface WalletData {
+  id: number
+  address: string
+  label: string
+  organization_id: number
+  organization_name?: string
+  currency_id: number
+  currency_symbol?: string
+  currency_name?: string
+  is_primary: boolean
+  is_active: boolean
+  created_at: string
+}
+
+interface Organization {
+  id: number
+  name: string
+}
+
+interface Currency {
+  id: number
+  name: string
+  symbol: string
+  type: string
+}
+
+type FormData = {
+  address: string
+  label: string
+  organization_id: number | null
+  currency_id: number | null
+  is_primary: boolean
+  is_active: boolean
+}
+
+const initialFormData: FormData = {
+  address: '',
+  label: '',
+  organization_id: null,
+  currency_id: null,
+  is_primary: false,
+  is_active: true,
+}
+
+export default function WalletsPage() {
+  const [wallets, setWallets] = useState<WalletData[]>([])
+  const [organizations, setOrganizations] = useState<Organization[]>([])
+  const [currencies, setCurrencies] = useState<Currency[]>([])
+  const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState('')
+  const [filterOrg, setFilterOrg] = useState<string>('all')
+  const [filterCurrency, setFilterCurrency] = useState<string>('all')
+  const [sheetOpen, setSheetOpen] = useState(false)
+  const [editingWallet, setEditingWallet] = useState<WalletData | null>(null)
+  const [formData, setFormData] = useState(initialFormData)
+  const [saving, setSaving] = useState(false)
+  const [copiedId, setCopiedId] = useState<number | null>(null)
+
+  const loadData = useCallback(async () => {
+    setLoading(true)
+    try {
+      const [walletsResult, orgsResult, currenciesResult] = await Promise.all([
+        supabase
+          .from('wallets')
+          .select(`
+            *,
+            organizations(name),
+            currencies(symbol, name)
+          `)
+          .order('is_primary', { ascending: false })
+          .order('label'),
+        supabase.from('organizations').select('id, name').eq('status', 'ativo').order('name'),
+        supabase.from('currencies').select('id, name, symbol, type').eq('is_active', true).order('type, name'),
+      ])
+
+      if (walletsResult.error) throw walletsResult.error
+      if (orgsResult.error) throw orgsResult.error
+      if (currenciesResult.error) throw currenciesResult.error
+
+      const walletsWithDetails = (walletsResult.data || []).map((wallet: any) => ({
+        ...wallet,
+        organization_name: wallet.organizations?.name,
+        currency_symbol: wallet.currencies?.symbol,
+        currency_name: wallet.currencies?.name,
+      }))
+
+      setWallets(walletsWithDetails)
+      setOrganizations(orgsResult.data || [])
+      setCurrencies(currenciesResult.data || [])
+    } catch (error) {
+      console.error('Erro ao carregar dados:', error)
+      toast.error('Erro ao carregar dados')
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    loadData()
+  }, [loadData])
+
+  const filteredWallets = wallets.filter(wallet => {
+    const matchesSearch =
+      wallet.label.toLowerCase().includes(search.toLowerCase()) ||
+      wallet.address.toLowerCase().includes(search.toLowerCase()) ||
+      wallet.organization_name?.toLowerCase().includes(search.toLowerCase())
+    const matchesOrg = filterOrg === 'all' || wallet.organization_id.toString() === filterOrg
+    const matchesCurrency = filterCurrency === 'all' || wallet.currency_id.toString() === filterCurrency
+    return matchesSearch && matchesOrg && matchesCurrency
+  })
+
+  const handleCopyAddress = async (wallet: WalletData) => {
+    try {
+      await navigator.clipboard.writeText(wallet.address)
+      setCopiedId(wallet.id)
+      setTimeout(() => setCopiedId(null), 2000)
+      toast.success('Endereço copiado!')
+    } catch {
+      toast.error('Erro ao copiar endereço')
+    }
+  }
+
+  const handleOpenCreate = () => {
+    setEditingWallet(null)
+    setFormData(initialFormData)
+    setSheetOpen(true)
+  }
+
+  const handleOpenEdit = (wallet: WalletData) => {
+    setEditingWallet(wallet)
+    setFormData({
+      address: wallet.address,
+      label: wallet.label,
+      organization_id: wallet.organization_id,
+      currency_id: wallet.currency_id,
+      is_primary: wallet.is_primary,
+      is_active: wallet.is_active,
+    })
+    setSheetOpen(true)
+  }
+
+  const handleCloseSheet = () => {
+    setSheetOpen(false)
+    setEditingWallet(null)
+    setFormData(initialFormData)
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!formData.address.trim() || !formData.label.trim()) {
+      toast.error('Endereço e label são obrigatórios')
+      return
+    }
+
+    if (!formData.organization_id || !formData.currency_id) {
+      toast.error('Organização e moeda são obrigatórios')
+      return
+    }
+
+    setSaving(true)
+
+    try {
+      // Se está marcando como principal, remover flag das outras carteiras
+      if (formData.is_primary) {
+        await supabase
+          .from('wallets')
+          .update({ is_primary: false })
+          .eq('organization_id', formData.organization_id)
+          .eq('currency_id', formData.currency_id)
+      }
+
+      const walletData = {
+        address: formData.address,
+        label: formData.label,
+        organization_id: formData.organization_id,
+        currency_id: formData.currency_id,
+        is_primary: formData.is_primary,
+        is_active: formData.is_active,
+      }
+
+      if (editingWallet) {
+        const { error } = await supabase
+          .from('wallets')
+          .update(walletData)
+          .eq('id', editingWallet.id)
+
+        if (error) throw error
+        toast.success('Carteira atualizada com sucesso!')
+      } else {
+        const { error } = await supabase
+          .from('wallets')
+          .insert(walletData)
+
+        if (error) throw error
+        toast.success('Carteira criada com sucesso!')
+      }
+
+      handleCloseSheet()
+      loadData()
+    } catch (error) {
+      console.error('Erro ao salvar carteira:', error)
+      toast.error('Erro ao salvar carteira')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleDelete = async (wallet: WalletData) => {
+    if (!confirm(`Tem certeza que deseja excluir "${wallet.label}"?`)) {
+      return
+    }
+
+    try {
+      const { error } = await supabase
+        .from('wallets')
+        .delete()
+        .eq('id', wallet.id)
+
+      if (error) throw error
+
+      toast.success('Carteira excluída com sucesso!')
+      loadData()
+    } catch (error) {
+      console.error('Erro ao excluir carteira:', error)
+      toast.error('Erro ao excluir carteira')
+    }
+  }
+
+  const toggleActive = async (wallet: WalletData) => {
+    try {
+      const { error } = await supabase
+        .from('wallets')
+        .update({ is_active: !wallet.is_active })
+        .eq('id', wallet.id)
+
+      if (error) throw error
+      loadData()
+    } catch (error) {
+      console.error('Erro ao atualizar carteira:', error)
+      toast.error('Erro ao atualizar carteira')
+    }
+  }
+
+  const setPrimary = async (wallet: WalletData) => {
+    try {
+      // Remover flag das outras
+      await supabase
+        .from('wallets')
+        .update({ is_primary: false })
+        .eq('organization_id', wallet.organization_id)
+        .eq('currency_id', wallet.currency_id)
+
+      // Marcar esta como principal
+      const { error } = await supabase
+        .from('wallets')
+        .update({ is_primary: true })
+        .eq('id', wallet.id)
+
+      if (error) throw error
+      toast.success('Carteira definida como principal!')
+      loadData()
+    } catch (error) {
+      console.error('Erro ao definir carteira principal:', error)
+      toast.error('Erro ao definir carteira principal')
+    }
+  }
+
+  const formatAddress = (address: string) => {
+    if (address.length <= 20) return address
+    return `${address.slice(0, 10)}...${address.slice(-8)}`
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex flex-1 gap-4 flex-wrap">
+          <div className="relative flex-1 min-w-[200px] max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-secondary" />
+            <Input
+              placeholder="Buscar carteiras..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <Select value={filterOrg} onValueChange={setFilterOrg}>
+            <SelectTrigger className="w-[160px]">
+              <SelectValue placeholder="Organização" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas Orgs</SelectItem>
+              {organizations.map((org) => (
+                <SelectItem key={org.id} value={org.id.toString()}>
+                  {org.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={filterCurrency} onValueChange={setFilterCurrency}>
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder="Moeda" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas</SelectItem>
+              {currencies.map((currency) => (
+                <SelectItem key={currency.id} value={currency.id.toString()}>
+                  {currency.symbol}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <Button size="sm" onClick={handleOpenCreate}>
+          <Plus className="h-4 w-4 mr-2" />
+          Nova Carteira
+        </Button>
+      </div>
+
+      {/* Tabela */}
+      <Card>
+        <CardContent className="p-0">
+          {loading ? (
+            <div className="p-6 space-y-4">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Skeleton key={i} className="h-12 w-full" />
+              ))}
+            </div>
+          ) : filteredWallets.length === 0 ? (
+            <div className="text-center py-12">
+              <Wallet className="mx-auto h-12 w-12 text-text-secondary mb-4" />
+              <p className="text-text-secondary">
+                {search || filterOrg !== 'all' || filterCurrency !== 'all'
+                  ? 'Nenhuma carteira encontrada'
+                  : 'Nenhuma carteira cadastrada'}
+              </p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Carteira</TableHead>
+                  <TableHead>Organização</TableHead>
+                  <TableHead>Moeda</TableHead>
+                  <TableHead>Endereço</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="w-12">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredWallets.map((wallet) => (
+                  <TableRow key={wallet.id} className={!wallet.is_active ? 'opacity-60' : ''}>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <div className={`h-10 w-10 ${wallet.is_primary ? 'bg-warning/10 text-warning' : 'bg-primary/10 text-primary'} rounded-full flex items-center justify-center`}>
+                          {wallet.is_primary ? (
+                            <Star className="h-5 w-5 fill-current" />
+                          ) : (
+                            <Wallet className="h-5 w-5" />
+                          )}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium">{wallet.label}</p>
+                            {wallet.is_primary && (
+                              <Badge variant="warning" className="text-xs">Principal</Badge>
+                            )}
+                          </div>
+                          <p className="text-xs text-text-secondary">{wallet.currency_name}</p>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>{wallet.organization_name}</TableCell>
+                    <TableCell>
+                      <Badge variant={wallet.currency_symbol === 'BTC' ? 'warning' : 'secondary'}>
+                        {wallet.currency_symbol}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <code className="text-xs bg-surface px-2 py-1 rounded">
+                          {formatAddress(wallet.address)}
+                        </code>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0"
+                          onClick={() => handleCopyAddress(wallet)}
+                        >
+                          {copiedId === wallet.id ? (
+                            <Check className="h-3 w-3 text-success" />
+                          ) : (
+                            <Copy className="h-3 w-3" />
+                          )}
+                        </Button>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={wallet.is_active ? 'success' : 'secondary'}
+                        className="cursor-pointer"
+                        onClick={() => toggleActive(wallet)}
+                      >
+                        {wallet.is_active ? 'Ativa' : 'Inativa'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleOpenEdit(wallet)}>
+                            Editar
+                          </DropdownMenuItem>
+                          {!wallet.is_primary && (
+                            <DropdownMenuItem onClick={() => setPrimary(wallet)}>
+                              Definir como principal
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            className="text-error"
+                            onClick={() => handleDelete(wallet)}
+                          >
+                            Excluir
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Resumo */}
+      <div className="text-sm text-text-secondary">
+        {filteredWallets.length} carteira(s) | {filteredWallets.filter(w => w.is_primary).length} principal(is) | {filteredWallets.filter(w => w.is_active).length} ativa(s)
+      </div>
+
+      {/* Sheet de criação/edição */}
+      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+        <SheetContent side="right" className="sm:max-w-md">
+          <SheetHeader>
+            <SheetTitle>
+              {editingWallet ? 'Editar Carteira' : 'Nova Carteira'}
+            </SheetTitle>
+            <SheetDescription>
+              {editingWallet
+                ? 'Altere as informações da carteira abaixo.'
+                : 'Preencha as informações para criar uma nova carteira.'}
+            </SheetDescription>
+          </SheetHeader>
+
+          <form onSubmit={handleSubmit} className="space-y-4 mt-6">
+            <div className="space-y-2">
+              <Label htmlFor="label">Label *</Label>
+              <Input
+                id="label"
+                value={formData.label}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, label: e.target.value }))
+                }
+                placeholder="Ex: Carteira Principal BTC"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="address">Endereço *</Label>
+              <Input
+                id="address"
+                value={formData.address}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, address: e.target.value }))
+                }
+                placeholder="Ex: bc1q..."
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="organization_id">Organização *</Label>
+              <Select
+                value={formData.organization_id?.toString() || ''}
+                onValueChange={(value) =>
+                  setFormData((prev) => ({ ...prev, organization_id: Number(value) }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione uma organização" />
+                </SelectTrigger>
+                <SelectContent>
+                  {organizations.map((org) => (
+                    <SelectItem key={org.id} value={org.id.toString()}>
+                      {org.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="currency_id">Moeda *</Label>
+              <Select
+                value={formData.currency_id?.toString() || ''}
+                onValueChange={(value) =>
+                  setFormData((prev) => ({ ...prev, currency_id: Number(value) }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione uma moeda" />
+                </SelectTrigger>
+                <SelectContent>
+                  {currencies.map((currency) => (
+                    <SelectItem key={currency.id} value={currency.id.toString()}>
+                      {currency.symbol} - {currency.name} ({currency.type})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="is_primary">Principal?</Label>
+                <Select
+                  value={formData.is_primary ? 'true' : 'false'}
+                  onValueChange={(value) =>
+                    setFormData((prev) => ({ ...prev, is_primary: value === 'true' }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="true">Sim</SelectItem>
+                    <SelectItem value="false">Não</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="is_active">Status</Label>
+                <Select
+                  value={formData.is_active ? 'true' : 'false'}
+                  onValueChange={(value) =>
+                    setFormData((prev) => ({ ...prev, is_active: value === 'true' }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="true">Ativa</SelectItem>
+                    <SelectItem value="false">Inativa</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <SheetFooter className="gap-2 sm:gap-0 mt-6">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCloseSheet}
+                disabled={saving}
+              >
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={saving}>
+                {saving ? 'Salvando...' : editingWallet ? 'Atualizar' : 'Criar'}
+              </Button>
+            </SheetFooter>
+          </form>
+        </SheetContent>
+      </Sheet>
+    </div>
+  )
+}

@@ -53,16 +53,17 @@ export interface UpdateOrganizationInput extends Partial<CreateOrganizationInput
 // ============================================
 
 export interface User {
-  id: number
+  id: string // UUID
+  auth_user_id: string // UUID - FK para auth.users
   name: string
   email: string
   phone?: string
   avatar_url?: string
-  organization_id: number
-  organization_name: string
+  organization_id?: number
+  organization_name?: string
   role_id: number
   role_name: string
-  role_type_id?: number
+  role_level: number
   role_badge_color?: string
   status: 'ativo' | 'inativo'
   created_at: string
@@ -72,15 +73,23 @@ export interface User {
 export interface CreateUserInput {
   name: string
   email: string
+  password: string // Necessário para criar o usuário no auth.users
   phone?: string
   avatar_url?: string
-  organization_id: number
+  organization_id?: number
   role_id: number
   status?: 'ativo' | 'inativo'
 }
 
-export interface UpdateUserInput extends Partial<CreateUserInput> {
-  id: number
+export interface UpdateUserInput {
+  id: string // UUID
+  name?: string
+  email?: string
+  phone?: string
+  avatar_url?: string
+  organization_id?: number
+  role_id?: number
+  status?: 'ativo' | 'inativo'
 }
 
 // ============================================

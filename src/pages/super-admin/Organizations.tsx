@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import {
   Building2,
   Plus,
@@ -50,70 +50,7 @@ import {
 import { toast } from 'sonner'
 import { formatDate, formatCNPJ } from '@/lib/formatters'
 import type { Organization } from '@/types/super-admin'
-
-// Mock data - será substituído por dados do Supabase
-const mockOrganizations: Organization[] = [
-  {
-    id: 1,
-    name: 'Est3lar Mining Corp',
-    cnpj: '12345678000199',
-    email: 'contato@est3lar.com',
-    phone: '85999999999',
-    city: 'Fortaleza',
-    state: 'CE',
-    status: 'ativo',
-    created_at: '2024-01-15T10:00:00Z',
-    users_count: 45,
-  },
-  {
-    id: 2,
-    name: 'Bitcoin Brasil Ltda',
-    cnpj: '98765432000188',
-    email: 'contato@bitcoinbrasil.com',
-    phone: '11988888888',
-    city: 'São Paulo',
-    state: 'SP',
-    status: 'ativo',
-    created_at: '2024-02-20T14:30:00Z',
-    users_count: 32,
-  },
-  {
-    id: 3,
-    name: 'Crypto Mining Solutions',
-    cnpj: '11222333000144',
-    email: 'info@cryptomining.com',
-    phone: '21977777777',
-    city: 'Rio de Janeiro',
-    state: 'RJ',
-    status: 'inativo',
-    created_at: '2024-03-10T09:15:00Z',
-    users_count: 18,
-  },
-  {
-    id: 4,
-    name: 'HashPower Brasil',
-    cnpj: '44555666000122',
-    email: 'suporte@hashpower.com.br',
-    phone: '31966666666',
-    city: 'Belo Horizonte',
-    state: 'MG',
-    status: 'ativo',
-    created_at: '2024-04-05T16:45:00Z',
-    users_count: 27,
-  },
-  {
-    id: 5,
-    name: 'Mineração Digital SA',
-    cnpj: '77888999000155',
-    email: 'contato@mineracaodigital.com',
-    phone: '41955555555',
-    city: 'Curitiba',
-    state: 'PR',
-    status: 'ativo',
-    created_at: '2024-05-12T11:20:00Z',
-    users_count: 53,
-  },
-]
+import { supabase } from '@/lib/supabase/client'
 
 type SortConfig = {
   key: keyof Organization
@@ -145,14 +82,60 @@ const initialFormData: FormData = {
 }
 
 export default function OrganizationsPage() {
-  const [organizations, setOrganizations] = useState<Organization[]>(mockOrganizations)
-  const [loading] = useState(false)
+  const [organizations, setOrganizations] = useState<Organization[]>([])
+  const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [sortConfig, setSortConfig] = useState<SortConfig>(null)
   const [sheetOpen, setSheetOpen] = useState(false)
   const [editingOrg, setEditingOrg] = useState<Organization | null>(null)
   const [formData, setFormData] = useState(initialFormData)
   const [saving, setSaving] = useState(false)
+
+  // Carregar dados do Supabase
+  const loadData = useCallback(async () => {
+    setLoading(true)
+    try {
+      // Buscar organizações com contagem de usuários
+      const { data: orgsData, error: orgsError } = await supabase
+        .from('organizations')
+        .select('*')
+        .order('created_at', { ascending: false })
+
+      if (orgsError) throw orgsError
+
+      // Buscar contagem de usuários por organização
+      const { data: userCounts, error: countError } = await supabase
+        .from('users')
+        .select('organization_id')
+
+      if (countError) throw countError
+
+      // Mapear contagem de usuários
+      const countMap = userCounts?.reduce((acc, user) => {
+        if (user.organization_id) {
+          acc[user.organization_id] = (acc[user.organization_id] || 0) + 1
+        }
+        return acc
+      }, {} as Record<number, number>) || {}
+
+      // Combinar dados
+      const orgsWithCount = orgsData?.map(org => ({
+        ...org,
+        users_count: countMap[org.id] || 0
+      })) || []
+
+      setOrganizations(orgsWithCount)
+    } catch (error) {
+      console.error('Erro ao carregar organizações:', error)
+      toast.error('Erro ao carregar organizações')
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    loadData()
+  }, [loadData])
 
   // Filtrar e ordenar organizações
   const filteredAndSortedOrgs = useMemo(() => {
@@ -258,33 +241,54 @@ export default function OrganizationsPage() {
 
     setSaving(true)
 
-    // Simular delay de API
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    try {
+      if (editingOrg) {
+        // Atualizar organização existente
+        const { error } = await supabase
+          .from('organizations')
+          .update({
+            name: formData.name,
+            cnpj: formData.cnpj || null,
+            email: formData.email || null,
+            phone: formData.phone || null,
+            address: formData.address || null,
+            city: formData.city || null,
+            state: formData.state || null,
+            zip_code: formData.zip_code || null,
+            status: formData.status,
+          })
+          .eq('id', editingOrg.id)
 
-    if (editingOrg) {
-      // Atualizar organização existente
-      setOrganizations((prev) =>
-        prev.map((org) =>
-          org.id === editingOrg.id
-            ? { ...org, ...formData, updated_at: new Date().toISOString() }
-            : org
-        )
-      )
-      toast.success('Organização atualizada com sucesso!')
-    } else {
-      // Criar nova organização
-      const newOrg: Organization = {
-        id: Math.max(...organizations.map((o) => o.id)) + 1,
-        ...formData,
-        created_at: new Date().toISOString(),
-        users_count: 0,
+        if (error) throw error
+        toast.success('Organização atualizada com sucesso!')
+      } else {
+        // Criar nova organização
+        const { error } = await supabase
+          .from('organizations')
+          .insert({
+            name: formData.name,
+            cnpj: formData.cnpj || null,
+            email: formData.email || null,
+            phone: formData.phone || null,
+            address: formData.address || null,
+            city: formData.city || null,
+            state: formData.state || null,
+            zip_code: formData.zip_code || null,
+            status: formData.status,
+          })
+
+        if (error) throw error
+        toast.success('Organização criada com sucesso!')
       }
-      setOrganizations((prev) => [newOrg, ...prev])
-      toast.success('Organização criada com sucesso!')
-    }
 
-    setSaving(false)
-    handleCloseSheet()
+      handleCloseSheet()
+      loadData() // Recarregar dados
+    } catch (error) {
+      console.error('Erro ao salvar organização:', error)
+      toast.error('Erro ao salvar organização')
+    } finally {
+      setSaving(false)
+    }
   }
 
   const handleDelete = async (org: Organization) => {
@@ -292,9 +296,20 @@ export default function OrganizationsPage() {
       return
     }
 
-    // Simular delete
-    setOrganizations((prev) => prev.filter((o) => o.id !== org.id))
-    toast.success('Organização excluída com sucesso!')
+    try {
+      const { error } = await supabase
+        .from('organizations')
+        .delete()
+        .eq('id', org.id)
+
+      if (error) throw error
+
+      toast.success('Organização excluída com sucesso!')
+      loadData()
+    } catch (error) {
+      console.error('Erro ao excluir organização:', error)
+      toast.error('Erro ao excluir organização')
+    }
   }
 
   const handleExport = () => {
