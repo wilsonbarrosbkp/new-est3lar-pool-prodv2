@@ -27,6 +27,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/Sidebar'
+import { gradients, shadows, borders } from '@/design-system'
 
 const iconMap: Record<string, LucideIcon> = {
   LayoutDashboard,
@@ -101,7 +102,7 @@ export function NavMain({ items }: { items: NavItem[] }) {
                     ? {
                         children: item.title,
                         className:
-                          'bg-gradient-to-r from-[#C26ECB] via-[#3352AB] to-[#6CC997] text-white border border-black/25 shadow-[0_1px_0_0_rgba(0,0,0,0.25)] [&>*:last-child]:hidden',
+                          `bg-gradient-to-r ${gradients.brand} text-white ${borders.dark} shadow-[${shadows.button}] [&>*:last-child]:hidden`,
                       }
                     : item.title
                 }

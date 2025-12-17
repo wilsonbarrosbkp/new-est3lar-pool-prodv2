@@ -1,41 +1,84 @@
 @import 'tailwindcss';
 
-/* Tailwind CSS 4 Theme Configuration */
-@theme {
-  /* Base Colors */
-  --color-background: #0B0F14;
-  --color-card: #0F1720;
-  --color-surface: #0F1720;
-  --color-border: rgba(255, 255, 255, 0.06);
-  --color-border-emphasis: rgba(255, 255, 255, 0.12);
+/* =============================================================================
+   DESIGN SYSTEM - Est3lar Pool v2
+   Tailwind CSS 4 Theme Configuration
 
-  /* Text Colors */
+   IMPORTANTE: Este e o UNICO local para definir cores e tokens.
+   Nao duplicar em :root ou tailwind.config.js
+   ============================================================================= */
+
+@theme {
+  /* ---------------------------------------------------------------------------
+     BASE COLORS
+     --------------------------------------------------------------------------- */
+  --color-background: #0B0F14;
+  --color-foreground: #FFFFFF;
+
+  --color-card: #0F1720;
+  --color-card-foreground: #FFFFFF;
+
+  --color-surface: #0F1720;
+
+  --color-popover: #0F1720;
+  --color-popover-foreground: #FFFFFF;
+
+  /* ---------------------------------------------------------------------------
+     TEXT COLORS
+     --------------------------------------------------------------------------- */
   --color-text-primary: #FFFFFF;
   --color-text-secondary: #94A3B8;
   --color-text-inverse: #0B0F14;
 
-  /* Primary */
+  /* ---------------------------------------------------------------------------
+     PRIMARY - Neutral blue-tinted (botoes, links)
+     --------------------------------------------------------------------------- */
   --color-primary: #E2E8F0;
-  --color-primary-light: rgba(226, 232, 240, 0.8);
-  --color-primary-dark: #E2E8F0;
   --color-primary-foreground: #0B0F14;
 
-  /* Secondary */
-  --color-secondary: #E2E8F0;
-  --color-secondary-light: rgba(226, 232, 240, 0.8);
-  --color-secondary-dark: #0F1720;
-  --color-secondary-foreground: #0B0F14;
+  /* ---------------------------------------------------------------------------
+     SECONDARY
+     --------------------------------------------------------------------------- */
+  --color-secondary: #0F1720;
+  --color-secondary-foreground: #FFFFFF;
 
-  /* Semantic Colors */
+  /* ---------------------------------------------------------------------------
+     MUTED - Textos e fundos sutis
+     --------------------------------------------------------------------------- */
+  --color-muted: #0F1720;
+  --color-muted-foreground: #94A3B8;
+
+  /* ---------------------------------------------------------------------------
+     ACCENT - Hover states
+     --------------------------------------------------------------------------- */
+  --color-accent: #0F1720;
+  --color-accent-foreground: #FFFFFF;
+
+  /* ---------------------------------------------------------------------------
+     DESTRUCTIVE - Acoes perigosas
+     --------------------------------------------------------------------------- */
+  --color-destructive: #EF4444;
+  --color-destructive-foreground: #FFFFFF;
+
+  /* ---------------------------------------------------------------------------
+     SEMANTIC COLORS - Status e feedback
+     --------------------------------------------------------------------------- */
   --color-success: #10B981;
   --color-warning: #F59E0B;
   --color-error: #EF4444;
   --color-info: #3B82F6;
 
-  /* Focus Ring */
+  /* ---------------------------------------------------------------------------
+     BORDERS & RINGS
+     --------------------------------------------------------------------------- */
+  --color-border: rgba(255, 255, 255, 0.06);
+  --color-border-emphasis: rgba(255, 255, 255, 0.12);
+  --color-input: rgba(255, 255, 255, 0.06);
   --color-ring: rgba(226, 232, 240, 0.3);
 
-  /* Sidebar Colors */
+  /* ---------------------------------------------------------------------------
+     SIDEBAR - Cores especificas do sidebar
+     --------------------------------------------------------------------------- */
   --color-sidebar: #0F1720;
   --color-sidebar-foreground: #FFFFFF;
   --color-sidebar-primary: #E2E8F0;
@@ -45,112 +88,29 @@
   --color-sidebar-border: rgba(255, 255, 255, 0.06);
   --color-sidebar-ring: rgba(226, 232, 240, 0.3);
 
-  /* Muted */
-  --color-muted: #0F1720;
-  --color-muted-foreground: #94A3B8;
-
-  /* Accent */
-  --color-accent: #0F1720;
-  --color-accent-foreground: #FFFFFF;
-
-  /* Destructive */
-  --color-destructive: #EF4444;
-  --color-destructive-foreground: #FFFFFF;
-
-  /* Popover */
-  --color-popover: #0F1720;
-  --color-popover-foreground: #FFFFFF;
-
-  /* Input */
-  --color-input: rgba(255, 255, 255, 0.06);
-
-  /* Card Foreground */
-  --color-card-foreground: #FFFFFF;
-
-  /* Foreground */
-  --color-foreground: #FFFFFF;
-
-  /* Radius */
+  /* ---------------------------------------------------------------------------
+     RADIUS - Border radius padrao
+     --------------------------------------------------------------------------- */
   --radius: 0.625rem;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.625rem;
+  --radius-lg: 0.875rem;
 }
 
-/* Tema escuro (PADRAO - extraido do v1) */
-:root {
-  /* Opacidades de preto */
-  --black: #000;
-  --black-10: rgba(0, 0, 0, 0.10);
-  --black-15: rgba(0, 0, 0, 0.15);
-  --black-20: rgba(0, 0, 0, 0.20);
-  --black-25: rgba(0, 0, 0, 0.25);
-  --black-30: rgba(0, 0, 0, 0.30);
-  --black-35: rgba(0, 0, 0, 0.35);
-  --black-40: rgba(0, 0, 0, 0.40);
-  --black-50: rgba(0, 0, 0, 0.50);
+/* =============================================================================
+   GLOBAL STYLES
+   ============================================================================= */
 
-  /* Design System Colors - Dark Mode */
-  --background: #0B0F14;           /* Background (page) */
-  --card: #0F1720;                 /* Surface / panels */
-  --surface: #0F1720;              /* Surface / panels (alias) */
-  --text-primary: #FFFFFF;         /* Texto primário */
-  --text-secondary: #94A3B8;       /* Texto secundário / muted */
-  --text-inverse: #0B0F14;         /* Texto em fundo claro */
-
-  /* Primary (neutral blue-tinted white) */
-  --primary: #E2E8F0;
-  --primary-light: rgba(226, 232, 240, 0.8);
-  --primary-dark: #E2E8F0;
-  --primary-foreground: #0B0F14;
-
-  /* Secondary (não definido no v1, usando primary como fallback) */
-  --secondary: #E2E8F0;
-  --secondary-light: rgba(226, 232, 240, 0.8);
-  --secondary-dark: #0F1720;
-  --secondary-foreground: #0B0F14;
-
-  /* Borders e Rings */
-  --border: rgba(255, 255, 255, 0.06);      /* Border soft */
-  --border-emphasis: rgba(255, 255, 255, 0.12);  /* Emphasis stroke */
-  --ring: rgba(226, 232, 240, 0.3);
-
-  /* Shadows */
-  --shadow-1: 0 1px 1px var(--black-35);
-  --shadow-2: 0 2px 10px var(--black-40);
-
-  /* Semantic Colors */
-  --success: #10B981;
-  --warning: #F59E0B;
-  --error: #EF4444;
-  --info: #3B82F6;
-
-  /* Status Colors */
-  --status-online: #10b981;
-  --status-degraded: #f59e0b;
-  --status-offline: #ef4444;
-
-  /* Role Colors */
-  --role-owner: #9333ea;
-  --role-admin: #3b82f6;
-  --role-operator: #10b981;
-  --role-viewer: #6b7280;
-
-  /* Badge Gradient (v1) */
-  --gradient-badge: linear-gradient(to right, #C26ECB, #3352AB, #6CC997);
-
-  /* Raio de borda padrão */
-  --radius: 0.625rem;  /* 10px - igual ao v1 */
-}
-
-/* Base styles */
 * {
-  border-color: var(--border);
+  border-color: var(--color-border);
 }
 
 body {
   margin: 0;
   padding: 0;
   font-family: 'Inter', sans-serif;
-  background-color: var(--background);
-  color: var(--text-primary);
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -159,21 +119,24 @@ body {
   min-height: 100vh;
 }
 
-/* Scrollbar customization */
+/* =============================================================================
+   SCROLLBAR
+   ============================================================================= */
+
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--surface);
+  background: var(--color-surface);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--border);
+  background: var(--color-border);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--text-secondary);
+  background: var(--color-text-secondary);
 }

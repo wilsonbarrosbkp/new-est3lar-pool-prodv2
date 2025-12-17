@@ -22,6 +22,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/Tooltip'
+import { gradients, shadows, borders } from '@/design-system'
 
 const SIDEBAR_COOKIE_NAME = 'sidebar_state'
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
@@ -507,7 +508,7 @@ function SidebarMenuButton({
       className={cn(
         sidebarMenuButtonVariants({ variant, size }),
         isActive &&
-          'bg-gradient-to-r from-[#C26ECB] via-[#3352AB] to-[#6CC997] text-white border border-black/25 shadow-[0_1px_0_0_rgba(0,0,0,0.25)]',
+          `bg-gradient-to-r ${gradients.brand} text-white ${borders.dark} shadow-[${shadows.button}]`,
         className
       )}
       {...props}

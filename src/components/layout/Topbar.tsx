@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Search, Bell, Home } from 'lucide-react'
+import { Search, Bell } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { SidebarTrigger } from '@/components/ui/Sidebar'
 
@@ -35,15 +35,9 @@ function DynamicBreadcrumb() {
 
   return (
     <nav className="flex items-center gap-2 text-sm">
-      <Link
-        to="/super-admin"
-        className="text-text-secondary hover:text-text-primary transition-colors"
-      >
-        <Home className="h-4 w-4" />
-      </Link>
       {breadcrumbs.map((crumb, index) => (
         <div key={crumb.path} className="flex items-center gap-2">
-          <span className="text-text-secondary">/</span>
+          {index > 0 && <span className="text-text-secondary">/</span>}
           {index === breadcrumbs.length - 1 ? (
             <span className="text-text-primary font-medium">{crumb.label}</span>
           ) : (

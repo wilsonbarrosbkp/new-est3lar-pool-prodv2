@@ -16,6 +16,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/Sidebar'
+import { gradients, shadows, borders } from '@/design-system'
 
 export type NavUserProps = {
   name: string
@@ -52,7 +53,7 @@ export function NavUser({ user }: { user: NavUserProps }) {
 
   const avatarClassName = user?.avatar_url
     ? 'h-8 w-8 rounded-lg !bg-transparent hover:!bg-transparent'
-    : 'h-8 w-8 rounded-lg bg-gradient-to-r from-[#C26ECB] via-[#3352AB] to-[#6CC997] hover:from-[#C26ECB] hover:via-[#3352AB] hover:to-[#6CC997] border border-black/25 shadow-[0_1px_0_0_rgba(0,0,0,0.25)]'
+    : `h-8 w-8 rounded-lg bg-gradient-to-r ${gradients.brand} ${borders.dark} shadow-[${shadows.button}]`
 
   const [isPending, startTransition] = useTransition()
   const [isClient, setIsClient] = useState(false)
