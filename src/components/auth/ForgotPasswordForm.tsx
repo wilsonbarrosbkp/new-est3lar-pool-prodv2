@@ -1,6 +1,7 @@
 import { FormEvent, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { ArrowLeft } from 'lucide-react'
 import { toast } from 'sonner'
-import { Link } from 'react-router-dom'
 import { AuthHeader } from './AuthHeader'
 import { AuthForm } from './AuthForm'
 import { Button } from '@/components/ui/Button'
@@ -9,26 +10,36 @@ import { Label } from '@/components/ui/Label'
 import { forgotPasswordAction } from '@/lib/auth/reset-password'
 
 export function ForgotPasswordForm() {
+  const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(false)
   const [emailSent, setEmailSent] = useState(false)
+  const [email, setEmail] = useState('')
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+
+    if (!email) {
+      toast.error('Por favor, digite seu e-mail')
+      return
+    }
+
+    if (!email.includes('@')) {
+      toast.error('Por favor, digite um e-mail válido')
+      return
+    }
+
     setIsLoading(true)
 
-    const formData = new FormData(event.currentTarget)
-    const email = formData.get('email') as string
-
-    const result = await forgotPasswordAction({ email })
+    const result = await forgotPasswordAction({ email: email.trim() })
 
     setIsLoading(false)
 
     if (!result.success) {
-      toast.error(result.error || 'Erro ao enviar email de recuperação')
+      toast.error(result.error || 'Erro ao enviar e-mail. Tente novamente')
       return
     }
 
-    toast.success(result.message || 'Email enviado com sucesso!')
+    toast.success('E-mail de recuperação enviado!')
     setEmailSent(true)
   }
 
@@ -36,20 +47,42 @@ export function ForgotPasswordForm() {
     return (
       <AuthForm>
         <div className="flex flex-col gap-6">
-          <AuthHeader subtitle="Email de recuperação enviado" />
+          <AuthHeader subtitle="E-mail enviado com sucesso!" />
 
-          <div className="rounded-lg border border-border bg-card/50 p-4">
-            <p className="text-sm text-text-secondary text-center">
-              Enviamos um link de recuperação para seu email.
-              Verifique sua caixa de entrada e clique no link para redefinir sua senha.
-            </p>
+          <div className="grid gap-3">
+            <div className="text-center space-y-2">
+              <p className="text-sm text-text-secondary">
+                E-mail enviado para:
+              </p>
+              <p className="text-sm font-medium break-all">
+                {email}
+              </p>
+              <p className="text-sm text-text-secondary">
+                Verifique sua caixa de entrada e clique no link para redefinir sua senha
+              </p>
+            </div>
           </div>
 
-          <Link to="/login">
-            <Button variant="outline" className="w-full">
-              Voltar para login
+          <div className="flex flex-col gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={() => setEmailSent(false)}
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Tentar outro e-mail
             </Button>
-          </Link>
+
+            <Button
+              type="button"
+              variant="gradient"
+              className="w-full"
+              onClick={() => navigate('/login')}
+            >
+              Voltar ao Login
+            </Button>
+          </div>
         </div>
       </AuthForm>
     )
@@ -58,37 +91,36 @@ export function ForgotPasswordForm() {
   return (
     <AuthForm>
       <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
-        <AuthHeader subtitle="Recuperar senha" />
+        <AuthHeader subtitle="Recupere sua senha de acesso" />
 
-        <div className="flex flex-col gap-4">
-          <p className="text-sm text-text-secondary text-center">
-            Digite seu email para receber um link de recuperação de senha.
-          </p>
-
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              placeholder="seu@email.com"
-              required
-              disabled={isLoading}
-              autoComplete="email"
-            />
-          </div>
+        <div className="grid gap-3">
+          <Label htmlFor="email">Email</Label>
+          <Input
+            id="email"
+            type="email"
+            placeholder="seu@email.com"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            disabled={isLoading}
+          />
         </div>
 
         <div className="flex flex-col gap-3">
-          <Button type="submit" variant="gradient" disabled={isLoading}>
-            {isLoading ? 'Enviando...' : 'Enviar link de recuperação'}
+          <Button type="submit" variant="gradient" className="w-full" disabled={isLoading}>
+            {isLoading ? 'Enviando...' : 'Enviar E-mail'}
           </Button>
 
-          <Link to="/login">
-            <Button variant="ghost" className="w-full" type="button">
-              Voltar para login
-            </Button>
-          </Link>
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            onClick={() => navigate('/login')}
+            disabled={isLoading}
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Voltar ao Login
+          </Button>
         </div>
       </form>
     </AuthForm>
