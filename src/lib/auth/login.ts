@@ -32,11 +32,12 @@ export async function loginAction(credentials: LoginCredentials): Promise<LoginR
       return { success: false, error: 'Usuário não encontrado no sistema' }
     }
 
-    // 3. Determine redirect based on role
-    const redirectMap: Record<string, string> = {
-      super_admin: '/super-admin',
-      org_admin: '/dashboard',
-      org_miner: '/dashboard',
+    // 3. Determine redirect based on role_id (numeric)
+    // role_id: 1 = Super Admin, 2 = Org Admin, 3 = Org Miner
+    const redirectMap: Record<number, string> = {
+      1: '/super-admin',    // Super Admin
+      2: '/org-admin',      // Org Admin
+      3: '/dashboard',      // Org Miner
     }
 
     const redirectTo = redirectMap[userData.role_id] || '/dashboard'

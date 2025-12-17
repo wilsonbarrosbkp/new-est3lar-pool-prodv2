@@ -1,143 +1,170 @@
 # Est3lar Pool v2
 
-Sistema de gerenciamento de pool de mineração Bitcoin - Versão 2.0 (Simplificada)
+Sistema de gerenciamento de pool de mineracao Bitcoin - Versao 2.0
 
-Migração do Next.js 15 para Vite + React com stack moderna e otimizada.
+Migracao do Next.js 15 para Vite + React com stack moderna e otimizada.
 
 ---
 
-## Stack Tecnológica
+## Stack Tecnologica
 
 ### Frontend
-- **React 19.1.1** - Library UI
+- **React 19.2.3** - Library UI
 - **TypeScript 5.9.3** - Type safety
-- **Vite 7.1.12** - Build tool ultra-rápido
-- **React Router DOM 7.9.5** - Roteamento client-side
-- **Tailwind CSS 4.1.16** - Styling com utility-first
-- **Radix UI** - Primitivos acessíveis para UI components
-- **Lucide React** - Ícones modernos
+- **Vite 7.3.0** - Build tool ultra-rapido
+- **React Router DOM 7.10.1** - Roteamento client-side
+- **Tailwind CSS 4.1.18** - Styling com utility-first
+- **Radix UI** - Primitivos acessiveis para UI components
+- **Lucide React 0.561.0** - Icones modernos
 
-### Backend & Autenticação
+### Backend e Autenticacao
 - **Supabase** - PostgreSQL + Auth + Real-time
-- **@supabase/supabase-js 2.75.0** - Cliente JavaScript
+- **@supabase/supabase-js 2.88.0** - Cliente JavaScript
 
-### State & Forms
-- **TanStack Query v5.90.5** - Server state management
-- **Sonner** - Toast notifications
+### State e Forms
+- **TanStack Query v5.90.12** - Server state management
+- **React Hook Form 7.68.0** - Gerenciamento de formularios
+- **Zod 4.2.1** - Validacao de schemas
+- **Sonner 2.0.7** - Toast notifications
+
+### Charts e Tabelas
+- **Recharts 3.6.0** - Graficos
+- **TanStack Table 8.21.3** - Tabelas avancadas
 
 ### Development
-- **pnpm 10.18.2** - Package manager rápido
-- **ESLint** - Linting
-- **PostCSS** - CSS processing
+- **pnpm 10.18.2** - Package manager rapido
+- **ESLint 9.39.2** - Linting
+- **PostCSS 8.5.6** - CSS processing
 
 ---
 
-## Funcionalidades Implementadas
+## Sistema de Autenticacao
 
-### Sistema de Autenticação Completo
+### Paginas de Autenticacao
 
-**Página de Login** (`/login`)
-- Formulário email + senha
-- Validação client-side (HTML5)
-- Validação server-side (Supabase)
+**Pagina de Login** (`/login`)
+- Formulario email + senha
+- Validacao client-side e server-side
 - Toggle de visibilidade de senha
 - Loading states
-- Redirecionamento por role (super_admin, org_admin, org_miner)
+- Redirecionamento automatico por role
 - Toast notifications para feedback
 - Link "Esqueci a senha"
 
-**Recuperação de Senha** (`/forgot-password`)
-- Formulário com campo de email
-- Envio de email com link mágico via Supabase
-- Tela de confirmação após envio
-- Link para voltar ao login
+**Recuperacao de Senha** (`/forgot-password`)
+- Formulario com campo de email
+- Envio de email com link magico via Supabase
+- Tela de confirmacao apos envio
 
-**Redefinição de Senha** (`/reset-password`)
-- Formulário nova senha + confirmação
+**Redefinicao de Senha** (`/reset-password`)
+- Formulario nova senha + confirmacao
 - Toggle de visibilidade em ambos os campos
-- Validação: senhas devem coincidir + mínimo 6 caracteres
-- Integração com token do link mágico
-- Redirecionamento automático para login após sucesso
-- Toast notifications
+- Validacao: senhas devem coincidir + minimo 6 caracteres
 
-### Design System
+### Sistema de Roles e Redirecionamento
 
-**Cores (extraídas do v1)**
-- Background: `#0B0F14`
-- Card: `#0F1720`
-- Primary: `#E2E8F0`
-- Text Primary: `#FFFFFF`
-- Text Secondary: `#94A3B8`
-- Border: `rgba(255,255,255,0.06)`
+| Role ID | Nome | Nivel | Redireciona para |
+|---------|------|-------|------------------|
+| 1 | Super Admin | 100 | `/super-admin` |
+| 2 | Org Admin | 50 | `/org-admin` |
+| 3 | Org Miner | 10 | `/dashboard` |
 
-**Botão com Gradiente**
-```css
-background: linear-gradient(to right, #88FBDD, #4067D6, #F288FD)
+### Protecao de Rotas
+
+O sistema implementa protecao de rotas baseada em roles:
+
+- **PublicRoute** - Rotas publicas (login, forgot-password). Redireciona usuarios autenticados para seu dashboard
+- **ProtectedRoute** - Rotas protegidas. Requer autenticacao
+- **SuperAdminRoute** - Apenas Super Admin (role_id: 1)
+- **OrgAdminRoute** - Super Admin + Org Admin (role_id: 1, 2)
+- **MinerRoute** - Todos os roles autenticados
+
+### Credenciais de Teste
+
 ```
-Gradiente cyan → azul → rosa/magenta
-
-**Background das Páginas Auth**
-- Imagem Est3lar container em fullscreen
-- Opacidade: 30%
-- Formulário centralizado com backdrop blur
-
-**Tipografia**
-- Font family: Inter (via fontsource)
-- Font sizes: sistema escalável com Tailwind
-
-### Componentes
-
-**UI Base**
-- `Button` - Variantes: default, gradient, outline, ghost
-- `Input` - Com suporte a dark mode
-- `Label` - Baseado em Radix UI
-
-**Auth Components**
-- `AuthHeader` - Logo + subtitle com proteção anti-drag
-- `AuthForm` - Layout centralizado com backdrop blur
-- `LoginForm` - Formulário completo de login
-- `ForgotPasswordForm` - Formulário de recuperação
-- `ResetPasswordForm` - Formulário de redefinição
-
-**Pages**
-- `Login` - Página de login com background
-- `ForgotPassword` - Página de recuperação com background
-- `ResetPassword` - Página de redefinição com background
-
-### Utilitários
-
-**Supabase Client** (`src/lib/supabase/client.ts`)
-- Cliente configurado com persistSession
-- Auto refresh token
-- Detecção de sessão na URL
-- Fallback para placeholder em desenvolvimento
-
-**Auth Functions**
-- `loginAction` - Autenticação + fetch de dados do usuário
-- `forgotPasswordAction` - Envio de email de recuperação
-- `resetPasswordAction` - Atualização de senha
-
-**Utils**
-- `cn()` - Helper para merge de classes (clsx + tailwind-merge)
-
-### Types
-
-**Auth Types** (`src/types/auth.ts`)
-```typescript
-type RoleId = 'super_admin' | 'org_admin' | 'org_miner'
-
-interface LoginCredentials {
-  email: string
-  password: string
-}
-
-interface LoginResult {
-  success: boolean
-  error?: string
-  redirectTo?: string
-  user?: User
-}
+Email: admin@est3lar.com
+Senha: Est3lar@2025
+Role: Super Admin
 ```
+
+---
+
+## Painel Super Admin
+
+O painel Super Admin esta totalmente implementado com 15 paginas:
+
+### Paginas Implementadas
+
+| Pagina | Rota | Descricao |
+|--------|------|-----------|
+| Dashboard | `/super-admin` | Visao geral com metricas e graficos |
+| Organizacoes | `/super-admin/organizations` | Gerenciamento de organizacoes |
+| Usuarios | `/super-admin/users` | Gerenciamento de usuarios |
+| Permissoes | `/super-admin/permissions` | Gerenciamento de roles e permissoes |
+| Moedas | `/super-admin/currencies` | Gerenciamento de criptomoedas |
+| Pools | `/super-admin/pools` | Gerenciamento de pools de mineracao |
+| Wallets | `/super-admin/wallets` | Gerenciamento de carteiras |
+| Hardware | `/super-admin/hardware` | Gerenciamento de equipamentos |
+| Workers | `/super-admin/workers` | Gerenciamento de workers |
+| Pagamentos | `/super-admin/payments` | Historico de pagamentos |
+| Receita | `/super-admin/revenue` | Relatorios de receita |
+| Auditoria | `/super-admin/audit` | Logs de auditoria |
+| Endpoints | `/super-admin/endpoints` | Gerenciamento de endpoints |
+| Rounds | `/super-admin/rounds` | Rounds de mineracao |
+| Webhooks | `/super-admin/webhooks` | Configuracao de webhooks |
+
+### Layout Super Admin
+
+- Sidebar colapsavel com navegacao
+- Header com informacoes do usuario
+- Suporte a dark mode
+- Design responsivo
+- Icones Lucide React
+
+---
+
+## Componentes UI
+
+### Componentes Base (shadcn/ui style)
+
+| Componente | Arquivo | Descricao |
+|------------|---------|-----------|
+| Button | `ui/Button.tsx` | Variantes: default, gradient, outline, ghost, destructive |
+| Input | `ui/Input.tsx` | Campo de entrada com dark mode |
+| Label | `ui/Label.tsx` | Labels acessiveis |
+| Card | `ui/Card.tsx` | Container com header, content, footer |
+| Badge | `ui/Badge.tsx` | Tags e status |
+| Avatar | `ui/Avatar.tsx` | Imagens de perfil |
+| Tabs | `ui/Tabs.tsx` | Navegacao em abas |
+| Select | `ui/Select.tsx` | Dropdown de selecao |
+| Dialog | `ui/Dialog.tsx` | Modais |
+| DropdownMenu | `ui/DropdownMenu.tsx` | Menus contextuais |
+| Separator | `ui/Separator.tsx` | Linhas divisorias |
+| Tooltip | `ui/Tooltip.tsx` | Dicas de contexto |
+| Toast | `ui/Toast.tsx` | Notificacoes |
+| Switch | `ui/Switch.tsx` | Toggle on/off |
+| Textarea | `ui/Textarea.tsx` | Campo de texto multilinhas |
+| Checkbox | `ui/Checkbox.tsx` | Caixas de selecao |
+
+### Componentes de Layout
+
+| Componente | Arquivo | Descricao |
+|------------|---------|-----------|
+| SuperAdminLayout | `layout/SuperAdminLayout.tsx` | Layout principal do Super Admin |
+| Sidebar | `layout/Sidebar.tsx` | Navegacao lateral |
+| SidebarProvider | `layout/SidebarContext.tsx` | Contexto da sidebar |
+
+### Componentes de Autenticacao
+
+| Componente | Arquivo | Descricao |
+|------------|---------|-----------|
+| AuthHeader | `auth/AuthHeader.tsx` | Logo + subtitle |
+| AuthForm | `auth/AuthForm.tsx` | Layout centralizado com backdrop |
+| LoginForm | `auth/LoginForm.tsx` | Formulario de login |
+| ForgotPasswordForm | `auth/ForgotPasswordForm.tsx` | Formulario de recuperacao |
+| ResetPasswordForm | `auth/ResetPasswordForm.tsx` | Formulario de redefinicao |
+| ProtectedRoute | `auth/ProtectedRoute.tsx` | Protecao de rotas |
+| PublicRoute | `auth/PublicRoute.tsx` | Rotas publicas |
 
 ---
 
@@ -146,25 +173,63 @@ interface LoginResult {
 ```
 new-est3lar-pool-prodv2/
 ├── public/
-│   ├── Est3lar-Colors.png      # Logo principal
-│   ├── placeholder.webp        # Background auth pages
-│   └── favicon/                # Favicons (7 arquivos)
+│   ├── Est3lar-Colors.png
+│   ├── placeholder.webp
+│   └── favicon/
 ├── src/
 │   ├── components/
 │   │   ├── ui/
+│   │   │   ├── Avatar.tsx
+│   │   │   ├── Badge.tsx
 │   │   │   ├── Button.tsx
+│   │   │   ├── Card.tsx
+│   │   │   ├── Checkbox.tsx
+│   │   │   ├── Dialog.tsx
+│   │   │   ├── DropdownMenu.tsx
 │   │   │   ├── Input.tsx
-│   │   │   └── Label.tsx
-│   │   └── auth/
-│   │       ├── AuthHeader.tsx
-│   │       ├── AuthForm.tsx
-│   │       ├── LoginForm.tsx
-│   │       ├── ForgotPasswordForm.tsx
-│   │       └── ResetPasswordForm.tsx
+│   │   │   ├── Label.tsx
+│   │   │   ├── Select.tsx
+│   │   │   ├── Separator.tsx
+│   │   │   ├── Sidebar.tsx
+│   │   │   ├── Switch.tsx
+│   │   │   ├── Tabs.tsx
+│   │   │   ├── Textarea.tsx
+│   │   │   ├── Toast.tsx
+│   │   │   └── Tooltip.tsx
+│   │   ├── auth/
+│   │   │   ├── AuthForm.tsx
+│   │   │   ├── AuthHeader.tsx
+│   │   │   ├── ForgotPasswordForm.tsx
+│   │   │   ├── LoginForm.tsx
+│   │   │   ├── ProtectedRoute.tsx
+│   │   │   ├── PublicRoute.tsx
+│   │   │   └── ResetPasswordForm.tsx
+│   │   └── layout/
+│   │       ├── Sidebar.tsx
+│   │       ├── SidebarContext.tsx
+│   │       └── SuperAdminLayout.tsx
+│   ├── contexts/
+│   │   └── AuthContext.tsx
 │   ├── pages/
 │   │   ├── Login.tsx
 │   │   ├── ForgotPassword.tsx
-│   │   └── ResetPassword.tsx
+│   │   ├── ResetPassword.tsx
+│   │   └── super-admin/
+│   │       ├── index.tsx
+│   │       ├── Organizations.tsx
+│   │       ├── Users.tsx
+│   │       ├── Permissions.tsx
+│   │       ├── Currencies.tsx
+│   │       ├── Pools.tsx
+│   │       ├── Wallets.tsx
+│   │       ├── Hardware.tsx
+│   │       ├── Workers.tsx
+│   │       ├── Payments.tsx
+│   │       ├── Revenue.tsx
+│   │       ├── Audit.tsx
+│   │       ├── Endpoints.tsx
+│   │       ├── Rounds.tsx
+│   │       └── Webhooks.tsx
 │   ├── lib/
 │   │   ├── auth/
 │   │   │   ├── login.ts
@@ -178,38 +243,30 @@ new-est3lar-pool-prodv2/
 │   ├── main.tsx
 │   ├── index.css
 │   └── vite-env.d.ts
-├── docs/
-│   ├── 01-design-system.md
-│   ├── 02-login-page-spec.md
-│   ├── 04-permissions-simplified.md
-│   └── IMPLEMENTACAO-COMPLETA.md
+├── .env
 ├── .env.example
-├── .env                        # Não versionado
 ├── package.json
 ├── tsconfig.json
 ├── vite.config.ts
-├── tailwind.config.js
 └── README.md
 ```
 
 ---
 
-## Configuração e Instalação
+## Configuracao e Instalacao
 
-### Pré-requisitos
+### Pre-requisitos
 - Node.js 18+ ou 20+
-- pnpm 10.18.2+ (ou use `corepack enable`)
+- pnpm 10.18.2+
 
-### Passo 1: Clonar e Instalar
+### Passo 1: Instalar Dependencias
 
 ```bash
 cd /Users/youapp/GitHubProd/new-est3lar-pool-prodv2
 pnpm install
 ```
 
-Instala 321 dependências em ~30s.
-
-### Passo 2: Configurar Variáveis de Ambiente
+### Passo 2: Configurar Variaveis de Ambiente
 
 ```bash
 cp .env.example .env
@@ -218,15 +275,9 @@ cp .env.example .env
 Edite o arquivo `.env`:
 
 ```env
-# Supabase Configuration
 VITE_SUPABASE_URL=https://tcgrxhrmzmsasnpekhaq.supabase.co
 VITE_SUPABASE_ANON_KEY=sua-anon-key-aqui
 ```
-
-**IMPORTANTE**:
-- Use apenas a `anon` key no frontend
-- NUNCA use a `service_role` key no código do cliente
-- A `service_role` key só deve ser usada em APIs backend/privadas
 
 ### Passo 3: Iniciar Servidor de Desenvolvimento
 
@@ -236,233 +287,141 @@ pnpm dev
 
 Servidor inicia em: **http://localhost:3000**
 
-O Vite deve iniciar em ~144ms com hot module replacement (HMR) ativo.
-
-### Passo 4: Build para Produção
+### Passo 4: Build para Producao
 
 ```bash
 pnpm build
-```
-
-**Build stats:**
-- Tempo: ~1.74s
-- index.js: 257 KB (79 KB gzipped)
-- CSS: 19 KB (4.6 KB gzipped)
-- Total gzipped: ~128 KB
-
-Preview do build:
-```bash
-pnpm preview
 ```
 
 ---
 
 ## Rotas Configuradas
 
-| Rota | Descrição | Status |
-|------|-----------|--------|
-| `/` | Redirect para `/login` | Implementado |
-| `/login` | Página de login | Implementado |
-| `/forgot-password` | Recuperar senha | Implementado |
-| `/reset-password` | Redefinir senha | Implementado |
-| `/dashboard` | Dashboard (org_admin, org_miner) | Placeholder |
-| `/super-admin` | Super Admin area | Placeholder |
-| `/*` | 404 → Redirect para `/login` | Implementado |
+| Rota | Descricao | Protecao |
+|------|-----------|----------|
+| `/` | Redirect para `/login` | Publica |
+| `/login` | Pagina de login | PublicRoute |
+| `/forgot-password` | Recuperar senha | PublicRoute |
+| `/reset-password` | Redefinir senha | Publica |
+| `/dashboard` | Dashboard Minerador | - |
+| `/org-admin` | Painel Org Admin | - |
+| `/super-admin/*` | Area Super Admin | SuperAdminRoute |
+| `/*` | 404 | - |
 
 ---
 
-## Fluxos Implementados
+## Contextos
 
-### Fluxo de Login
+### AuthContext
 
-1. User acessa `/login`
-2. Preenche email + senha
-3. Submit → `loginAction()`
-4. Supabase Auth: `signInWithPassword()`
-5. Fetch dados do usuário: `SELECT from users WHERE auth_user_id`
-6. Determina redirect baseado em `role_id`:
-   - `super_admin` → `/super-admin`
-   - `org_admin` → `/dashboard`
-   - `org_miner` → `/dashboard`
-7. Toast de sucesso
-8. Redirect via `window.location.href`
+Gerencia o estado de autenticacao da aplicacao:
 
-### Fluxo de Recuperação de Senha
-
-**Etapa 1: Solicitar Reset**
-1. User clica "Esqueci a senha" no login
-2. Redirect para `/forgot-password`
-3. User preenche email
-4. Submit → `forgotPasswordAction()`
-5. Supabase envia email com link mágico
-6. Tela de confirmação
-
-**Etapa 2: Redefinir Senha**
-1. User clica no link do email
-2. Redirect para `/reset-password` (com token)
-3. User preenche nova senha + confirmação
-4. Validação: senhas coincidem + mínimo 6 caracteres
-5. Submit → `resetPasswordAction()`
-6. Supabase: `updateUser({ password })`
-7. Toast de sucesso
-8. Redirect automático para `/login` (1.5s)
-
----
-
-## Validações
-
-### Client-side (HTML5)
-
-**Login:**
-- Email: `type="email"` + `required`
-- Password: `type="password"` + `required`
-
-**Reset Password:**
-- Password: `minLength={6}` + `required`
-- Confirm Password: Match validation
-
-### Server-side (Supabase)
-
-**Login:**
-- Email format validation
-- Password strength
-- Email confirmation check
-- Credentials validation
-
-**Password Reset:**
-- Email exists validation
-- Password confirmation match
-- Minimum 6 characters
-- Token validation (magic link)
-
-### Tratamento de Erros
-
-**Login:**
 ```typescript
-"Invalid login credentials"  → "Email ou senha incorretos"
-"Email not confirmed"         → "Confirme seu email antes de fazer login"
-Outros erros                  → Mensagem genérica
+interface AuthContextType {
+  user: User | null
+  userData: UserData | null
+  session: Session | null
+  isLoading: boolean
+  signOut: () => Promise<void>
+}
 ```
 
-**Password Reset:**
+**Uso:**
 ```typescript
-Senhas não coincidem          → "As senhas não coincidem"
-Senha muito curta             → "A senha deve ter no mínimo 6 caracteres"
-Token inválido/expirado       → Mensagem do Supabase
+import { useAuth, ROLES } from '@/contexts/AuthContext'
+
+function Component() {
+  const { user, userData, isLoading, signOut } = useAuth()
+
+  if (userData?.role_id === ROLES.SUPER_ADMIN) {
+    // Super Admin logic
+  }
+}
 ```
 
 ---
 
-## Configuração do Supabase
+## Scripts Disponiveis
 
-### Schema do Banco de Dados
-
-**Tabela `users`:**
-```sql
-CREATE TABLE users (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  auth_user_id UUID REFERENCES auth.users(id),
-  email TEXT NOT NULL,
-  role_id TEXT NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-```
-
-**Roles disponíveis:**
-- `super_admin` - Acesso total ao sistema
-- `org_admin` - Administrador de organização
-- `org_miner` - Minerador da organização
-
-### Email Templates (Supabase Dashboard)
-
-Configure os templates de email em:
-**Authentication → Email Templates**
-
-**Reset Password Template:**
-- Subject: `Redefinir senha - Est3lar Pool`
-- Redirect URL: `{{ .SiteURL }}/reset-password`
-
----
-
-## Scripts Disponíveis
-
-| Comando | Descrição |
+| Comando | Descricao |
 |---------|-----------|
-| `pnpm dev` | Inicia servidor de desenvolvimento (http://localhost:3000) |
-| `pnpm build` | Build de produção (~1.7s) |
-| `pnpm preview` | Preview do build de produção |
+| `pnpm dev` | Inicia servidor de desenvolvimento |
+| `pnpm build` | Build de producao |
+| `pnpm preview` | Preview do build |
 | `pnpm lint` | Executa ESLint |
 
 ---
 
-## Comparação com v1
+## Performance
 
-### Melhorias
+### Build Stats (Producao)
 
-**Performance:**
-- Build 60% mais rápido (1.7s vs 5s)
-- HMR instantâneo (Vite vs Next.js)
-- Bundle otimizado com code splitting
+```
+dist/index.html                    1.73 kB │ gzip:   0.71 kB
+dist/assets/index-*.css           59.99 kB │ gzip:  10.24 kB
+dist/assets/charts-*.js            1.27 kB │ gzip:   0.65 kB
+dist/assets/react-vendor-*.js     45.09 kB │ gzip:  16.18 kB
+dist/assets/ui-vendor-*.js        98.91 kB │ gzip:  32.59 kB
+dist/assets/supabase-*.js        169.12 kB │ gzip:  44.08 kB
+dist/assets/index-*.js           489.49 kB │ gzip: 124.65 kB
 
-**Developer Experience:**
-- TypeScript strict mode sem erros
-- Auto-complete melhorado
-- Estrutura mais simples
-
-**Design:**
-- 100% fiel ao v1
-- Background com imagem Est3lar (30% opacidade)
-- Formulário centralizado com backdrop blur
-- Gradiente do botão idêntico
-
-### Mantidos do v1
-
-- Sistema de cores exato
-- Layout e espaçamentos
-- Footer de termos
-- Proteção de assets (anti-drag, anti-context-menu)
-- Redirecionamento por role
+Build time: ~2.6s
+```
 
 ---
 
-## Próximas Fases
+## Banco de Dados (Supabase)
 
-### Imediatas
-- Implementar ProtectedRoute component
-- Criar AuthContext para gerenciar sessão
-- Adicionar verificação de sessão em rotas protegidas
+### Tabelas Principais
 
-### Médio Prazo
-- Dashboard base layout
-- Sidebar navigation
-- Sistema RBAC simplificado (3 tabelas vs 8 do v1)
-- Área Super Admin
+**roles**
+```sql
+id SERIAL PRIMARY KEY
+name TEXT NOT NULL
+description TEXT
+level INTEGER NOT NULL
+badge_color TEXT
+is_system BOOLEAN DEFAULT false
+```
 
-### Longo Prazo
-- Migração de funcionalidades do v1:
-  - Gestão de organizações
-  - Gestão de mineradores
-  - Estatísticas de mineração
-  - Configurações de pool
+**users**
+```sql
+id UUID PRIMARY KEY
+auth_user_id UUID REFERENCES auth.users(id)
+email TEXT NOT NULL
+full_name TEXT
+role_id INTEGER REFERENCES roles(id)
+organization_id UUID
+```
+
+### Roles do Sistema
+
+| ID | Nome | Level | Cor |
+|----|------|-------|-----|
+| 1 | Super Admin | 100 | #dc2626 |
+| 2 | Org Admin | 50 | #2563eb |
+| 3 | Org Miner | 10 | #16a34a |
 
 ---
 
-## Documentacao Adicional
+## Design System
 
-Documentacao tecnica completa em `/docs`:
+### Cores
 
-### Design e Arquitetura
-- **01-design-system.md** - Sistema de design (cores, fontes, tokens CSS)
-- **CORES-ATUALIZADAS.md** - Paleta de cores extraida do v1 (dark mode)
-- **04-permissions-simplified.md** - Sistema RBAC simplificado (8 para 3 tabelas)
+```css
+--background: #0B0F14
+--card: #0F1720
+--primary: #E2E8F0
+--text-primary: #FFFFFF
+--text-secondary: #94A3B8
+--border: rgba(255,255,255,0.06)
+```
 
-### Implementacao
-- **IMPLEMENTACAO-COMPLETA.md** - Detalhes do sistema de autenticacao implementado
+### Gradiente do Botao
 
-### Referencia (Migracao do v1)
-- **RESUMO-EST3LAR-V1.md** - Resumo da stack e estrutura do projeto v1
-- **SUPER-ADMIN-ANALISE.md** - Analise da area Super Admin do v1
-- **SUPER-ADMIN-PLANEJAMENTO.md** - Planejamento de implementacao do Super Admin
+```css
+background: linear-gradient(to right, #88FBDD, #4067D6, #F288FD)
+```
 
 ---
 
@@ -470,94 +429,43 @@ Documentacao tecnica completa em `/docs`:
 
 ### Erro: Missing Supabase environment variables
 
-**Solução:**
 1. Verifique se `.env` existe na raiz
-2. Confirme que as variáveis estão configuradas:
-   ```env
-   VITE_SUPABASE_URL=https://...
-   VITE_SUPABASE_ANON_KEY=...
-   ```
+2. Confirme que as variaveis estao configuradas
 3. Reinicie o servidor: `pnpm dev`
 
-### Erro: TypeScript - Property 'env' does not exist
+### Erro 500 no Login
 
-**Solução:** Já resolvido em `src/vite-env.d.ts`
+Se receber erro 500 ao fazer login, pode ser que o usuario tenha campos NULL na tabela `auth.users`. Execute:
+
+```sql
+UPDATE auth.users
+SET
+  email_change = COALESCE(email_change, ''),
+  email_change_token_new = COALESCE(email_change_token_new, ''),
+  email_change_token_current = COALESCE(email_change_token_current, ''),
+  phone_change = COALESCE(phone_change, ''),
+  phone_change_token = COALESCE(phone_change_token, ''),
+  reauthentication_token = COALESCE(reauthentication_token, ''),
+  recovery_token = COALESCE(recovery_token, ''),
+  confirmation_token = COALESCE(confirmation_token, '')
+WHERE email = 'seu@email.com';
+```
 
 ### Build lento
 
-**Verificar:**
-- Vite deve fazer build em ~1.7s
-- Se demorar >5s, limpar cache: `rm -rf node_modules/.vite`
-
----
-
-## Contribuindo
-
-### Code Style
-
-- Use TypeScript strict mode
-- Siga convenções do ESLint
-- Componentes em PascalCase
-- Funções em camelCase
-- Sem emojis no código ou documentação
-- Comentários em português brasileiro
-
-### Git Workflow
-
+Se demorar mais de 5s, limpe o cache:
 ```bash
-# Criar branch feature
-git checkout -b feature/nome-da-feature
-
-# Fazer commits descritivos
-git commit -m "feat: adiciona autenticação com Supabase"
-
-# Push e criar PR
-git push origin feature/nome-da-feature
+rm -rf node_modules/.vite
 ```
 
 ---
 
-## Performance
+## Licenca
 
-### Build Stats (Produção)
-
-```
-dist/index.html                1.73 kB │ gzip:  0.71 kB
-dist/assets/index-*.css       19.30 kB │ gzip:  4.60 kB
-dist/assets/react-vendor-*.js 44.92 kB │ gzip: 16.04 kB
-dist/assets/supabase-*.js    168.91 kB │ gzip: 44.68 kB
-dist/assets/index-*.js       257.19 kB │ gzip: 79.10 kB
-
-Total (gzipped): ~128 KB
-Build time: 1.74s
-```
-
-### Otimizações Aplicadas
-
-- Code splitting automático (Vite)
-- Tree shaking
-- Minificação
-- Chunks separados para vendors
-- CSS extraction e minificação
-- Asset optimization
-
----
-
-## Licença
-
-Proprietário - Est3lar
-
----
-
-## Suporte
-
-Para questões técnicas ou bugs:
-1. Verifique a documentação em `/docs`
-2. Consulte este README
-3. Contate a equipe de desenvolvimento
+Proprietario - Est3lar
 
 ---
 
 **Versao:** 2.0.0
 **Ultima atualizacao:** 2025-12-17
-**Status:** Sistema de autenticacao completo + Layout Super Admin com shadcn Sidebar
+**Status:** Sistema de autenticacao + Protecao de rotas + Painel Super Admin completo

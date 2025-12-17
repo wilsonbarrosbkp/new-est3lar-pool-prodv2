@@ -884,7 +884,7 @@ export default function PaymentsPage() {
               <Textarea
                 id="notes"
                 value={formData.notes}
-                onChange={(e) =>
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
                   setFormData((prev) => ({ ...prev, notes: e.target.value }))
                 }
                 placeholder="Notas adicionais..."

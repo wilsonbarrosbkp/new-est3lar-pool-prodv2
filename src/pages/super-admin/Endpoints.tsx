@@ -607,7 +607,7 @@ export default function EndpointsPage() {
               <Switch
                 id="is_ssl"
                 checked={formData.is_ssl}
-                onCheckedChange={(checked) =>
+                onCheckedChange={(checked: boolean) =>
                   setFormData((prev) => ({ ...prev, is_ssl: checked }))
                 }
               />
