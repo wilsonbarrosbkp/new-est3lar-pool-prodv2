@@ -29,6 +29,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/Select'
+import { HashrateChart } from '@/components/charts/HashrateChart'
+import { usePoolStats, type Period } from '@/hooks/use-pool-stats'
 import { cn } from '@/lib/utils'
 import { formatHashrate, formatNumber, formatRelativeTime } from '@/lib/formatters'
 import { supabase } from '@/lib/supabase/client'
@@ -49,7 +51,7 @@ interface PoolStats {
   workersTotal: number
   workersActive: number
   workersIdle: number
-  workersOff: number
+  workersDisconnected: number
 }
 
 const emptySystemStats: SystemStats = {
@@ -67,16 +69,23 @@ const emptyPoolStats: PoolStats = {
   workersTotal: 0,
   workersActive: 0,
   workersIdle: 0,
-  workersOff: 0,
+  workersDisconnected: 0,
 }
 
 export default function SuperAdminDashboard() {
-  const [period, setPeriod] = useState<'1h' | '6h' | '24h' | '7d'>('24h')
+  const [period, setPeriod] = useState<Period>('24h')
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [loading, setLoading] = useState(true)
   const [lastUpdate, setLastUpdate] = useState(new Date())
   const [systemStats, setSystemStats] = useState<SystemStats>(emptySystemStats)
   const [poolStats, setPoolStats] = useState<PoolStats>(emptyPoolStats)
+
+  // Hook para dados do gráfico de hashrate
+  const {
+    chartData,
+    loading: chartLoading,
+    refetch: refetchChart,
+  } = usePoolStats({ poolId: 1, period, autoRefresh: true })
 
   const loadData = useCallback(async () => {
     try {
@@ -107,7 +116,7 @@ export default function SuperAdminDashboard() {
           workersTotal: stats.workers_total || 0,
           workersActive: stats.workers_active || 0,
           workersIdle: stats.workers_idle || 0,
-          workersOff: stats.workers_off || 0,
+          workersDisconnected: stats.workers_disconnected || 0,
         })
       }
 
@@ -126,7 +135,7 @@ export default function SuperAdminDashboard() {
 
   const handleRefresh = async () => {
     setIsRefreshing(true)
-    await loadData()
+    await Promise.all([loadData(), refetchChart()])
     setIsRefreshing(false)
     toast.success('Dados atualizados')
   }
@@ -312,7 +321,7 @@ export default function SuperAdminDashboard() {
                   </div>
                   <div className="flex items-center gap-1">
                     <div className="w-2 h-2 rounded-full bg-text-secondary" />
-                    <span className="text-xs">{poolStats.workersOff}</span>
+                    <span className="text-xs">{poolStats.workersDisconnected}</span>
                   </div>
                 </div>
               </>
@@ -415,9 +424,7 @@ export default function SuperAdminDashboard() {
             </CardTitle>
             <Select
               value={period}
-              onValueChange={(value) =>
-                setPeriod(value as '1h' | '6h' | '24h' | '7d')
-              }
+              onValueChange={(value) => setPeriod(value as Period)}
             >
               <SelectTrigger className="w-[140px]">
                 <SelectValue />
@@ -432,13 +439,12 @@ export default function SuperAdminDashboard() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="h-[300px] flex items-center justify-center text-text-secondary">
-            <div className="text-center">
-              <BarChart3 className="h-12 w-12 mx-auto mb-2 opacity-50" />
-              <p>Sem dados de hashrate</p>
-              <p className="text-xs mt-1">Configure pools e workers para visualizar métricas</p>
-            </div>
-          </div>
+          <HashrateChart
+            data={chartData}
+            period={period}
+            loading={chartLoading}
+            height={300}
+          />
         </CardContent>
       </Card>
 
