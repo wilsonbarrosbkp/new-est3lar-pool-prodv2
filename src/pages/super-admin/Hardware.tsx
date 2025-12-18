@@ -7,13 +7,16 @@ import {
   Zap,
   Thermometer,
   Calendar,
+  Server,
+  RefreshCw,
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
 import { Badge } from '@/components/ui/Badge'
-import { Card, CardContent } from '@/components/ui/Card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Skeleton } from '@/components/ui/Skeleton'
+import { ServerCard, type ServerData } from '@/components/infrastructure/ServerCard'
 import {
   Table,
   TableBody,
@@ -105,6 +108,128 @@ const statusOptions = [
   { value: 'inativo', label: 'Inativo', color: 'secondary' },
   { value: 'manutencao', label: 'Manutenção', color: 'warning' },
 ] as const
+
+// Dados mockados dos servidores da Genesis Pool
+const genesisPoolServers: ServerData[] = [
+  {
+    id: 'lb-01',
+    name: 'LB-Genesis-01',
+    hostname: 'lb01.genesispool.internal',
+    ip: '10.20.30.10',
+    role: 'load-balancer',
+    status: 'online',
+    os: 'Ubuntu 22.04 LTS',
+    location: 'Rack A1',
+    metrics: {
+      cpuUsage: 23,
+      memoryUsage: 45,
+      memoryTotal: '8 GB',
+      diskUsage: 28,
+      diskTotal: '100 GB',
+      networkIn: '2.4 Gbps',
+      networkOut: '2.1 Gbps',
+      uptime: '45d 12h 33m',
+      connections: 12847,
+      requestsPerSec: 8542,
+      latency: 0.8,
+    },
+    lastUpdate: new Date(),
+  },
+  {
+    id: 'proxy-01',
+    name: 'Proxy-Genesis-01',
+    hostname: 'proxy01.genesispool.internal',
+    ip: '10.20.30.11',
+    role: 'proxy',
+    status: 'online',
+    os: 'Ubuntu 22.04 LTS',
+    location: 'Rack A2',
+    metrics: {
+      cpuUsage: 67,
+      memoryUsage: 72,
+      memoryTotal: '16 GB',
+      diskUsage: 35,
+      diskTotal: '200 GB',
+      networkIn: '1.8 Gbps',
+      networkOut: '1.6 Gbps',
+      uptime: '32d 8h 15m',
+      connections: 6423,
+      requestsPerSec: 4251,
+      latency: 1.2,
+    },
+    lastUpdate: new Date(),
+  },
+  {
+    id: 'proxy-02',
+    name: 'Proxy-Genesis-02',
+    hostname: 'proxy02.genesispool.internal',
+    ip: '10.20.30.12',
+    role: 'proxy',
+    status: 'online',
+    os: 'Ubuntu 22.04 LTS',
+    location: 'Rack A2',
+    metrics: {
+      cpuUsage: 58,
+      memoryUsage: 65,
+      memoryTotal: '16 GB',
+      diskUsage: 32,
+      diskTotal: '200 GB',
+      networkIn: '1.5 Gbps',
+      networkOut: '1.3 Gbps',
+      uptime: '32d 8h 15m',
+      connections: 6424,
+      requestsPerSec: 4293,
+      latency: 1.1,
+    },
+    lastUpdate: new Date(),
+  },
+  {
+    id: 'stats-01',
+    name: 'Stats-Genesis-01',
+    hostname: 'stats01.genesispool.internal',
+    ip: '10.20.30.13',
+    role: 'pool-stats',
+    status: 'online',
+    os: 'Ubuntu 22.04 LTS',
+    location: 'Rack B1',
+    metrics: {
+      cpuUsage: 34,
+      memoryUsage: 52,
+      memoryTotal: '32 GB',
+      diskUsage: 68,
+      diskTotal: '500 GB',
+      networkIn: '450 Mbps',
+      networkOut: '380 Mbps',
+      uptime: '89d 3h 42m',
+      requestsPerSec: 1250,
+      latency: 2.3,
+    },
+    lastUpdate: new Date(),
+  },
+  {
+    id: 'pool-01',
+    name: 'Genesis-Pool-Main',
+    hostname: 'pool01.genesispool.internal',
+    ip: '10.20.30.15',
+    role: 'mining-pool',
+    status: 'online',
+    os: 'Ubuntu 22.04 LTS',
+    location: 'Rack B2',
+    metrics: {
+      cpuUsage: 78,
+      memoryUsage: 85,
+      memoryTotal: '64 GB',
+      diskUsage: 45,
+      diskTotal: '1 TB',
+      networkIn: '3.2 Gbps',
+      networkOut: '2.8 Gbps',
+      uptime: '15d 7h 22m',
+      connections: 1,
+      latency: 0.5,
+    },
+    lastUpdate: new Date(),
+  },
+]
 
 export default function HardwarePage() {
   const [hardware, setHardware] = useState<Hardware[]>([])
@@ -396,6 +521,38 @@ export default function HardwarePage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Infraestrutura Genesis Pool */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Server className="h-5 w-5" />
+              Infraestrutura Genesis Pool
+            </CardTitle>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="text-success">
+                {genesisPoolServers.filter(s => s.status === 'online').length}/{genesisPoolServers.length} Online
+              </Badge>
+              <Button variant="outline" size="sm">
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Atualizar
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {genesisPoolServers.map((server) => (
+              <ServerCard
+                key={server.id}
+                server={server}
+                onClick={() => toast.info(`Detalhes de ${server.name} em breve...`)}
+              />
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Tabela */}
       <Card>
