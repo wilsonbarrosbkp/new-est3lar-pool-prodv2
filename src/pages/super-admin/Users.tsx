@@ -63,7 +63,6 @@ type SortConfig = {
 type FormData = {
   name: string
   email: string
-  password: string
   phone: string
   organization_id: string
   role_id: string
@@ -73,7 +72,6 @@ type FormData = {
 const initialFormData: FormData = {
   name: '',
   email: '',
-  password: '',
   phone: '',
   organization_id: '',
   role_id: '',
@@ -233,7 +231,6 @@ export default function UsersPage() {
     setFormData({
       name: user.name || '',
       email: user.email || '',
-      password: '',
       phone: user.phone || '',
       organization_id: user.organization_id?.toString() || '',
       role_id: user.role_id.toString(),
@@ -261,13 +258,13 @@ export default function UsersPage() {
       return
     }
 
-    if (!editingUser && !formData.password) {
-      toast.error('Senha é obrigatória para novos usuários')
+    if (!formData.role_id) {
+      toast.error('Selecione uma role')
       return
     }
 
-    if (!formData.role_id) {
-      toast.error('Selecione uma role')
+    if (!formData.organization_id) {
+      toast.error('Selecione uma organização')
       return
     }
 
@@ -291,17 +288,41 @@ export default function UsersPage() {
         if (error) throw error
         toast.success('Usuário atualizado com sucesso!')
       } else {
-        // Criar novo usuário via Supabase Auth Admin
-        // Nota: Isso requer Edge Function ou backend com service_role
-        toast.error('Criação de usuários requer configuração do Auth Admin')
-        return
+        // Criar novo usuário via Edge Function
+        const { data: { session } } = await supabase.auth.getSession()
+
+        if (!session?.access_token) {
+          toast.error('Sessão expirada. Por favor, faça login novamente.')
+          return
+        }
+
+        const response = await supabase.functions.invoke('create-user', {
+          body: {
+            name: formData.name,
+            email: formData.email,
+            phone: formData.phone || null,
+            organization_id: Number(formData.organization_id),
+            role_id: Number(formData.role_id),
+            status: formData.status,
+          },
+        })
+
+        if (response.error) {
+          throw new Error(response.error.message || 'Erro ao criar usuário')
+        }
+
+        if (response.data?.error) {
+          throw new Error(response.data.error)
+        }
+
+        toast.success('Usuário criado com sucesso! Um e-mail para definir a senha será enviado.')
       }
 
       handleCloseSheet()
       loadData() // Recarregar dados
     } catch (error) {
       console.error('Erro ao salvar usuário:', error)
-      toast.error('Erro ao salvar usuário')
+      toast.error(error instanceof Error ? error.message : 'Erro ao salvar usuário')
     } finally {
       setSaving(false)
     }
@@ -641,19 +662,9 @@ export default function UsersPage() {
               </div>
 
               {!editingUser && (
-                <div className="space-y-2">
-                  <Label htmlFor="password">Senha *</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={formData.password}
-                    onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, password: e.target.value }))
-                    }
-                    placeholder="Mínimo 8 caracteres"
-                    required
-                  />
-                </div>
+                <p className="text-xs text-text-secondary bg-surface-secondary p-2 rounded-md">
+                  O usuário receberá um e-mail para definir sua própria senha.
+                </p>
               )}
 
               <div className="space-y-2">

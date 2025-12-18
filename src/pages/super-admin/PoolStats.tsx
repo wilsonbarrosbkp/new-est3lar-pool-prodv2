@@ -198,6 +198,120 @@ export default function PoolStatsPage() {
         </Card>
       </div>
 
+      {/* Hashrates */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <TrendingUp className="h-5 w-5 text-primary" />
+            Hashrates
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loadingLatest ? (
+            <Skeleton className="h-48 w-full" />
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {[
+                { label: '1 Minute', value: latestStats?.hashrate_1m || 0, variation: hashrateVariations['1m'] },
+                { label: '5 Minutes', value: latestStats?.hashrate_5m || 0, variation: hashrateVariations['5m'] },
+                { label: '15 Minutes', value: latestStats?.hashrate_15m || 0, variation: hashrateVariations['15m'] },
+                { label: '1 Hour', value: latestStats?.hashrate_1h || 0, variation: hashrateVariations['1h'] },
+                { label: '6 Hours', value: latestStats?.hashrate_6h || 0, variation: hashrateVariations['6h'] },
+                { label: '1 Day', value: latestStats?.hashrate_1d || 0, variation: hashrateVariations['1d'] },
+                { label: '7 Days', value: latestStats?.hashrate_7d || 0, variation: hashrateVariations['7d'] },
+              ].map((item, index) => (
+                <Card key={index}>
+                  <CardContent className="p-4">
+                    <p className="text-sm text-text-secondary mb-2">{item.label}</p>
+                    <p className="text-xl font-bold mb-1">{formatHashrate(item.value)}</p>
+                    <div className="flex items-center gap-1">
+                      {item.variation > 0 ? (
+                        <ChevronUp className="h-4 w-4 text-success" />
+                      ) : item.variation < 0 ? (
+                        <ChevronDown className="h-4 w-4 text-error" />
+                      ) : null}
+                      <span
+                        className={`text-sm ${
+                          item.variation > 0
+                            ? 'text-success'
+                            : item.variation < 0
+                            ? 'text-error'
+                            : 'text-text-secondary'
+                        }`}
+                      >
+                        {Math.abs(item.variation).toFixed(2)}%
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Hashrate Chart */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Hashrate Over Time</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loadingChart ? (
+            <Skeleton className="h-80 w-full" />
+          ) : (
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
+                <XAxis
+                  dataKey="time"
+                  stroke="#71717a"
+                  style={{ fontSize: '12px' }}
+                />
+                <YAxis
+                  stroke="#71717a"
+                  style={{ fontSize: '12px' }}
+                  tickFormatter={(value) => formatHashrate(value)}
+                />
+                <RechartsTooltip
+                  contentStyle={{
+                    backgroundColor: '#18181b',
+                    border: '1px solid #27272a',
+                    borderRadius: '6px',
+                    color: '#fff',
+                  }}
+                  formatter={(value: any) => formatHashrate(value)}
+                />
+                <Legend />
+                <Line
+                  type="monotone"
+                  dataKey="hashrate"
+                  stroke="#3b82f6"
+                  strokeWidth={2}
+                  name="1 Min"
+                  dot={false}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="hashrate1h"
+                  stroke="#8b5cf6"
+                  strokeWidth={2}
+                  name="1 Hour"
+                  dot={false}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="hashrate1d"
+                  stroke="#06b6d4"
+                  strokeWidth={2}
+                  name="1 Day"
+                  dot={false}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Users & Shares Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Users Card */}
@@ -322,163 +436,46 @@ export default function PoolStatsPage() {
         </CardContent>
       </Card>
 
-      {/* Hashrates */}
+      {/* Users and Workers Chart */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="h-5 w-5 text-primary" />
-            Hashrates
-          </CardTitle>
+          <CardTitle>Users and Workers Over Time</CardTitle>
         </CardHeader>
         <CardContent>
-          {loadingLatest ? (
-            <Skeleton className="h-48 w-full" />
+          {loadingChart ? (
+            <Skeleton className="h-80 w-full" />
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {[
-                { label: '1 Minute', value: latestStats?.hashrate_1m || 0, variation: hashrateVariations['1m'] },
-                { label: '5 Minutes', value: latestStats?.hashrate_5m || 0, variation: hashrateVariations['5m'] },
-                { label: '15 Minutes', value: latestStats?.hashrate_15m || 0, variation: hashrateVariations['15m'] },
-                { label: '1 Hour', value: latestStats?.hashrate_1h || 0, variation: hashrateVariations['1h'] },
-                { label: '6 Hours', value: latestStats?.hashrate_6h || 0, variation: hashrateVariations['6h'] },
-                { label: '1 Day', value: latestStats?.hashrate_1d || 0, variation: hashrateVariations['1d'] },
-                { label: '7 Days', value: latestStats?.hashrate_7d || 0, variation: hashrateVariations['7d'] },
-              ].map((item, index) => (
-                <Card key={index}>
-                  <CardContent className="p-4">
-                    <p className="text-sm text-text-secondary mb-2">{item.label}</p>
-                    <p className="text-xl font-bold mb-1">{formatHashrate(item.value)}</p>
-                    <div className="flex items-center gap-1">
-                      {item.variation > 0 ? (
-                        <ChevronUp className="h-4 w-4 text-success" />
-                      ) : item.variation < 0 ? (
-                        <ChevronDown className="h-4 w-4 text-error" />
-                      ) : null}
-                      <span
-                        className={`text-sm ${
-                          item.variation > 0
-                            ? 'text-success'
-                            : item.variation < 0
-                            ? 'text-error'
-                            : 'text-text-secondary'
-                        }`}
-                      >
-                        {Math.abs(item.variation).toFixed(2)}%
-                      </span>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
+                <XAxis
+                  dataKey="time"
+                  stroke="#71717a"
+                  style={{ fontSize: '12px' }}
+                />
+                <YAxis stroke="#71717a" style={{ fontSize: '12px' }} />
+                <RechartsTooltip
+                  contentStyle={{
+                    backgroundColor: '#18181b',
+                    border: '1px solid #27272a',
+                    borderRadius: '6px',
+                    color: '#fff',
+                  }}
+                />
+                <Legend />
+                <Line
+                  type="monotone"
+                  dataKey="workers"
+                  stroke="#3b82f6"
+                  strokeWidth={2}
+                  name="Workers"
+                  dot={false}
+                />
+              </LineChart>
+            </ResponsiveContainer>
           )}
         </CardContent>
       </Card>
-
-      {/* Charts */}
-      <div className="grid grid-cols-1 gap-6">
-        {/* Users and Workers Chart */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Users and Workers Over Time</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {loadingChart ? (
-              <Skeleton className="h-80 w-full" />
-            ) : (
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
-                  <XAxis
-                    dataKey="time"
-                    stroke="#71717a"
-                    style={{ fontSize: '12px' }}
-                  />
-                  <YAxis stroke="#71717a" style={{ fontSize: '12px' }} />
-                  <RechartsTooltip
-                    contentStyle={{
-                      backgroundColor: '#18181b',
-                      border: '1px solid #27272a',
-                      borderRadius: '6px',
-                      color: '#fff',
-                    }}
-                  />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="workers"
-                    stroke="#3b82f6"
-                    strokeWidth={2}
-                    name="Workers"
-                    dot={false}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Hashrate Chart */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Hashrate Over Time</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {loadingChart ? (
-              <Skeleton className="h-80 w-full" />
-            ) : (
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
-                  <XAxis
-                    dataKey="time"
-                    stroke="#71717a"
-                    style={{ fontSize: '12px' }}
-                  />
-                  <YAxis
-                    stroke="#71717a"
-                    style={{ fontSize: '12px' }}
-                    tickFormatter={(value) => formatHashrate(value)}
-                  />
-                  <RechartsTooltip
-                    contentStyle={{
-                      backgroundColor: '#18181b',
-                      border: '1px solid #27272a',
-                      borderRadius: '6px',
-                      color: '#fff',
-                    }}
-                    formatter={(value: any) => formatHashrate(value)}
-                  />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="hashrate"
-                    stroke="#3b82f6"
-                    strokeWidth={2}
-                    name="1 Min"
-                    dot={false}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="hashrate1h"
-                    stroke="#8b5cf6"
-                    strokeWidth={2}
-                    name="1 Hour"
-                    dot={false}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="hashrate1d"
-                    stroke="#06b6d4"
-                    strokeWidth={2}
-                    name="1 Day"
-                    dot={false}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            )}
-          </CardContent>
-        </Card>
-      </div>
 
       {/* Top 10 User Difficulties */}
       <Card>
