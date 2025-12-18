@@ -109,131 +109,79 @@ const statusOptions = [
   { value: 'manutencao', label: 'Manutenção', color: 'warning' },
 ] as const
 
-// Dados mockados dos servidores da Genesis Pool
-const genesisPoolServers: ServerData[] = [
-  {
-    id: 'lb-01',
-    name: 'LB-Genesis-01',
-    hostname: 'lb01.genesispool.internal',
-    ip: '10.20.30.10',
-    role: 'load-balancer',
-    status: 'online',
-    os: 'Ubuntu 22.04 LTS',
-    location: 'Rack A1',
+// Função para converter uptime em segundos para formato legível
+function formatUptime(seconds: number): string {
+  const days = Math.floor(seconds / 86400)
+  const hours = Math.floor((seconds % 86400) / 3600)
+  const minutes = Math.floor((seconds % 3600) / 60)
+
+  if (days > 0) {
+    return `${days}d ${hours}h ${minutes}m`
+  }
+  if (hours > 0) {
+    return `${hours}h ${minutes}m`
+  }
+  return `${minutes}m`
+}
+
+// Interface para dados do banco
+interface ServerFromDB {
+  id: number
+  name: string
+  hostname: string
+  ip_address: string
+  role: string
+  status: string
+  os: string
+  location: string | null
+  cpu_usage: number
+  memory_usage: number
+  memory_total: string
+  disk_usage: number
+  disk_total: string
+  network_in: string
+  network_out: string
+  uptime_seconds: number
+  connections: number | null
+  requests_per_sec: number | null
+  latency_ms: number | null
+  last_metrics_at: string | null
+  created_at: string
+}
+
+// Função para converter dados do banco para o formato do componente
+function mapServerFromDB(server: ServerFromDB): ServerData {
+  return {
+    id: server.id.toString(),
+    name: server.name,
+    hostname: server.hostname || '',
+    ip: server.ip_address || '',
+    role: server.role as ServerData['role'],
+    status: server.status as ServerData['status'],
+    os: server.os || 'Linux',
+    location: server.location || undefined,
     metrics: {
-      cpuUsage: 23,
-      memoryUsage: 45,
-      memoryTotal: '8 GB',
-      diskUsage: 28,
-      diskTotal: '100 GB',
-      networkIn: '2.4 Gbps',
-      networkOut: '2.1 Gbps',
-      uptime: '45d 12h 33m',
-      connections: 12847,
-      requestsPerSec: 8542,
-      latency: 0.8,
+      cpuUsage: Number(server.cpu_usage) || 0,
+      memoryUsage: Number(server.memory_usage) || 0,
+      memoryTotal: server.memory_total || '0 GB',
+      diskUsage: Number(server.disk_usage) || 0,
+      diskTotal: server.disk_total || '0 GB',
+      networkIn: server.network_in || '0 Mbps',
+      networkOut: server.network_out || '0 Mbps',
+      uptime: formatUptime(server.uptime_seconds || 0),
+      connections: server.connections || undefined,
+      requestsPerSec: server.requests_per_sec || undefined,
+      latency: server.latency_ms ? Number(server.latency_ms) : undefined,
     },
-    lastUpdate: new Date(),
-  },
-  {
-    id: 'proxy-01',
-    name: 'Proxy-Genesis-01',
-    hostname: 'proxy01.genesispool.internal',
-    ip: '10.20.30.11',
-    role: 'proxy',
-    status: 'online',
-    os: 'Ubuntu 22.04 LTS',
-    location: 'Rack A2',
-    metrics: {
-      cpuUsage: 67,
-      memoryUsage: 72,
-      memoryTotal: '16 GB',
-      diskUsage: 35,
-      diskTotal: '200 GB',
-      networkIn: '1.8 Gbps',
-      networkOut: '1.6 Gbps',
-      uptime: '32d 8h 15m',
-      connections: 6423,
-      requestsPerSec: 4251,
-      latency: 1.2,
-    },
-    lastUpdate: new Date(),
-  },
-  {
-    id: 'proxy-02',
-    name: 'Proxy-Genesis-02',
-    hostname: 'proxy02.genesispool.internal',
-    ip: '10.20.30.12',
-    role: 'proxy',
-    status: 'online',
-    os: 'Ubuntu 22.04 LTS',
-    location: 'Rack A2',
-    metrics: {
-      cpuUsage: 58,
-      memoryUsage: 65,
-      memoryTotal: '16 GB',
-      diskUsage: 32,
-      diskTotal: '200 GB',
-      networkIn: '1.5 Gbps',
-      networkOut: '1.3 Gbps',
-      uptime: '32d 8h 15m',
-      connections: 6424,
-      requestsPerSec: 4293,
-      latency: 1.1,
-    },
-    lastUpdate: new Date(),
-  },
-  {
-    id: 'stats-01',
-    name: 'Stats-Genesis-01',
-    hostname: 'stats01.genesispool.internal',
-    ip: '10.20.30.13',
-    role: 'pool-stats',
-    status: 'online',
-    os: 'Ubuntu 22.04 LTS',
-    location: 'Rack B1',
-    metrics: {
-      cpuUsage: 34,
-      memoryUsage: 52,
-      memoryTotal: '32 GB',
-      diskUsage: 68,
-      diskTotal: '500 GB',
-      networkIn: '450 Mbps',
-      networkOut: '380 Mbps',
-      uptime: '89d 3h 42m',
-      requestsPerSec: 1250,
-      latency: 2.3,
-    },
-    lastUpdate: new Date(),
-  },
-  {
-    id: 'pool-01',
-    name: 'Genesis-Pool-Main',
-    hostname: 'pool01.genesispool.internal',
-    ip: '10.20.30.15',
-    role: 'mining-pool',
-    status: 'online',
-    os: 'Ubuntu 22.04 LTS',
-    location: 'Rack B2',
-    metrics: {
-      cpuUsage: 78,
-      memoryUsage: 85,
-      memoryTotal: '64 GB',
-      diskUsage: 45,
-      diskTotal: '1 TB',
-      networkIn: '3.2 Gbps',
-      networkOut: '2.8 Gbps',
-      uptime: '15d 7h 22m',
-      connections: 1,
-      latency: 0.5,
-    },
-    lastUpdate: new Date(),
-  },
-]
+    lastUpdate: server.last_metrics_at ? new Date(server.last_metrics_at) : new Date(),
+  }
+}
 
 export default function HardwarePage() {
   const [hardware, setHardware] = useState<Hardware[]>([])
   const [organizations, setOrganizations] = useState<Organization[]>([])
+  const [servers, setServers] = useState<ServerData[]>([])
+  const [loadingServers, setLoadingServers] = useState(true)
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [filterOrg, setFilterOrg] = useState<string>('all')
@@ -242,6 +190,26 @@ export default function HardwarePage() {
   const [editingHardware, setEditingHardware] = useState<Hardware | null>(null)
   const [formData, setFormData] = useState(initialFormData)
   const [saving, setSaving] = useState(false)
+
+  const loadServers = useCallback(async () => {
+    setLoadingServers(true)
+    try {
+      const { data, error } = await supabase
+        .from('servers')
+        .select('*')
+        .order('id')
+
+      if (error) throw error
+
+      const mappedServers = (data || []).map((s: ServerFromDB) => mapServerFromDB(s))
+      setServers(mappedServers)
+    } catch (error) {
+      console.error('Erro ao carregar servidores:', error)
+      toast.error('Erro ao carregar servidores')
+    } finally {
+      setLoadingServers(false)
+    }
+  }, [])
 
   const loadData = useCallback(async () => {
     setLoading(true)
@@ -277,7 +245,8 @@ export default function HardwarePage() {
 
   useEffect(() => {
     loadData()
-  }, [loadData])
+    loadServers()
+  }, [loadData, loadServers])
 
   const filteredHardware = hardware.filter(item => {
     const matchesSearch =
@@ -532,25 +501,43 @@ export default function HardwarePage() {
             </CardTitle>
             <div className="flex items-center gap-2">
               <Badge variant="outline" className="text-success">
-                {genesisPoolServers.filter(s => s.status === 'online').length}/{genesisPoolServers.length} Online
+                {servers.filter(s => s.status === 'online').length}/{servers.length} Online
               </Badge>
-              <Button variant="outline" size="sm">
-                <RefreshCw className="h-4 w-4 mr-2" />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={loadServers}
+                disabled={loadingServers}
+              >
+                <RefreshCw className={`h-4 w-4 mr-2 ${loadingServers ? 'animate-spin' : ''}`} />
                 Atualizar
               </Button>
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {genesisPoolServers.map((server) => (
-              <ServerCard
-                key={server.id}
-                server={server}
-                onClick={() => toast.info(`Detalhes de ${server.name} em breve...`)}
-              />
-            ))}
-          </div>
+          {loadingServers ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Skeleton key={i} className="h-64 w-full" />
+              ))}
+            </div>
+          ) : servers.length === 0 ? (
+            <div className="text-center py-12">
+              <Server className="mx-auto h-12 w-12 text-text-secondary mb-4" />
+              <p className="text-text-secondary">Nenhum servidor cadastrado</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+              {servers.map((server) => (
+                <ServerCard
+                  key={server.id}
+                  server={server}
+                  onClick={() => toast.info(`Detalhes de ${server.name} em breve...`)}
+                />
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 

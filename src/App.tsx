@@ -22,6 +22,7 @@ import AuditPage from '@/pages/super-admin/Audit'
 import EndpointsPage from '@/pages/super-admin/Endpoints'
 import RoundsPage from '@/pages/super-admin/Rounds'
 import WebhooksPage from '@/pages/super-admin/Webhooks'
+import PoolStatsPage from '@/pages/super-admin/PoolStats'
 
 function App() {
   return (
@@ -85,6 +86,7 @@ function App() {
             <Route path="endpoints" element={<EndpointsPage />} />
             <Route path="rounds" element={<RoundsPage />} />
             <Route path="webhooks" element={<WebhooksPage />} />
+            <Route path="pool-stats" element={<PoolStatsPage />} />
           </Route>
 
           {/* 404 */}

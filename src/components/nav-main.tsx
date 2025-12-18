@@ -16,6 +16,7 @@ import {
   TrendingUp,
   Shield,
   FileText,
+  Activity,
 } from 'lucide-react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useState, useTransition, useEffect } from 'react'
@@ -45,6 +46,7 @@ const iconMap: Record<string, LucideIcon> = {
   Database,
   TrendingUp,
   FileText,
+  Activity,
 }
 
 export type NavItem = {

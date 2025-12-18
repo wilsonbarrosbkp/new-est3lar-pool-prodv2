@@ -15,6 +15,7 @@ const superAdminNavItems: NavItem[] = [
   { title: 'Permissoes', url: '/super-admin/permissions', iconName: 'Shield' },
   { title: 'Moedas', url: '/super-admin/currencies', iconName: 'Coins' },
   { title: 'Pools', url: '/super-admin/pools', iconName: 'Database' },
+  { title: 'Mineracao', url: '/super-admin/pool-stats', iconName: 'Activity' },
   { title: 'Carteiras', url: '/super-admin/wallets', iconName: 'Wallet' },
   { title: 'Hardware', url: '/super-admin/hardware', iconName: 'BarChart3' },
   { title: 'Workers', url: '/super-admin/workers', iconName: 'Users' },
