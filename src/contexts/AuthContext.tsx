@@ -49,43 +49,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     console.log('🔐 Storage key:', storageKey)
     console.log('🔐 Sessão no localStorage:', storedSession ? 'presente' : 'ausente')
 
+    // Tentar recuperar sessão do localStorage primeiro (mais confiável)
     if (storedSession) {
       try {
         const parsed = JSON.parse(storedSession)
         console.log('🔐 Token expira em:', parsed.expires_at ? new Date(parsed.expires_at * 1000).toISOString() : 'N/A')
+
+        // Verificar se o token ainda é válido
+        const now = Math.floor(Date.now() / 1000)
+        if (parsed.expires_at && parsed.expires_at > now && parsed.user) {
+          console.log('🔐 Sessão válida encontrada no localStorage, usando diretamente')
+          clearTimeout(timeoutId)
+          loadingResolved.current = true
+          setSession(parsed)
+          setUser(parsed.user)
+          fetchUserData(parsed.user.id)
+          return
+        } else {
+          console.log('🔐 Sessão expirada ou inválida, limpando...')
+          localStorage.removeItem(storageKey)
+        }
       } catch (e) {
         console.error('🔐 Erro ao parsear sessão, limpando localStorage corrompido...')
         localStorage.removeItem(storageKey)
       }
     }
 
-    // Get initial session
-    console.log('🔐 Iniciando getSession...')
-
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
-      console.log('🔐 getSession completado', { session: !!session, error })
-      clearTimeout(timeoutId)
-      loadingResolved.current = true
-      if (error) {
-        console.error('Erro em getSession:', error)
-        setIsLoading(false)
-        return
-      }
-      setSession(session)
-      setUser(session?.user ?? null)
-      if (session?.user) {
-        console.log('🔐 Usuário encontrado, buscando userData...')
-        fetchUserData(session.user.id)
-      } else {
-        console.log('🔐 Sem sessão, finalizando loading')
-        setIsLoading(false)
-      }
-    }).catch((err) => {
-      clearTimeout(timeoutId)
-      loadingResolved.current = true
-      console.error('🔐 Erro em getSession (catch):', err)
-      setIsLoading(false)
-    })
+    // Sem sessão no localStorage, finalizar loading (mostrar tela de login)
+    console.log('🔐 Sem sessão válida, finalizando loading')
+    clearTimeout(timeoutId)
+    loadingResolved.current = true
+    setIsLoading(false)
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
