@@ -53,6 +53,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         const parsed = JSON.parse(storedSession)
         console.log('🔐 Token expira em:', parsed.expires_at ? new Date(parsed.expires_at * 1000).toISOString() : 'N/A')
+        // Limpar sessão criada em outro domínio (localhost) para evitar problemas de refresh
+        // TODO: Remover este bloco após resolver o problema
+        console.log('🔐 Limpando sessão antiga para forçar novo login...')
+        localStorage.removeItem(storageKey)
       } catch (e) {
         console.error('🔐 Erro ao parsear sessão, limpando localStorage...')
         localStorage.removeItem(storageKey)
