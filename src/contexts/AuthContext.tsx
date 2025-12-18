@@ -42,12 +42,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     }, 5000)
 
-    // Teste de conectividade com Supabase
+    // Verificar estado do localStorage
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-    console.log('🔐 Testando conectividade com Supabase...')
-    fetch(`${supabaseUrl}/auth/v1/health`, { method: 'GET' })
-      .then(res => console.log('🔐 Health check:', res.status, res.ok))
-      .catch(err => console.error('🔐 Health check falhou:', err))
+    const storageKey = `sb-${new URL(supabaseUrl).hostname.split('.')[0]}-auth-token`
+    const storedSession = localStorage.getItem(storageKey)
+    console.log('🔐 Storage key:', storageKey)
+    console.log('🔐 Sessão no localStorage:', storedSession ? 'presente' : 'ausente')
+
+    if (storedSession) {
+      try {
+        const parsed = JSON.parse(storedSession)
+        console.log('🔐 Token expira em:', parsed.expires_at ? new Date(parsed.expires_at * 1000).toISOString() : 'N/A')
+      } catch (e) {
+        console.error('🔐 Erro ao parsear sessão, limpando localStorage...')
+        localStorage.removeItem(storageKey)
+      }
+    }
 
     // Get initial session
     console.log('🔐 Iniciando getSession...')
