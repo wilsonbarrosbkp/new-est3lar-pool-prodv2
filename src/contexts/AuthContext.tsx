@@ -127,6 +127,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function signOut() {
+    // Limpar localStorage manualmente para garantir
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+    const storageKey = `sb-${new URL(supabaseUrl).hostname.split('.')[0]}-auth-token`
+    localStorage.removeItem(storageKey)
+
     await supabase.auth.signOut()
     setUser(null)
     setUserData(null)

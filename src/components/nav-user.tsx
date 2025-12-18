@@ -17,6 +17,7 @@ import {
   useSidebar,
 } from '@/components/ui/Sidebar'
 import { gradients, shadows, borders } from '@/design-system'
+import { useAuth } from '@/contexts/AuthContext'
 
 export type NavUserProps = {
   name: string
@@ -25,14 +26,9 @@ export type NavUserProps = {
   role?: string
 }
 
-async function logout() {
-  // Por enquanto, apenas redireciona para login
-  // Quando integrar Supabase, adicionar lógica de logout real
-  window.location.href = '/login'
-}
-
 export function NavUser({ user }: { user: NavUserProps }) {
   const { isMobile } = useSidebar()
+  const { signOut } = useAuth()
 
   const displayName = user?.name || user?.email?.split('@')[0] || 'Usuario'
   const displayEmail = user?.email || 'no-email@example.com'
@@ -143,7 +139,7 @@ export function NavUser({ user }: { user: NavUserProps }) {
               onClick={() => {
                 if (!isPending) {
                   startTransition(() => {
-                    void logout()
+                    void signOut()
                   })
                 }
               }}
