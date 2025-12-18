@@ -26,14 +26,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const initialized = useRef(false)
+  const loadingResolved = useRef(false)
 
   useEffect(() => {
     // Evitar inicialização duplicada (React Strict Mode)
     if (initialized.current) return
     initialized.current = true
 
+    // Timeout de segurança para evitar loading infinito
+    const timeoutId = setTimeout(() => {
+      if (!loadingResolved.current) {
+        console.warn('Auth timeout - finalizando loading')
+        loadingResolved.current = true
+        setIsLoading(false)
+      }
+    }, 5000)
+
     // Get initial session
     supabase.auth.getSession().then(({ data: { session }, error }) => {
+      clearTimeout(timeoutId)
+      loadingResolved.current = true
       if (error) {
         console.error('Erro em getSession:', error)
         setIsLoading(false)
@@ -47,6 +59,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setIsLoading(false)
       }
     }).catch((err) => {
+      clearTimeout(timeoutId)
+      loadingResolved.current = true
       console.error('Erro em getSession:', err)
       setIsLoading(false)
     })
@@ -68,7 +82,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     )
 
-    return () => subscription.unsubscribe()
+    return () => {
+      clearTimeout(timeoutId)
+      subscription.unsubscribe()
+    }
   }, [])
 
   async function fetchUserData(authUserId: string) {
