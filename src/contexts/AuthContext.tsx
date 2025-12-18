@@ -42,8 +42,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     }, 5000)
 
+    // Teste de conectividade com Supabase
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+    console.log('🔐 Testando conectividade com Supabase...')
+    fetch(`${supabaseUrl}/auth/v1/health`, { method: 'GET' })
+      .then(res => console.log('🔐 Health check:', res.status, res.ok))
+      .catch(err => console.error('🔐 Health check falhou:', err))
+
     // Get initial session
     console.log('🔐 Iniciando getSession...')
+
     supabase.auth.getSession().then(({ data: { session }, error }) => {
       console.log('🔐 getSession completado', { session: !!session, error })
       clearTimeout(timeoutId)
