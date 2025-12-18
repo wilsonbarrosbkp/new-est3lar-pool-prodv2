@@ -43,7 +43,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, 5000)
 
     // Get initial session
+    console.log('🔐 Iniciando getSession...')
     supabase.auth.getSession().then(({ data: { session }, error }) => {
+      console.log('🔐 getSession completado', { session: !!session, error })
       clearTimeout(timeoutId)
       loadingResolved.current = true
       if (error) {
@@ -54,14 +56,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(session)
       setUser(session?.user ?? null)
       if (session?.user) {
+        console.log('🔐 Usuário encontrado, buscando userData...')
         fetchUserData(session.user.id)
       } else {
+        console.log('🔐 Sem sessão, finalizando loading')
         setIsLoading(false)
       }
     }).catch((err) => {
       clearTimeout(timeoutId)
       loadingResolved.current = true
-      console.error('Erro em getSession:', err)
+      console.error('🔐 Erro em getSession (catch):', err)
       setIsLoading(false)
     })
 
