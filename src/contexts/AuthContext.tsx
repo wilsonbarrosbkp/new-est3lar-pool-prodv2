@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
+import { createContext, useContext, useEffect, useState, useRef, ReactNode } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import type { User, Session } from '@supabase/supabase-js'
 
@@ -6,8 +6,8 @@ interface UserData {
   id: string
   email: string
   role_id: number
-  full_name?: string
-  organization_id?: string
+  name?: string
+  organization_id?: number
 }
 
 interface AuthContextType {
@@ -25,10 +25,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [userData, setUserData] = useState<UserData | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const initialized = useRef(false)
 
   useEffect(() => {
+    // Evitar inicialização duplicada (React Strict Mode)
+    if (initialized.current) return
+    initialized.current = true
+
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        console.error('Erro em getSession:', error)
+        setIsLoading(false)
+        return
+      }
       setSession(session)
       setUser(session?.user ?? null)
       if (session?.user) {
@@ -36,11 +46,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         setIsLoading(false)
       }
+    }).catch((err) => {
+      console.error('Erro em getSession:', err)
+      setIsLoading(false)
     })
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      async (event, session) => {
+        // Ignorar evento INITIAL_SESSION pois já tratamos com getSession
+        if (event === 'INITIAL_SESSION') return
+
         setSession(session)
         setUser(session?.user ?? null)
         if (session?.user) {
@@ -59,18 +75,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const { data, error } = await supabase
         .from('users')
-        .select('id, email, role_id, full_name, organization_id')
+        .select('id, email, role_id, name, organization_id')
         .eq('auth_user_id', authUserId)
         .single()
 
       if (error) {
-        console.error('Error fetching user data:', error)
+        console.error('Erro ao buscar userData:', error)
         setUserData(null)
       } else {
         setUserData(data)
       }
     } catch (err) {
-      console.error('Error fetching user data:', err)
+      console.error('Erro em fetchUserData:', err)
       setUserData(null)
     } finally {
       setIsLoading(false)
