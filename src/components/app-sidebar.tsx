@@ -42,9 +42,9 @@ export function AppSidebar({
             />
           ) : (
             <img
-              src="/icon est3lar roxo.png"
+              src="/icon-est3lar-roxo.png"
               alt="Est3lar"
-              className="h-10 w-10 flex-shrink-0 rounded-md"
+              className="h-8 w-8 flex-shrink-0"
             />
           )}
         </Link>
