@@ -46,19 +46,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
     const storageKey = `sb-${new URL(supabaseUrl).hostname.split('.')[0]}-auth-token`
     const storedSession = localStorage.getItem(storageKey)
-    console.log('🔐 Storage key:', storageKey)
-    console.log('🔐 Sessão no localStorage:', storedSession ? 'presente' : 'ausente')
 
     // Tentar recuperar sessão do localStorage primeiro (mais confiável)
     if (storedSession) {
       try {
         const parsed = JSON.parse(storedSession)
-        console.log('🔐 Token expira em:', parsed.expires_at ? new Date(parsed.expires_at * 1000).toISOString() : 'N/A')
 
         // Verificar se o token ainda é válido
         const now = Math.floor(Date.now() / 1000)
         if (parsed.expires_at && parsed.expires_at > now && parsed.user) {
-          console.log('🔐 Sessão válida encontrada no localStorage, usando diretamente')
           clearTimeout(timeoutId)
           loadingResolved.current = true
           setSession(parsed)
@@ -66,17 +62,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           fetchUserData(parsed.user.id)
           return
         } else {
-          console.log('🔐 Sessão expirada ou inválida, limpando...')
           localStorage.removeItem(storageKey)
         }
-      } catch (e) {
-        console.error('🔐 Erro ao parsear sessão, limpando localStorage corrompido...')
+      } catch {
         localStorage.removeItem(storageKey)
       }
     }
 
     // Sem sessão no localStorage, finalizar loading (mostrar tela de login)
-    console.log('🔐 Sem sessão válida, finalizando loading')
     clearTimeout(timeoutId)
     loadingResolved.current = true
     setIsLoading(false)
