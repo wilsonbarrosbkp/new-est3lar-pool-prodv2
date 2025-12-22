@@ -8,8 +8,6 @@ import {
   CheckCircle,
   Copy,
   Check,
-  Eye,
-  EyeOff,
   RefreshCw,
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
@@ -120,7 +118,7 @@ export default function WebhooksPage() {
   const [formData, setFormData] = useState(initialFormData)
   const [saving, setSaving] = useState(false)
   const [copiedId, setCopiedId] = useState<number | null>(null)
-  const [showSecret, setShowSecret] = useState<number | null>(null)
+  const [copiedSecretId, setCopiedSecretId] = useState<number | null>(null)
 
   const loadData = useCallback(async () => {
     setLoading(true)
@@ -176,6 +174,18 @@ export default function WebhooksPage() {
       toast.success('URL copiada!')
     } catch {
       toast.error('Erro ao copiar URL')
+    }
+  }
+
+  const handleCopySecret = async (webhook: WebhookData) => {
+    if (!webhook.secret) return
+    try {
+      await navigator.clipboard.writeText(webhook.secret)
+      setCopiedSecretId(webhook.id)
+      setTimeout(() => setCopiedSecretId(null), 2000)
+      toast.success('Secret copiado!')
+    } catch {
+      toast.error('Erro ao copiar secret')
     }
   }
 
@@ -478,21 +488,18 @@ export default function WebhooksPage() {
                       {webhook.secret && (
                         <div className="flex items-center gap-1 mt-1">
                           <span className="text-xs text-text-secondary">Secret:</span>
-                          <code className="text-xs">
-                            {showSecret === webhook.id
-                              ? webhook.secret.slice(0, 20) + '...'
-                              : '••••••••'}
-                          </code>
+                          <code className="text-xs">••••••••</code>
                           <Button
                             variant="ghost"
                             size="sm"
                             className="h-4 w-4 p-0"
-                            onClick={() => setShowSecret(showSecret === webhook.id ? null : webhook.id)}
+                            onClick={() => handleCopySecret(webhook)}
+                            title="Copiar secret"
                           >
-                            {showSecret === webhook.id ? (
-                              <EyeOff className="h-3 w-3" />
+                            {copiedSecretId === webhook.id ? (
+                              <Check className="h-3 w-3 text-success" />
                             ) : (
-                              <Eye className="h-3 w-3" />
+                              <Copy className="h-3 w-3" />
                             )}
                           </Button>
                         </div>
