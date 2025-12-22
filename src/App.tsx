@@ -13,22 +13,24 @@ const ResetPasswordPage = lazy(() => import('@/pages/ResetPassword'))
 
 // Lazy loaded layouts
 const SuperAdminLayout = lazy(() => import('@/components/layout/SuperAdminLayout').then(m => ({ default: m.SuperAdminLayout })))
-import SuperAdminDashboard from '@/pages/super-admin/index'
-import OrganizationsPage from '@/pages/super-admin/Organizations'
-import UsersPage from '@/pages/super-admin/Users'
-import PermissionsPage from '@/pages/super-admin/Permissions'
-import CurrenciesPage from '@/pages/super-admin/Currencies'
-import PoolsPage from '@/pages/super-admin/Pools'
-import WalletsPage from '@/pages/super-admin/Wallets'
-import HardwarePage from '@/pages/super-admin/Hardware'
-import WorkersPage from '@/pages/super-admin/Workers'
-import PaymentsPage from '@/pages/super-admin/Payments'
-import RevenuePage from '@/pages/super-admin/Revenue'
-import AuditPage from '@/pages/super-admin/Audit'
-import EndpointsPage from '@/pages/super-admin/Endpoints'
-import RoundsPage from '@/pages/super-admin/Rounds'
-import WebhooksPage from '@/pages/super-admin/Webhooks'
-import PoolStatsPage from '@/pages/super-admin/PoolStats'
+
+// Lazy loaded pages - Super Admin
+const SuperAdminDashboard = lazy(() => import('@/pages/super-admin/index'))
+const OrganizationsPage = lazy(() => import('@/pages/super-admin/Organizations'))
+const UsersPage = lazy(() => import('@/pages/super-admin/Users'))
+const PermissionsPage = lazy(() => import('@/pages/super-admin/Permissions'))
+const CurrenciesPage = lazy(() => import('@/pages/super-admin/Currencies'))
+const PoolsPage = lazy(() => import('@/pages/super-admin/Pools'))
+const WalletsPage = lazy(() => import('@/pages/super-admin/Wallets'))
+const HardwarePage = lazy(() => import('@/pages/super-admin/Hardware'))
+const WorkersPage = lazy(() => import('@/pages/super-admin/Workers'))
+const PaymentsPage = lazy(() => import('@/pages/super-admin/Payments'))
+const RevenuePage = lazy(() => import('@/pages/super-admin/Revenue'))
+const AuditPage = lazy(() => import('@/pages/super-admin/Audit'))
+const EndpointsPage = lazy(() => import('@/pages/super-admin/Endpoints'))
+const RoundsPage = lazy(() => import('@/pages/super-admin/Rounds'))
+const WebhooksPage = lazy(() => import('@/pages/super-admin/Webhooks'))
+const PoolStatsPage = lazy(() => import('@/pages/super-admin/PoolStats'))
 
 function App() {
   return (
@@ -87,22 +89,22 @@ function App() {
               </Suspense>
             </SuperAdminRoute>
           }>
-            <Route index element={<SuperAdminDashboard />} />
-            <Route path="organizations" element={<OrganizationsPage />} />
-            <Route path="users" element={<UsersPage />} />
-            <Route path="permissions" element={<PermissionsPage />} />
-            <Route path="currencies" element={<CurrenciesPage />} />
-            <Route path="pools" element={<PoolsPage />} />
-            <Route path="wallets" element={<WalletsPage />} />
-            <Route path="hardware" element={<HardwarePage />} />
-            <Route path="workers" element={<WorkersPage />} />
-            <Route path="payments" element={<PaymentsPage />} />
-            <Route path="revenue" element={<RevenuePage />} />
-            <Route path="audit" element={<AuditPage />} />
-            <Route path="endpoints" element={<EndpointsPage />} />
-            <Route path="rounds" element={<RoundsPage />} />
-            <Route path="webhooks" element={<WebhooksPage />} />
-            <Route path="pool-stats" element={<PoolStatsPage />} />
+            <Route index element={<Suspense fallback={<LoadingFallback message="Carregando dashboard..." />}><SuperAdminDashboard /></Suspense>} />
+            <Route path="organizations" element={<Suspense fallback={<LoadingFallback />}><OrganizationsPage /></Suspense>} />
+            <Route path="users" element={<Suspense fallback={<LoadingFallback />}><UsersPage /></Suspense>} />
+            <Route path="permissions" element={<Suspense fallback={<LoadingFallback />}><PermissionsPage /></Suspense>} />
+            <Route path="currencies" element={<Suspense fallback={<LoadingFallback />}><CurrenciesPage /></Suspense>} />
+            <Route path="pools" element={<Suspense fallback={<LoadingFallback />}><PoolsPage /></Suspense>} />
+            <Route path="wallets" element={<Suspense fallback={<LoadingFallback />}><WalletsPage /></Suspense>} />
+            <Route path="hardware" element={<Suspense fallback={<LoadingFallback />}><HardwarePage /></Suspense>} />
+            <Route path="workers" element={<Suspense fallback={<LoadingFallback />}><WorkersPage /></Suspense>} />
+            <Route path="payments" element={<Suspense fallback={<LoadingFallback />}><PaymentsPage /></Suspense>} />
+            <Route path="revenue" element={<Suspense fallback={<LoadingFallback />}><RevenuePage /></Suspense>} />
+            <Route path="audit" element={<Suspense fallback={<LoadingFallback />}><AuditPage /></Suspense>} />
+            <Route path="endpoints" element={<Suspense fallback={<LoadingFallback />}><EndpointsPage /></Suspense>} />
+            <Route path="rounds" element={<Suspense fallback={<LoadingFallback />}><RoundsPage /></Suspense>} />
+            <Route path="webhooks" element={<Suspense fallback={<LoadingFallback />}><WebhooksPage /></Suspense>} />
+            <Route path="pool-stats" element={<Suspense fallback={<LoadingFallback />}><PoolStatsPage /></Suspense>} />
           </Route>
 
           {/* 404 */}

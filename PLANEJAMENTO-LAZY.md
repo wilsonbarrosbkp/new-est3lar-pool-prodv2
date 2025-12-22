@@ -2,6 +2,7 @@
 
 **Data:** 22/12/2025
 **Objetivo:** Reduzir bundle inicial de ~517KB para ~150-200KB
+**Resultado atual:** 229 KB (meta atingida!)
 **Metodo:** Implementacao ponto a ponto com testes entre cada etapa
 
 ---
@@ -51,7 +52,7 @@
   - Arquivo: `src/App.tsx`
   - Teste: Login como admin, dashboard carrega
 
-- [ ] **3.2** Lazy load das paginas individuais do Super Admin
+- [x] **3.2** Lazy load das paginas individuais do Super Admin
   - Arquivos: Todas as paginas em `src/pages/super-admin/`
   - Teste: Navegar entre paginas, todas carregam
 
@@ -115,7 +116,7 @@ git checkout -- src/App.tsx
 | 2.2   | Concluido | 22/12/2025 | Chunk: ForgotPassword-*.js (2.77 KB) |
 | 2.3   | Concluido | 22/12/2025 | Chunk: ResetPassword-*.js (2.92 KB) + shared |
 | 3.1   | Concluido | 22/12/2025 | Chunk: SuperAdminLayout-*.js (26.53 KB) |
-| 3.2   | Pendente | - | - |
+| 3.2   | Concluido | 22/12/2025 | 16 paginas lazy! index.js: 229 KB |
 | 5.1   | Pendente | - | - |
 | 5.2   | Pendente | - | - |
 
