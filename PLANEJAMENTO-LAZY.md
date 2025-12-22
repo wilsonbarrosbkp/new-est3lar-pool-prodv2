@@ -63,7 +63,7 @@
 
 ### Fase 5: Otimizacoes Adicionais
 
-- [ ] **5.1** Separar chunk do Recharts (graficos)
+- [x] **5.1** Separar chunk do Recharts (graficos)
   - Arquivo: `vite.config.ts`
   - Teste: Build mostra chunk separado para charts
 
@@ -117,7 +117,7 @@ git checkout -- src/App.tsx
 | 2.3   | Concluido | 22/12/2025 | Chunk: ResetPassword-*.js (2.92 KB) + shared |
 | 3.1   | Concluido | 22/12/2025 | Chunk: SuperAdminLayout-*.js (26.53 KB) |
 | 3.2   | Concluido | 22/12/2025 | 16 paginas lazy! index.js: 229 KB |
-| 5.1   | Pendente | - | - |
+| 5.1   | Concluido | 22/12/2025 | charts-*.js: 354 KB (já separado) |
 | 5.2   | Pendente | - | - |
 
 ---
