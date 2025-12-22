@@ -6,10 +6,10 @@ import { SuperAdminRoute } from '@/components/auth/ProtectedRoute'
 import { PublicRoute } from '@/components/auth/PublicRoute'
 import { LoadingFallback } from '@/components/ui/LoadingFallback'
 
-// Lazy loaded pages
+// Lazy loaded pages - Auth
 const LoginPage = lazy(() => import('@/pages/Login'))
 const ForgotPasswordPage = lazy(() => import('@/pages/ForgotPassword'))
-import ResetPasswordPage from '@/pages/ResetPassword'
+const ResetPasswordPage = lazy(() => import('@/pages/ResetPassword'))
 import { SuperAdminLayout } from '@/components/layout/SuperAdminLayout'
 import SuperAdminDashboard from '@/pages/super-admin/index'
 import OrganizationsPage from '@/pages/super-admin/Organizations'
@@ -51,7 +51,11 @@ function App() {
               </Suspense>
             </PublicRoute>
           } />
-          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/reset-password" element={
+            <Suspense fallback={<LoadingFallback />}>
+              <ResetPasswordPage />
+            </Suspense>
+          } />
 
           {/* Dashboard for Org Miner (role_id: 3) */}
           <Route path="/dashboard" element={
