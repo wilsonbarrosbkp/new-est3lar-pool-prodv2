@@ -91,7 +91,7 @@ Role: Super Admin
 
 ## Painel Super Admin
 
-O painel Super Admin esta totalmente implementado com 15 paginas:
+O painel Super Admin esta totalmente implementado com 16 paginas:
 
 ### Paginas Implementadas
 
@@ -112,6 +112,7 @@ O painel Super Admin esta totalmente implementado com 15 paginas:
 | Endpoints | `/super-admin/endpoints` | Gerenciamento de endpoints |
 | Rounds | `/super-admin/rounds` | Rounds de mineracao |
 | Webhooks | `/super-admin/webhooks` | Configuracao de webhooks |
+| Pool Stats | `/super-admin/pool-stats` | Estatisticas da pool em tempo real |
 
 ### Layout Super Admin
 
@@ -145,6 +146,7 @@ O painel Super Admin esta totalmente implementado com 15 paginas:
 | Switch | `ui/Switch.tsx` | Toggle on/off |
 | Textarea | `ui/Textarea.tsx` | Campo de texto multilinhas |
 | Checkbox | `ui/Checkbox.tsx` | Caixas de selecao |
+| LoadingFallback | `ui/LoadingFallback.tsx` | Loading para lazy components |
 
 ### Componentes de Layout
 
@@ -229,7 +231,8 @@ new-est3lar-pool-prodv2/
 │   │       ├── Audit.tsx
 │   │       ├── Endpoints.tsx
 │   │       ├── Rounds.tsx
-│   │       └── Webhooks.tsx
+│   │       ├── Webhooks.tsx
+│   │       └── PoolStats.tsx
 │   ├── lib/
 │   │   ├── auth/
 │   │   │   ├── login.ts
@@ -354,19 +357,38 @@ function Component() {
 
 ## Performance
 
+### Lazy Loading
+
+Todas as paginas utilizam lazy loading para otimizar o carregamento inicial:
+
+- **Paginas de Auth**: Login, ForgotPassword, ResetPassword
+- **Layout Super Admin**: Carrega apenas quando autenticado
+- **16 Paginas Admin**: Cada pagina e um chunk separado
+
 ### Build Stats (Producao)
 
 ```
-dist/index.html                    1.73 kB │ gzip:   0.71 kB
-dist/assets/index-*.css           59.99 kB │ gzip:  10.24 kB
-dist/assets/charts-*.js            1.27 kB │ gzip:   0.65 kB
-dist/assets/react-vendor-*.js     45.09 kB │ gzip:  16.18 kB
-dist/assets/ui-vendor-*.js        98.91 kB │ gzip:  32.59 kB
+Chunks principais:
+dist/assets/index-*.js           229.69 kB │ gzip:  71.31 kB
+dist/assets/charts-*.js          354.22 kB │ gzip: 104.90 kB
 dist/assets/supabase-*.js        169.12 kB │ gzip:  44.08 kB
-dist/assets/index-*.js           489.49 kB │ gzip: 124.65 kB
+dist/assets/ui-vendor-*.js       117.02 kB │ gzip:  37.38 kB
+dist/assets/react-vendor-*.js     45.10 kB │ gzip:  16.18 kB
 
-Build time: ~2.6s
+Paginas (carregam sob demanda):
+dist/assets/Login-*.js             3.52 kB │ gzip:   1.55 kB
+dist/assets/SuperAdminLayout-*.js 19.41 kB │ gzip:   6.29 kB
+dist/assets/[paginas]-*.js        8-23 kB │ gzip:   3-6 kB
+
+Build time: ~2.4s
 ```
+
+### Otimizacao
+
+| Metrica | Antes | Depois | Reducao |
+|---------|-------|--------|---------|
+| Bundle inicial | 517 KB | 230 KB | **56%** |
+| Carregamento login | ~1.2 MB | ~450 KB | **63%** |
 
 ---
 
@@ -466,6 +488,6 @@ Proprietario - Est3lar
 
 ---
 
-**Versao:** 2.0.0
-**Ultima atualizacao:** 2025-12-17
-**Status:** Sistema de autenticacao + Protecao de rotas + Painel Super Admin completo
+**Versao:** 2.1.0
+**Ultima atualizacao:** 2025-12-22
+**Status:** Sistema completo com lazy loading e otimizacao de performance
