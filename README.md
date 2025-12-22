@@ -428,6 +428,9 @@ organization_id UUID
 
 ## Design System
 
+> **IMPORTANTE:** Todos os tokens estao definidos em `src/index.css` dentro do `@theme`.
+> **SEMPRE** consulte e utilize esses tokens antes de criar qualquer componente.
+
 ### Cores
 
 ```css
@@ -444,6 +447,119 @@ organization_id UUID
 ```css
 background: linear-gradient(to right, #88FBDD, #4067D6, #F288FD)
 ```
+
+### Tipografia Responsiva
+
+Todos os tamanhos de fonte possuem versao mobile e desktop (sufixo `-sm` para breakpoint 640px+).
+
+#### Headings
+
+| Token | Mobile | Desktop | Uso |
+|-------|--------|---------|-----|
+| `--font-size-h1` | 18px | 24px | Titulos de pagina |
+| `--font-size-h2` | 16px | 20px | Subtitulos |
+| `--font-size-h3` | 14px | 16px | Titulos de secao |
+| `--font-size-h4` | 12px | 14px | Titulos menores |
+
+#### Body Text
+
+| Token | Mobile | Desktop | Uso |
+|-------|--------|---------|-----|
+| `--font-size-body` | 12px | 14px | Texto padrao |
+| `--font-size-small` | 10px | 12px | Texto pequeno |
+| `--font-size-tiny` | 9px | 10px | Texto minimo |
+
+#### KPI Cards
+
+| Token | Mobile | Desktop | Uso |
+|-------|--------|---------|-----|
+| `--font-size-kpi-title` | 10px | 12px | Titulo do card |
+| `--font-size-kpi-value` | 14px | 18px | Valor principal |
+| `--font-size-kpi-subtitle` | 10px | 12px | Subtitulo/label |
+
+#### Tables
+
+| Token | Mobile | Desktop | Uso |
+|-------|--------|---------|-----|
+| `--font-size-table-header` | 12px | 14px | Cabecalho |
+| `--font-size-table-cell` | 12px | 14px | Celulas |
+| `--font-size-table-small` | 10px | 12px | Texto secundario |
+
+#### Buttons
+
+| Token | Mobile | Desktop | Uso |
+|-------|--------|---------|-----|
+| `--font-size-button` | 12px | 14px | Botao padrao |
+| `--font-size-button-small` | 10px | 12px | Botao pequeno |
+
+#### Badges
+
+| Token | Mobile | Desktop | Uso |
+|-------|--------|---------|-----|
+| `--font-size-badge` | 10px | 12px | Badge padrao |
+| `--font-size-badge-small` | 9px | 10px | Badge pequeno |
+
+#### Forms
+
+| Token | Mobile | Desktop | Uso |
+|-------|--------|---------|-----|
+| `--font-size-label` | 12px | 14px | Labels |
+| `--font-size-input` | 14px | 14px | Inputs (fixo) |
+| `--font-size-helper` | 10px | 12px | Texto de ajuda |
+| `--font-size-error` | 10px | 12px | Mensagens de erro |
+
+#### Navigation
+
+| Token | Mobile | Desktop | Uso |
+|-------|--------|---------|-----|
+| `--font-size-nav` | 12px | 14px | Itens de menu |
+| `--font-size-breadcrumb` | 12px | 14px | Breadcrumbs |
+| `--font-size-sidebar` | 12px | 14px | Sidebar |
+
+#### Modals/Sheets
+
+| Token | Mobile | Desktop | Uso |
+|-------|--------|---------|-----|
+| `--font-size-modal-title` | 16px | 18px | Titulo do modal |
+| `--font-size-modal-description` | 12px | 14px | Descricao |
+
+#### Charts
+
+| Token | Mobile | Desktop | Uso |
+|-------|--------|---------|-----|
+| `--font-size-chart-label` | 10px | 12px | Labels dos eixos |
+| `--font-size-chart-value` | 12px | 14px | Valores |
+
+#### Dropdown/Select
+
+| Token | Mobile | Desktop | Uso |
+|-------|--------|---------|-----|
+| `--font-size-select` | 12px | 14px | Trigger do select |
+| `--font-size-dropdown-item` | 12px | 14px | Itens do dropdown |
+
+#### Avatar
+
+| Token | Mobile | Desktop | Uso |
+|-------|--------|---------|-----|
+| `--font-size-avatar` | 12px | 14px | Iniciais padrao |
+| `--font-size-avatar-small` | 10px | 12px | Iniciais pequenas |
+
+### Tamanhos de Icones
+
+| Token | Tamanho | Uso |
+|-------|---------|-----|
+| `--icon-size-xs` | 10px | Icones minimos |
+| `--icon-size-sm` | 14px | Icones pequenos |
+| `--icon-size-md` | 16px | Icones padrao |
+| `--icon-size-lg` | 20px | Icones grandes |
+| `--icon-size-xl` | 24px | Icones extra grandes |
+
+### Regras de Uso
+
+1. **NUNCA** use tamanhos fixos como `text-lg` ou `text-sm` diretamente
+2. **SEMPRE** use os tokens definidos no `@theme`
+3. **SEMPRE** inclua versao responsiva (mobile + desktop)
+4. Consulte `src/index.css` antes de criar novos componentes
 
 ---
 

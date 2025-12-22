@@ -33,23 +33,33 @@ function DynamicBreadcrumb() {
     return { path, label }
   })
 
+  const lastBreadcrumb = breadcrumbs[breadcrumbs.length - 1]
+
   return (
-    <nav className="flex items-center gap-2 text-sm">
-      {breadcrumbs.map((crumb, index) => (
-        <div key={crumb.path} className="flex items-center gap-2">
-          {index > 0 && <span className="text-text-secondary">/</span>}
-          {index === breadcrumbs.length - 1 ? (
-            <span className="text-text-primary font-medium">{crumb.label}</span>
-          ) : (
-            <Link
-              to={crumb.path}
-              className="text-text-secondary hover:text-text-primary transition-colors"
-            >
-              {crumb.label}
-            </Link>
-          )}
-        </div>
-      ))}
+    <nav className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm min-w-0">
+      {/* Mobile: mostrar apenas a página atual */}
+      <span className="sm:hidden text-text-primary font-medium truncate">
+        {lastBreadcrumb?.label}
+      </span>
+
+      {/* Desktop: mostrar breadcrumb completo */}
+      <div className="hidden sm:flex items-center gap-2">
+        {breadcrumbs.map((crumb, index) => (
+          <div key={crumb.path} className="flex items-center gap-2">
+            {index > 0 && <span className="text-text-secondary">/</span>}
+            {index === breadcrumbs.length - 1 ? (
+              <span className="text-text-primary font-medium">{crumb.label}</span>
+            ) : (
+              <Link
+                to={crumb.path}
+                className="text-text-secondary hover:text-text-primary transition-colors"
+              >
+                {crumb.label}
+              </Link>
+            )}
+          </div>
+        ))}
+      </div>
     </nav>
   )
 }
@@ -58,41 +68,30 @@ export function Topbar() {
   const [isSearchOpen, setIsSearchOpen] = useState(false)
 
   return (
-    <header className="h-14 flex items-center justify-between px-4 border-b border-border bg-card">
-      <div className="flex items-center gap-2 flex-1 min-w-0">
+    <header className="h-12 sm:h-14 flex items-center justify-between px-2 sm:px-4 border-b border-border bg-card">
+      <div className="flex items-center gap-1.5 sm:gap-2 flex-1 min-w-0">
         <SidebarTrigger />
         <div className="flex-1 min-w-0">
           <DynamicBreadcrumb />
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
         {/* Search Button */}
         <Button
           variant="ghost"
           size="sm"
-          className="hidden md:flex"
+          className="h-8 w-8 sm:h-9 sm:w-9 p-0"
           onClick={() => setIsSearchOpen(!isSearchOpen)}
           aria-label="Pesquisar"
         >
           <Search className="h-4 w-4" />
         </Button>
 
-        {/* Mobile Search Button */}
-        <Button
-          variant="ghost"
-          size="sm"
-          className="md:hidden"
-          onClick={() => setIsSearchOpen(!isSearchOpen)}
-          aria-label="Abrir pesquisa"
-        >
-          <Search className="h-4 w-4" />
-        </Button>
-
         {/* Notifications */}
-        <Button variant="ghost" size="sm" className="relative">
+        <Button variant="ghost" size="sm" className="relative h-8 w-8 sm:h-9 sm:w-9 p-0">
           <Bell className="h-4 w-4" />
-          <span className="absolute top-1 right-1 h-2 w-2 bg-error rounded-full" />
+          <span className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1 h-1.5 w-1.5 sm:h-2 sm:w-2 bg-error rounded-full" />
         </Button>
       </div>
     </header>

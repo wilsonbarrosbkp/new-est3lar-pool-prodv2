@@ -369,17 +369,17 @@ export default function UsersPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header com ações */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+      <div className="flex flex-col gap-3 sm:gap-4">
         {/* Busca */}
-        <div className="relative flex-1 max-w-sm">
+        <div className="relative flex-1 sm:max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-secondary" />
           <Input
-            placeholder="Buscar por nome, e-mail, telefone..."
+            placeholder="Buscar nome, e-mail..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-10"
+            className="pl-10 text-sm"
           />
         </div>
 
@@ -387,7 +387,7 @@ export default function UsersPage() {
         <div className="flex flex-wrap items-center gap-2">
           {/* Filtro Status */}
           <Select value={filterStatus} onValueChange={setFilterStatus}>
-            <SelectTrigger className="w-[130px]">
+            <SelectTrigger className="w-full xs:w-[100px] sm:w-[120px] text-xs sm:text-sm">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
@@ -399,11 +399,11 @@ export default function UsersPage() {
 
           {/* Filtro Role */}
           <Select value={filterRole} onValueChange={setFilterRole}>
-            <SelectTrigger className="w-[150px]">
+            <SelectTrigger className="w-full xs:w-[110px] sm:w-[130px] text-xs sm:text-sm">
               <SelectValue placeholder="Role" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todas as roles</SelectItem>
+              <SelectItem value="all">Todas roles</SelectItem>
               {roles.map((role) => (
                 <SelectItem key={role.id} value={role.id.toString()}>
                   {role.name}
@@ -412,10 +412,10 @@ export default function UsersPage() {
             </SelectContent>
           </Select>
 
-          {/* Filtro Organização */}
+          {/* Filtro Organização - oculto em mobile pequeno */}
           <Select value={filterOrg} onValueChange={setFilterOrg}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Organização" />
+            <SelectTrigger className="hidden sm:flex w-[140px] text-xs sm:text-sm">
+              <SelectValue placeholder="Org" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todas</SelectItem>
@@ -427,13 +427,16 @@ export default function UsersPage() {
             </SelectContent>
           </Select>
 
-          <Button variant="outline" size="sm" onClick={handleExport}>
-            <Download className="h-4 w-4" />
-          </Button>
-          <Button size="sm" onClick={handleOpenCreate}>
-            <Plus className="h-4 w-4 mr-2" />
-            Novo Usuário
-          </Button>
+          <div className="flex items-center gap-2 ml-auto sm:ml-0">
+            <Button variant="outline" size="sm" onClick={handleExport}>
+              <Download className="h-4 w-4" />
+            </Button>
+            <Button size="sm" onClick={handleOpenCreate}>
+              <Plus className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Novo Usuário</span>
+              <span className="sm:hidden">Novo</span>
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -469,29 +472,29 @@ export default function UsersPage() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-auto p-0 font-semibold hover:bg-transparent"
+                      className="h-auto p-0 font-semibold hover:bg-transparent text-xs sm:text-sm"
                       onClick={() => handleSort('name')}
                     >
                       Usuário
                       <SortIcon columnKey="name" />
                     </Button>
                   </TableHead>
-                  <TableHead>
+                  <TableHead className="hidden sm:table-cell">
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-auto p-0 font-semibold hover:bg-transparent"
+                      className="h-auto p-0 font-semibold hover:bg-transparent text-xs sm:text-sm"
                       onClick={() => handleSort('role_name')}
                     >
                       Role
                       <SortIcon columnKey="role_name" />
                     </Button>
                   </TableHead>
-                  <TableHead className="hidden md:table-cell">
+                  <TableHead className="hidden lg:table-cell">
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-auto p-0 font-semibold hover:bg-transparent"
+                      className="h-auto p-0 font-semibold hover:bg-transparent text-xs sm:text-sm"
                       onClick={() => handleSort('organization_name')}
                     >
                       Organização
@@ -502,50 +505,66 @@ export default function UsersPage() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-auto p-0 font-semibold hover:bg-transparent"
+                      className="h-auto p-0 font-semibold hover:bg-transparent text-xs sm:text-sm"
                       onClick={() => handleSort('status')}
                     >
                       Status
                       <SortIcon columnKey="status" />
                     </Button>
                   </TableHead>
-                  <TableHead className="hidden lg:table-cell">
+                  <TableHead className="hidden xl:table-cell">
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-auto p-0 font-semibold hover:bg-transparent"
+                      className="h-auto p-0 font-semibold hover:bg-transparent text-xs sm:text-sm"
                       onClick={() => handleSort('created_at')}
                     >
                       Criado em
                       <SortIcon columnKey="created_at" />
                     </Button>
                   </TableHead>
-                  <TableHead className="w-12">Ações</TableHead>
+                  <TableHead className="w-10 sm:w-12">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredAndSortedUsers.map((user) => (
                   <TableRow key={user.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-10 w-10">
+                    <TableCell className="py-2 sm:py-4">
+                      <div className="flex items-center gap-2 sm:gap-3">
+                        <Avatar className="h-8 w-8 sm:h-10 sm:w-10 shrink-0">
                           <AvatarImage src={user.avatar_url} alt={user.name} />
-                          <AvatarFallback className="bg-primary/10 text-primary text-sm font-medium">
+                          <AvatarFallback className="bg-primary/10 text-primary text-xs sm:text-sm font-medium">
                             {getInitials(user.name)}
                           </AvatarFallback>
                         </Avatar>
-                        <div>
-                          <p className="font-medium">{user.name}</p>
-                          <div className="flex items-center gap-2 text-xs text-text-secondary">
-                            <Mail className="h-3 w-3" />
-                            {user.email}
+                        <div className="min-w-0">
+                          <p className="font-medium text-xs sm:text-sm truncate max-w-[100px] sm:max-w-none">{user.name}</p>
+                          <div className="flex items-center gap-1 text-[10px] sm:text-xs text-text-secondary">
+                            <Mail className="h-2.5 w-2.5 sm:h-3 sm:w-3 shrink-0" />
+                            <span className="truncate max-w-[80px] sm:max-w-none">{user.email}</span>
+                          </div>
+                          {/* Role visível apenas em mobile */}
+                          <div className="sm:hidden mt-1">
+                            <Badge
+                              variant={getRoleBadgeVariant(user.role_level)}
+                              className="text-[9px] px-1.5 py-0"
+                              style={{
+                                backgroundColor: user.role_badge_color
+                                  ? `${user.role_badge_color}20`
+                                  : undefined,
+                                color: user.role_badge_color || undefined,
+                              }}
+                            >
+                              {user.role_name}
+                            </Badge>
                           </div>
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden sm:table-cell py-2 sm:py-4">
                       <Badge
                         variant={getRoleBadgeVariant(user.role_level)}
+                        className="text-[10px] sm:text-xs"
                         style={{
                           backgroundColor: user.role_badge_color
                             ? `${user.role_badge_color}20`
@@ -554,36 +573,39 @@ export default function UsersPage() {
                           borderColor: user.role_badge_color || undefined,
                         }}
                       >
-                        <Shield className="h-3 w-3 mr-1" />
+                        <Shield className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1" />
                         {user.role_name}
                       </Badge>
                     </TableCell>
-                    <TableCell className="hidden md:table-cell">
+                    <TableCell className="hidden lg:table-cell py-2 sm:py-4">
                       {user.organization_name ? (
-                        <div className="flex items-center gap-1.5 text-sm">
-                          <Building2 className="h-4 w-4 text-text-secondary" />
-                          {user.organization_name}
+                        <div className="flex items-center gap-1.5 text-xs sm:text-sm">
+                          <Building2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-text-secondary shrink-0" />
+                          <span className="truncate max-w-[120px]">{user.organization_name}</span>
                         </div>
                       ) : (
-                        <span className="text-text-secondary">-</span>
+                        <span className="text-text-secondary text-xs sm:text-sm">-</span>
                       )}
                     </TableCell>
-                    <TableCell>
-                      <Badge variant={user.status === 'ativo' ? 'success' : 'secondary'}>
+                    <TableCell className="py-2 sm:py-4">
+                      <Badge
+                        variant={user.status === 'ativo' ? 'success' : 'secondary'}
+                        className="text-[10px] sm:text-xs"
+                      >
                         {user.status}
                       </Badge>
                     </TableCell>
-                    <TableCell className="hidden lg:table-cell">
-                      <div className="flex items-center gap-1.5 text-sm text-text-secondary">
-                        <Calendar className="h-4 w-4" />
+                    <TableCell className="hidden xl:table-cell py-2 sm:py-4">
+                      <div className="flex items-center gap-1.5 text-xs sm:text-sm text-text-secondary">
+                        <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                         {formatDate(user.created_at)}
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="py-2 sm:py-4">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                            <MoreHorizontal className="h-4 w-4" />
+                          <Button variant="ghost" size="sm" className="h-7 w-7 sm:h-8 sm:w-8 p-0">
+                            <MoreHorizontal className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
@@ -609,33 +631,33 @@ export default function UsersPage() {
       </Card>
 
       {/* Resumo */}
-      <div className="text-sm text-text-secondary">
+      <div className="text-xs sm:text-sm text-text-secondary">
         {filteredAndSortedUsers.length} de {users.length} usuários
       </div>
 
       {/* Sheet de criação/edição */}
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent side="right" className="sm:max-w-lg overflow-y-auto">
+        <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto p-4 sm:p-6">
           <SheetHeader>
-            <SheetTitle>
+            <SheetTitle className="text-base sm:text-lg">
               {editingUser ? 'Editar Usuário' : 'Novo Usuário'}
             </SheetTitle>
-            <SheetDescription>
+            <SheetDescription className="text-xs sm:text-sm">
               {editingUser
                 ? 'Altere as informações do usuário abaixo.'
                 : 'Preencha as informações para criar um novo usuário.'}
             </SheetDescription>
           </SheetHeader>
 
-          <form onSubmit={handleSubmit} className="space-y-6 mt-6">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 mt-4 sm:mt-6">
             {/* Dados Pessoais */}
-            <div className="space-y-4">
-              <h3 className="text-sm font-medium text-text-secondary">
+            <div className="space-y-3 sm:space-y-4">
+              <h3 className="text-xs sm:text-sm font-medium text-text-secondary">
                 Dados Pessoais
               </h3>
 
-              <div className="space-y-2">
-                <Label htmlFor="name">Nome Completo *</Label>
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="name" className="text-xs sm:text-sm">Nome Completo *</Label>
                 <Input
                   id="name"
                   value={formData.name}
@@ -644,11 +666,12 @@ export default function UsersPage() {
                   }
                   placeholder="Nome completo"
                   required
+                  className="text-sm"
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="email">E-mail *</Label>
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="email" className="text-xs sm:text-sm">E-mail *</Label>
                 <Input
                   id="email"
                   type="email"
@@ -658,17 +681,18 @@ export default function UsersPage() {
                   }
                   placeholder="email@exemplo.com"
                   required
+                  className="text-sm"
                 />
               </div>
 
               {!editingUser && (
-                <p className="text-xs text-text-secondary bg-surface-secondary p-2 rounded-md">
+                <p className="text-[10px] sm:text-xs text-text-secondary bg-surface-secondary p-2 rounded-md">
                   O usuário receberá um e-mail para definir sua própria senha.
                 </p>
               )}
 
-              <div className="space-y-2">
-                <Label htmlFor="phone">Telefone</Label>
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="phone" className="text-xs sm:text-sm">Telefone</Label>
                 <Input
                   id="phone"
                   value={formData.phone}
@@ -676,25 +700,26 @@ export default function UsersPage() {
                     setFormData((prev) => ({ ...prev, phone: e.target.value }))
                   }
                   placeholder="(00) 00000-0000"
+                  className="text-sm"
                 />
               </div>
             </div>
 
             {/* Vinculação */}
-            <div className="space-y-4">
-              <h3 className="text-sm font-medium text-text-secondary">
+            <div className="space-y-3 sm:space-y-4">
+              <h3 className="text-xs sm:text-sm font-medium text-text-secondary">
                 Vinculação
               </h3>
 
-              <div className="space-y-2">
-                <Label htmlFor="organization_id">Organização</Label>
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="organization_id" className="text-xs sm:text-sm">Organização</Label>
                 <Select
                   value={formData.organization_id}
                   onValueChange={(value) =>
                     setFormData((prev) => ({ ...prev, organization_id: value }))
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="text-sm">
                     <SelectValue placeholder="Selecione uma organização" />
                   </SelectTrigger>
                   <SelectContent>
@@ -705,20 +730,20 @@ export default function UsersPage() {
                     ))}
                   </SelectContent>
                 </Select>
-                <p className="text-xs text-text-secondary">
+                <p className="text-[10px] sm:text-xs text-text-secondary">
                   Super Admins podem não ter organização vinculada
                 </p>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="role_id">Role *</Label>
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="role_id" className="text-xs sm:text-sm">Role *</Label>
                 <Select
                   value={formData.role_id}
                   onValueChange={(value) =>
                     setFormData((prev) => ({ ...prev, role_id: value }))
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="text-sm">
                     <SelectValue placeholder="Selecione uma role" />
                   </SelectTrigger>
                   <SelectContent>
@@ -739,15 +764,15 @@ export default function UsersPage() {
             </div>
 
             {/* Status */}
-            <div className="space-y-2">
-              <Label htmlFor="status">Status</Label>
+            <div className="space-y-1.5 sm:space-y-2">
+              <Label htmlFor="status" className="text-xs sm:text-sm">Status</Label>
               <Select
                 value={formData.status}
                 onValueChange={(value: 'ativo' | 'inativo') =>
                   setFormData((prev) => ({ ...prev, status: value }))
                 }
               >
-                <SelectTrigger>
+                <SelectTrigger className="text-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -757,16 +782,17 @@ export default function UsersPage() {
               </Select>
             </div>
 
-            <SheetFooter className="gap-2 sm:gap-0">
+            <SheetFooter className="gap-2 sm:gap-0 pt-2">
               <Button
                 type="button"
                 variant="outline"
                 onClick={handleCloseSheet}
                 disabled={saving}
+                className="text-sm"
               >
                 Cancelar
               </Button>
-              <Button type="submit" disabled={saving}>
+              <Button type="submit" disabled={saving} className="text-sm">
                 {saving
                   ? 'Salvando...'
                   : editingUser

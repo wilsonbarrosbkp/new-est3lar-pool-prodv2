@@ -317,28 +317,29 @@ export default function OrganizationsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header com ações */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         {/* Busca */}
-        <div className="relative flex-1 max-w-sm">
+        <div className="relative flex-1 sm:max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-secondary" />
           <Input
-            placeholder="Buscar por nome, CNPJ, cidade..."
+            placeholder="Buscar nome, CNPJ..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-10"
+            className="pl-10 text-sm"
           />
         </div>
 
         {/* Ações */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <Button variant="outline" size="sm" onClick={handleExport}>
             <Download className="h-4 w-4" />
           </Button>
           <Button size="sm" onClick={handleOpenCreate}>
-            <Plus className="h-4 w-4 mr-2" />
-            Nova Organização
+            <Plus className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Nova Organização</span>
+            <span className="sm:hidden">Nova</span>
           </Button>
         </div>
       </div>
@@ -375,7 +376,7 @@ export default function OrganizationsPage() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-auto p-0 font-semibold hover:bg-transparent"
+                      className="h-auto p-0 font-semibold hover:bg-transparent text-xs sm:text-sm"
                       onClick={() => handleSort('name')}
                     >
                       Nome
@@ -386,84 +387,85 @@ export default function OrganizationsPage() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-auto p-0 font-semibold hover:bg-transparent"
+                      className="h-auto p-0 font-semibold hover:bg-transparent text-xs sm:text-sm"
                       onClick={() => handleSort('status')}
                     >
                       Status
                       <SortIcon columnKey="status" />
                     </Button>
                   </TableHead>
-                  <TableHead>
+                  <TableHead className="hidden sm:table-cell">
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-auto p-0 font-semibold hover:bg-transparent"
+                      className="h-auto p-0 font-semibold hover:bg-transparent text-xs sm:text-sm"
                       onClick={() => handleSort('users_count')}
                     >
                       Usuários
                       <SortIcon columnKey="users_count" />
                     </Button>
                   </TableHead>
-                  <TableHead className="hidden md:table-cell">Cidade/UF</TableHead>
-                  <TableHead>
+                  <TableHead className="hidden lg:table-cell">Cidade/UF</TableHead>
+                  <TableHead className="hidden md:table-cell">
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-auto p-0 font-semibold hover:bg-transparent"
+                      className="h-auto p-0 font-semibold hover:bg-transparent text-xs sm:text-sm"
                       onClick={() => handleSort('created_at')}
                     >
                       Criada em
                       <SortIcon columnKey="created_at" />
                     </Button>
                   </TableHead>
-                  <TableHead className="w-12">Ações</TableHead>
+                  <TableHead className="w-10 sm:w-12">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredAndSortedOrgs.map((org) => (
                   <TableRow key={org.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 bg-primary/10 text-primary rounded-full flex items-center justify-center text-sm font-medium">
+                    <TableCell className="py-2 sm:py-4">
+                      <div className="flex items-center gap-2 sm:gap-3">
+                        <div className="h-8 w-8 sm:h-10 sm:w-10 bg-primary/10 text-primary rounded-full flex items-center justify-center text-xs sm:text-sm font-medium shrink-0">
                           {org.name.charAt(0).toUpperCase()}
                         </div>
-                        <div>
-                          <p className="font-medium">{org.name}</p>
+                        <div className="min-w-0">
+                          <p className="font-medium text-xs sm:text-sm truncate max-w-[120px] sm:max-w-none">{org.name}</p>
                           {org.cnpj && (
-                            <p className="text-xs text-text-secondary">
+                            <p className="text-[10px] sm:text-xs text-text-secondary truncate">
                               {formatCNPJ(org.cnpj)}
                             </p>
                           )}
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="py-2 sm:py-4">
                       <Badge
                         variant={org.status === 'ativo' ? 'success' : 'secondary'}
+                        className="text-[10px] sm:text-xs"
                       >
                         {org.status}
                       </Badge>
                     </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1.5 text-sm">
-                        <Users className="h-4 w-4 text-text-secondary" />
+                    <TableCell className="hidden sm:table-cell py-2 sm:py-4">
+                      <div className="flex items-center gap-1.5 text-xs sm:text-sm">
+                        <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-text-secondary" />
                         {org.users_count}
                       </div>
                     </TableCell>
-                    <TableCell className="hidden md:table-cell">
+                    <TableCell className="hidden lg:table-cell py-2 sm:py-4 text-xs sm:text-sm">
                       {org.city && org.state ? `${org.city}/${org.state}` : '-'}
                     </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1.5 text-sm text-text-secondary">
-                        <Calendar className="h-4 w-4" />
+                    <TableCell className="hidden md:table-cell py-2 sm:py-4">
+                      <div className="flex items-center gap-1.5 text-xs sm:text-sm text-text-secondary">
+                        <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                         {formatDate(org.created_at)}
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="py-2 sm:py-4">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                            <MoreHorizontal className="h-4 w-4" />
+                          <Button variant="ghost" size="sm" className="h-7 w-7 sm:h-8 sm:w-8 p-0">
+                            <MoreHorizontal className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
@@ -489,33 +491,33 @@ export default function OrganizationsPage() {
       </Card>
 
       {/* Resumo */}
-      <div className="text-sm text-text-secondary">
+      <div className="text-xs sm:text-sm text-text-secondary">
         {filteredAndSortedOrgs.length} de {organizations.length} organizações
       </div>
 
       {/* Sheet de criação/edição */}
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent side="right" className="sm:max-w-lg overflow-y-auto">
+        <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto p-4 sm:p-6">
           <SheetHeader>
-            <SheetTitle>
+            <SheetTitle className="text-base sm:text-lg">
               {editingOrg ? 'Editar Organização' : 'Nova Organização'}
             </SheetTitle>
-            <SheetDescription>
+            <SheetDescription className="text-xs sm:text-sm">
               {editingOrg
                 ? 'Altere as informações da organização abaixo.'
                 : 'Preencha as informações para criar uma nova organização.'}
             </SheetDescription>
           </SheetHeader>
 
-          <form onSubmit={handleSubmit} className="space-y-6 mt-6">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 mt-4 sm:mt-6">
             {/* Dados da Empresa */}
-            <div className="space-y-4">
-              <h3 className="text-sm font-medium text-text-secondary">
+            <div className="space-y-3 sm:space-y-4">
+              <h3 className="text-xs sm:text-sm font-medium text-text-secondary">
                 Dados da Empresa
               </h3>
 
-              <div className="space-y-2">
-                <Label htmlFor="name">Nome/Razão Social *</Label>
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="name" className="text-xs sm:text-sm">Nome/Razão Social *</Label>
                 <Input
                   id="name"
                   value={formData.name}
@@ -524,12 +526,13 @@ export default function OrganizationsPage() {
                   }
                   placeholder="Razão Social da empresa"
                   required
+                  className="text-sm"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="cnpj">CNPJ</Label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                <div className="space-y-1.5 sm:space-y-2">
+                  <Label htmlFor="cnpj" className="text-xs sm:text-sm">CNPJ</Label>
                   <Input
                     id="cnpj"
                     value={formData.cnpj}
@@ -537,11 +540,12 @@ export default function OrganizationsPage() {
                       setFormData((prev) => ({ ...prev, cnpj: e.target.value }))
                     }
                     placeholder="00.000.000/0000-00"
+                    className="text-sm"
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Telefone</Label>
+                <div className="space-y-1.5 sm:space-y-2">
+                  <Label htmlFor="phone" className="text-xs sm:text-sm">Telefone</Label>
                   <Input
                     id="phone"
                     value={formData.phone}
@@ -549,12 +553,13 @@ export default function OrganizationsPage() {
                       setFormData((prev) => ({ ...prev, phone: e.target.value }))
                     }
                     placeholder="(00) 00000-0000"
+                    className="text-sm"
                   />
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="email">E-mail</Label>
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="email" className="text-xs sm:text-sm">E-mail</Label>
                 <Input
                   id="email"
                   type="email"
@@ -563,17 +568,18 @@ export default function OrganizationsPage() {
                     setFormData((prev) => ({ ...prev, email: e.target.value }))
                   }
                   placeholder="contato@empresa.com"
+                  className="text-sm"
                 />
               </div>
             </div>
 
             {/* Endereço */}
-            <div className="space-y-4">
-              <h3 className="text-sm font-medium text-text-secondary">Endereço</h3>
+            <div className="space-y-3 sm:space-y-4">
+              <h3 className="text-xs sm:text-sm font-medium text-text-secondary">Endereço</h3>
 
-              <div className="grid grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="zip_code">CEP</Label>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                <div className="space-y-1.5 sm:space-y-2">
+                  <Label htmlFor="zip_code" className="text-xs sm:text-sm">CEP</Label>
                   <Input
                     id="zip_code"
                     value={formData.zip_code}
@@ -584,11 +590,12 @@ export default function OrganizationsPage() {
                       }))
                     }
                     placeholder="00000-000"
+                    className="text-sm"
                   />
                 </div>
 
-                <div className="space-y-2 col-span-2">
-                  <Label htmlFor="address">Logradouro</Label>
+                <div className="space-y-1.5 sm:space-y-2 sm:col-span-2">
+                  <Label htmlFor="address" className="text-xs sm:text-sm">Logradouro</Label>
                   <Input
                     id="address"
                     value={formData.address}
@@ -599,13 +606,14 @@ export default function OrganizationsPage() {
                       }))
                     }
                     placeholder="Rua, Avenida, número"
+                    className="text-sm"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
-                <div className="space-y-2 col-span-2">
-                  <Label htmlFor="city">Cidade</Label>
+              <div className="grid grid-cols-3 gap-3 sm:gap-4">
+                <div className="space-y-1.5 sm:space-y-2 col-span-2">
+                  <Label htmlFor="city" className="text-xs sm:text-sm">Cidade</Label>
                   <Input
                     id="city"
                     value={formData.city}
@@ -613,11 +621,12 @@ export default function OrganizationsPage() {
                       setFormData((prev) => ({ ...prev, city: e.target.value }))
                     }
                     placeholder="Nome da cidade"
+                    className="text-sm"
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="state">UF</Label>
+                <div className="space-y-1.5 sm:space-y-2">
+                  <Label htmlFor="state" className="text-xs sm:text-sm">UF</Label>
                   <Input
                     id="state"
                     value={formData.state}
@@ -629,21 +638,22 @@ export default function OrganizationsPage() {
                     }
                     placeholder="SP"
                     maxLength={2}
+                    className="text-sm"
                   />
                 </div>
               </div>
             </div>
 
             {/* Status */}
-            <div className="space-y-2">
-              <Label htmlFor="status">Status</Label>
+            <div className="space-y-1.5 sm:space-y-2">
+              <Label htmlFor="status" className="text-xs sm:text-sm">Status</Label>
               <Select
                 value={formData.status}
                 onValueChange={(value: 'ativo' | 'inativo') =>
                   setFormData((prev) => ({ ...prev, status: value }))
                 }
               >
-                <SelectTrigger>
+                <SelectTrigger className="text-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -653,16 +663,17 @@ export default function OrganizationsPage() {
               </Select>
             </div>
 
-            <SheetFooter className="gap-2 sm:gap-0">
+            <SheetFooter className="gap-2 sm:gap-0 pt-2">
               <Button
                 type="button"
                 variant="outline"
                 onClick={handleCloseSheet}
                 disabled={saving}
+                className="text-sm"
               >
                 Cancelar
               </Button>
-              <Button type="submit" disabled={saving}>
+              <Button type="submit" disabled={saving} className="text-sm">
                 {saving
                   ? 'Salvando...'
                   : editingOrg
