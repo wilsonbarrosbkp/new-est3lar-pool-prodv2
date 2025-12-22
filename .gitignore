@@ -53,3 +53,7 @@ coverage/
 # Supabase
 supabase/.branches/
 supabase/.temp/
+
+# Documentation (internal)
+docs/
+PLANEJAMENTO-LAZY.md
