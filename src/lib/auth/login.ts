@@ -51,8 +51,7 @@ export async function loginAction(credentials: LoginCredentials): Promise<LoginR
         role_id: userData.role_id,
       },
     }
-  } catch (err) {
-    console.error('Login error:', err)
+  } catch {
     return { success: false, error: 'Erro ao fazer login' }
   }
 }

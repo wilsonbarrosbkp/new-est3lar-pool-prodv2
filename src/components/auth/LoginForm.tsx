@@ -39,8 +39,7 @@ export function LoginForm() {
       // Login successful
       toast.success('Login realizado com sucesso!')
       window.location.href = result.redirectTo || '/dashboard'
-    } catch (error) {
-      console.error('Erro no login:', error)
+    } catch {
       toast.error('Erro inesperado ao fazer login')
     } finally {
       setIsLoading(false)

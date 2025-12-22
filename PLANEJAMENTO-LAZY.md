@@ -33,7 +33,7 @@
 
 ### Fase 2: Paginas de Autenticacao (baixo risco)
 
-- [ ] **2.1** Lazy load da pagina Login
+- [x] **2.1** Lazy load da pagina Login
   - Arquivo: `src/App.tsx`
   - Teste: Acessar `/login`, pagina carrega normalmente
 
@@ -111,7 +111,7 @@ git checkout -- src/App.tsx
 | Etapa | Status | Data | Observacoes |
 |-------|--------|------|-------------|
 | 1.1   | Concluido | 22/12/2025 | Componente criado, build OK |
-| 2.1   | Pendente | - | - |
+| 2.1   | Concluido | 22/12/2025 | Chunk separado: Login-*.js (3.35 KB) |
 | 2.2   | Pendente | - | - |
 | 2.3   | Pendente | - | - |
 | 3.1   | Pendente | - | - |

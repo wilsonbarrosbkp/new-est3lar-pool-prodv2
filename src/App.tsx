@@ -1,9 +1,13 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Link, Navigate } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { SuperAdminRoute } from '@/components/auth/ProtectedRoute'
 import { PublicRoute } from '@/components/auth/PublicRoute'
-import LoginPage from '@/pages/Login'
+import { LoadingFallback } from '@/components/ui/LoadingFallback'
+
+// Lazy loaded pages
+const LoginPage = lazy(() => import('@/pages/Login'))
 import ForgotPasswordPage from '@/pages/ForgotPassword'
 import ResetPasswordPage from '@/pages/ResetPassword'
 import { SuperAdminLayout } from '@/components/layout/SuperAdminLayout'
@@ -35,7 +39,9 @@ function App() {
           {/* Public routes - redirect to dashboard if already logged in */}
           <Route path="/login" element={
             <PublicRoute>
-              <LoginPage />
+              <Suspense fallback={<LoadingFallback />}>
+                <LoginPage />
+              </Suspense>
             </PublicRoute>
           } />
           <Route path="/forgot-password" element={

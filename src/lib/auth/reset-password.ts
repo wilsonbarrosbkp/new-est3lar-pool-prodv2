@@ -40,8 +40,7 @@ export async function forgotPasswordAction(
       success: true,
       message: 'Email de recuperação enviado com sucesso! Verifique sua caixa de entrada.',
     }
-  } catch (err) {
-    console.error('Forgot password error:', err)
+  } catch {
     return { success: false, error: 'Erro ao enviar email de recuperação' }
   }
 }
@@ -72,8 +71,7 @@ export async function resetPasswordAction(
       success: true,
       message: 'Senha redefinida com sucesso!',
     }
-  } catch (err) {
-    console.error('Reset password error:', err)
+  } catch {
     return { success: false, error: 'Erro ao redefinir senha' }
   }
 }
