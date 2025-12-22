@@ -37,7 +37,7 @@
   - Arquivo: `src/App.tsx`
   - Teste: Acessar `/login`, pagina carrega normalmente
 
-- [ ] **2.2** Lazy load da pagina ForgotPassword
+- [x] **2.2** Lazy load da pagina ForgotPassword
   - Arquivo: `src/App.tsx`
   - Teste: Acessar `/forgot-password`, pagina carrega normalmente
 
@@ -112,7 +112,7 @@ git checkout -- src/App.tsx
 |-------|--------|------|-------------|
 | 1.1   | Concluido | 22/12/2025 | Componente criado, build OK |
 | 2.1   | Concluido | 22/12/2025 | Chunk separado: Login-*.js (3.35 KB) |
-| 2.2   | Pendente | - | - |
+| 2.2   | Concluido | 22/12/2025 | Chunk: ForgotPassword-*.js (2.77 KB) |
 | 2.3   | Pendente | - | - |
 | 3.1   | Pendente | - | - |
 | 3.2   | Pendente | - | - |

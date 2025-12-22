@@ -8,7 +8,7 @@ import { LoadingFallback } from '@/components/ui/LoadingFallback'
 
 // Lazy loaded pages
 const LoginPage = lazy(() => import('@/pages/Login'))
-import ForgotPasswordPage from '@/pages/ForgotPassword'
+const ForgotPasswordPage = lazy(() => import('@/pages/ForgotPassword'))
 import ResetPasswordPage from '@/pages/ResetPassword'
 import { SuperAdminLayout } from '@/components/layout/SuperAdminLayout'
 import SuperAdminDashboard from '@/pages/super-admin/index'
@@ -46,7 +46,9 @@ function App() {
           } />
           <Route path="/forgot-password" element={
             <PublicRoute>
-              <ForgotPasswordPage />
+              <Suspense fallback={<LoadingFallback />}>
+                <ForgotPasswordPage />
+              </Suspense>
             </PublicRoute>
           } />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
