@@ -10,7 +10,9 @@ import { LoadingFallback } from '@/components/ui/LoadingFallback'
 const LoginPage = lazy(() => import('@/pages/Login'))
 const ForgotPasswordPage = lazy(() => import('@/pages/ForgotPassword'))
 const ResetPasswordPage = lazy(() => import('@/pages/ResetPassword'))
-import { SuperAdminLayout } from '@/components/layout/SuperAdminLayout'
+
+// Lazy loaded layouts
+const SuperAdminLayout = lazy(() => import('@/components/layout/SuperAdminLayout').then(m => ({ default: m.SuperAdminLayout })))
 import SuperAdminDashboard from '@/pages/super-admin/index'
 import OrganizationsPage from '@/pages/super-admin/Organizations'
 import UsersPage from '@/pages/super-admin/Users'
@@ -80,7 +82,9 @@ function App() {
           {/* Super Admin routes - protected */}
           <Route path="/super-admin" element={
             <SuperAdminRoute>
-              <SuperAdminLayout />
+              <Suspense fallback={<LoadingFallback />}>
+                <SuperAdminLayout />
+              </Suspense>
             </SuperAdminRoute>
           }>
             <Route index element={<SuperAdminDashboard />} />

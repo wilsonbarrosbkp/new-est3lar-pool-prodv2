@@ -47,7 +47,7 @@
 
 ### Fase 3: Paginas Super Admin (maior impacto)
 
-- [ ] **3.1** Lazy load do SuperAdminLayout
+- [x] **3.1** Lazy load do SuperAdminLayout
   - Arquivo: `src/App.tsx`
   - Teste: Login como admin, dashboard carrega
 
@@ -114,7 +114,7 @@ git checkout -- src/App.tsx
 | 2.1   | Concluido | 22/12/2025 | Chunk separado: Login-*.js (3.35 KB) |
 | 2.2   | Concluido | 22/12/2025 | Chunk: ForgotPassword-*.js (2.77 KB) |
 | 2.3   | Concluido | 22/12/2025 | Chunk: ResetPassword-*.js (2.92 KB) + shared |
-| 3.1   | Pendente | - | - |
+| 3.1   | Concluido | 22/12/2025 | Chunk: SuperAdminLayout-*.js (26.53 KB) |
 | 3.2   | Pendente | - | - |
 | 5.1   | Pendente | - | - |
 | 5.2   | Pendente | - | - |
