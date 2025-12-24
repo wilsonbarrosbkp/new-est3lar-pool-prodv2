@@ -191,31 +191,3 @@ export function showErrorToast(error: AppError): void {
   toast.error(error.message)
 }
 
-/**
- * Função helper que combina handleError + showErrorToast
- * Útil para simplificar código nos catch blocks
- *
- * @param error - Erro capturado
- * @param context - Contexto opcional
- * @returns AppError para uso adicional se necessário
- */
-export function handleAndShowError(error: unknown, context?: string): AppError {
-  const appError = handleError(error, context)
-  showErrorToast(appError)
-  return appError
-}
-
-/**
- * Função helper para mensagens de sucesso
- * Mantém consistência com o error handler
- */
-export function showSuccessToast(message: string): void {
-  toast.success(message)
-}
-
-/**
- * Função helper para mensagens informativas
- */
-export function showInfoToast(message: string): void {
-  toast.info(message)
-}

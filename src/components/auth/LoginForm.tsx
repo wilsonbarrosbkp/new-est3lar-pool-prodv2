@@ -11,11 +11,11 @@ import { loginAction } from '@/lib/auth/login'
 import { typography } from '@/design-system/tokens'
 
 export function LoginForm() {
-  const [isLoading, setIsLoading] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    setIsLoading(true)
+    setLoading(true)
 
     const formData = new FormData(event.currentTarget)
     const email = formData.get('email') as string
@@ -42,7 +42,7 @@ export function LoginForm() {
     } catch {
       toast.error('Erro inesperado ao fazer login')
     } finally {
-      setIsLoading(false)
+      setLoading(false)
     }
   }
 
@@ -61,7 +61,7 @@ export function LoginForm() {
             placeholder="seu@email.com"
             required
             autoComplete="email"
-            disabled={isLoading}
+            disabled={loading}
           />
         </div>
 
@@ -82,7 +82,7 @@ export function LoginForm() {
             placeholder="••••••••"
             required
             autoComplete="current-password"
-            disabled={isLoading}
+            disabled={loading}
           />
         </div>
 
@@ -91,9 +91,9 @@ export function LoginForm() {
           type="submit"
           variant="gradient"
           className="w-full"
-          disabled={isLoading}
+          disabled={loading}
         >
-          {isLoading ? 'Entrando...' : 'Entrar'}
+          {loading ? 'Entrando...' : 'Entrar'}
         </Button>
       </form>
     </AuthForm>

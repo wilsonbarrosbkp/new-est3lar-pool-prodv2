@@ -12,7 +12,7 @@ import { typography } from '@/design-system/tokens'
 
 export function ForgotPasswordForm() {
   const navigate = useNavigate()
-  const [isLoading, setIsLoading] = useState(false)
+  const [loading, setLoading] = useState(false)
   const [emailSent, setEmailSent] = useState(false)
   const [email, setEmail] = useState('')
 
@@ -29,11 +29,11 @@ export function ForgotPasswordForm() {
       return
     }
 
-    setIsLoading(true)
+    setLoading(true)
 
     const result = await forgotPasswordAction({ email: email.trim() })
 
-    setIsLoading(false)
+    setLoading(false)
 
     if (!result.success) {
       toast.error(result.error || 'Erro ao enviar e-mail. Tente novamente')
@@ -103,13 +103,13 @@ export function ForgotPasswordForm() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            disabled={isLoading}
+            disabled={loading}
           />
         </div>
 
         <div className="flex flex-col gap-3">
-          <Button type="submit" variant="gradient" className="w-full" disabled={isLoading}>
-            {isLoading ? 'Enviando...' : 'Enviar E-mail'}
+          <Button type="submit" variant="gradient" className="w-full" disabled={loading}>
+            {loading ? 'Enviando...' : 'Enviar E-mail'}
           </Button>
 
           <Button
@@ -117,7 +117,7 @@ export function ForgotPasswordForm() {
             variant="outline"
             className="w-full"
             onClick={() => navigate('/login')}
-            disabled={isLoading}
+            disabled={loading}
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Voltar ao Login

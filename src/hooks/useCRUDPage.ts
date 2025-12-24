@@ -536,5 +536,3 @@ export function useCRUDPage<T extends { id: number | string }, F>(
 function capitalize(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1)
 }
-
-export default useCRUDPage

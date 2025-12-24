@@ -12,7 +12,7 @@ import { typography } from '@/design-system/tokens'
 export function ResetPasswordForm() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
+  const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -28,11 +28,11 @@ export function ResetPasswordForm() {
       return
     }
 
-    setIsLoading(true)
+    setLoading(true)
 
     const result = await resetPasswordAction({ password, confirmPassword })
 
-    setIsLoading(false)
+    setLoading(false)
 
     if (!result.success) {
       toast.error(result.error || 'Erro ao redefinir senha')
@@ -60,7 +60,7 @@ export function ResetPasswordForm() {
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            disabled={isLoading}
+            disabled={loading}
             minLength={8}
           />
           <p className={`${typography.body.tiny} text-white/60`}>
@@ -76,13 +76,13 @@ export function ResetPasswordForm() {
             required
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            disabled={isLoading}
+            disabled={loading}
             minLength={8}
           />
         </div>
 
-        <Button type="submit" variant="gradient" className="w-full" disabled={isLoading}>
-          {isLoading ? 'Atualizando...' : 'Atualizar Senha'}
+        <Button type="submit" variant="gradient" className="w-full" disabled={loading}>
+          {loading ? 'Atualizando...' : 'Atualizar Senha'}
         </Button>
       </form>
     </AuthForm>

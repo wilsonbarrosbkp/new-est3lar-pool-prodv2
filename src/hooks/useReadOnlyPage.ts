@@ -298,5 +298,3 @@ export function useReadOnlyPage<T extends { id: number | string }>(
     filteredCount: filteredData.length,
   }
 }
-
-export default useReadOnlyPage
