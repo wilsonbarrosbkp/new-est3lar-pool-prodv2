@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
 
@@ -41,6 +41,9 @@ export interface UseCRUDPageOptions<T extends { id: number | string }, F> {
   /** Limite de registros */
   limit?: number
 
+  /** Função customizada para carregar dados (substitui a lógica padrão) */
+  customLoadData?: () => Promise<T[]>
+
   /** Callback após carregar dados */
   onDataLoaded?: (data: T[]) => void
 
@@ -58,6 +61,9 @@ export interface UseCRUDPageOptions<T extends { id: number | string }, F> {
 
   /** Callback após deletar com sucesso */
   onAfterDelete?: (id: number | string) => void
+
+  /** Função customizada para submit (substitui a lógica padrão de create/update) */
+  customSubmit?: (formData: F, editing: T | null) => Promise<void>
 
   /** Mensagens customizadas */
   messages?: {
@@ -128,15 +134,45 @@ export function useCRUDPage<T extends { id: number | string }, F>(
     searchFields = [],
     defaultOrderBy = { column: 'created_at', ascending: false },
     limit,
+    customLoadData,
     onDataLoaded,
     onBeforeCreate,
     onBeforeUpdate,
     onAfterCreate,
     onAfterUpdate,
     onAfterDelete,
+    customSubmit,
     messages = {},
     entityName = 'registro',
   } = options
+
+  // Refs para funções callback (evita loops infinitos)
+  const customLoadDataRef = useRef(customLoadData)
+  const customSubmitRef = useRef(customSubmit)
+  const onDataLoadedRef = useRef(onDataLoaded)
+  const onBeforeCreateRef = useRef(onBeforeCreate)
+  const onBeforeUpdateRef = useRef(onBeforeUpdate)
+  const onAfterCreateRef = useRef(onAfterCreate)
+  const onAfterUpdateRef = useRef(onAfterUpdate)
+  const onAfterDeleteRef = useRef(onAfterDelete)
+  const validateFormRef = useRef(validateForm)
+  const mapFormToDataRef = useRef(mapFormToData)
+  const mapDataToFormRef = useRef(mapDataToForm)
+
+  // Atualizar refs quando as funções mudarem
+  useEffect(() => {
+    customLoadDataRef.current = customLoadData
+    customSubmitRef.current = customSubmit
+    onDataLoadedRef.current = onDataLoaded
+    onBeforeCreateRef.current = onBeforeCreate
+    onBeforeUpdateRef.current = onBeforeUpdate
+    onAfterCreateRef.current = onAfterCreate
+    onAfterUpdateRef.current = onAfterUpdate
+    onAfterDeleteRef.current = onAfterDelete
+    validateFormRef.current = validateForm
+    mapFormToDataRef.current = mapFormToData
+    mapDataToFormRef.current = mapDataToForm
+  })
 
   // Estados principais
   const [data, setData] = useState<T[]>([])
@@ -170,34 +206,43 @@ export function useCRUDPage<T extends { id: number | string }, F>(
   const loadData = useCallback(async () => {
     setLoading(true)
     try {
-      let query = supabase.from(tableName).select(selectFields)
+      let items: T[]
 
-      // Ordenação
-      if (defaultOrderBy) {
-        query = query.order(defaultOrderBy.column, {
-          ascending: defaultOrderBy.ascending ?? false,
-        })
+      if (customLoadDataRef.current) {
+        // Usar função customizada se fornecida
+        items = await customLoadDataRef.current()
+      } else {
+        // Query padrão
+        let query = supabase.from(tableName).select(selectFields)
+
+        // Ordenação
+        if (defaultOrderBy) {
+          query = query.order(defaultOrderBy.column, {
+            ascending: defaultOrderBy.ascending ?? false,
+          })
+        }
+
+        // Limite
+        if (limit) {
+          query = query.limit(limit)
+        }
+
+        const { data: result, error } = await query
+
+        if (error) throw error
+
+        items = (result as unknown as T[]) || []
       }
 
-      // Limite
-      if (limit) {
-        query = query.limit(limit)
-      }
-
-      const { data: result, error } = await query
-
-      if (error) throw error
-
-      const items = (result as unknown as T[]) || []
       setData(items)
-      onDataLoaded?.(items)
+      onDataLoadedRef.current?.(items)
     } catch (error) {
       console.error(`Erro ao carregar ${entityName}s:`, error)
       toast.error(defaultMessages.loadError)
     } finally {
       setLoading(false)
     }
-  }, [tableName, selectFields, defaultOrderBy, limit, entityName, defaultMessages.loadError, onDataLoaded])
+  }, [tableName, selectFields, defaultOrderBy, limit, entityName, defaultMessages.loadError])
 
   // Carregar dados na montagem
   useEffect(() => {
@@ -281,10 +326,10 @@ export function useCRUDPage<T extends { id: number | string }, F>(
   const handleOpenEdit = useCallback(
     (item: T) => {
       setEditing(item)
-      setFormData(mapDataToForm(item))
+      setFormData(mapDataToFormRef.current(item))
       setSheetOpen(true)
     },
-    [mapDataToForm]
+    []
   )
 
   // Fechar sheet
@@ -300,8 +345,8 @@ export function useCRUDPage<T extends { id: number | string }, F>(
       e.preventDefault()
 
       // Validação
-      if (validateForm) {
-        const error = validateForm(formData)
+      if (validateFormRef.current) {
+        const error = validateFormRef.current(formData)
         if (error) {
           toast.error(error)
           return
@@ -311,15 +356,23 @@ export function useCRUDPage<T extends { id: number | string }, F>(
       setSaving(true)
 
       try {
+        // Usar submit customizado se fornecido
+        if (customSubmitRef.current) {
+          await customSubmitRef.current(formData, editing)
+          handleCloseSheet()
+          loadData()
+          return
+        }
+
         // Mapear dados do formulário
-        let dataToSave = mapFormToData
-          ? mapFormToData(formData)
+        let dataToSave = mapFormToDataRef.current
+          ? mapFormToDataRef.current(formData)
           : (formData as unknown as Record<string, unknown>)
 
         if (editing) {
           // Update
-          if (onBeforeUpdate) {
-            dataToSave = await onBeforeUpdate(dataToSave, editing.id)
+          if (onBeforeUpdateRef.current) {
+            dataToSave = await onBeforeUpdateRef.current(dataToSave, editing.id)
           }
 
           const { data: updated, error } = await supabase
@@ -332,11 +385,11 @@ export function useCRUDPage<T extends { id: number | string }, F>(
           if (error) throw error
 
           toast.success(defaultMessages.updateSuccess)
-          onAfterUpdate?.(updated as T)
+          onAfterUpdateRef.current?.(updated as T)
         } else {
           // Create
-          if (onBeforeCreate) {
-            dataToSave = await onBeforeCreate(dataToSave)
+          if (onBeforeCreateRef.current) {
+            dataToSave = await onBeforeCreateRef.current(dataToSave)
           }
 
           const { data: created, error } = await supabase
@@ -348,7 +401,7 @@ export function useCRUDPage<T extends { id: number | string }, F>(
           if (error) throw error
 
           toast.success(defaultMessages.createSuccess)
-          onAfterCreate?.(created as T)
+          onAfterCreateRef.current?.(created as T)
         }
 
         handleCloseSheet()
@@ -364,12 +417,6 @@ export function useCRUDPage<T extends { id: number | string }, F>(
       formData,
       editing,
       tableName,
-      validateForm,
-      mapFormToData,
-      onBeforeCreate,
-      onBeforeUpdate,
-      onAfterCreate,
-      onAfterUpdate,
       handleCloseSheet,
       loadData,
       entityName,
@@ -394,14 +441,14 @@ export function useCRUDPage<T extends { id: number | string }, F>(
         if (error) throw error
 
         toast.success(defaultMessages.deleteSuccess)
-        onAfterDelete?.(item.id)
+        onAfterDeleteRef.current?.(item.id)
         loadData()
       } catch (error) {
         console.error(`Erro ao excluir ${entityName}:`, error)
         toast.error(defaultMessages.deleteError)
       }
     },
-    [tableName, loadData, entityName, defaultMessages, onAfterDelete]
+    [tableName, loadData, entityName, defaultMessages]
   )
 
   return {

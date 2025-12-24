@@ -1,4 +1,3 @@
-import { useState, useMemo, useEffect, useCallback } from 'react'
 import {
   Building2,
   Plus,
@@ -52,11 +51,7 @@ import { formatDate, formatCNPJ } from '@/lib/formatters'
 import type { Organization } from '@/types/super-admin'
 import { supabase } from '@/lib/supabase/client'
 import { typography } from '@/design-system/tokens'
-
-type SortConfig = {
-  key: keyof Organization
-  direction: 'asc' | 'desc'
-} | null
+import { useCRUDPage } from '@/hooks/useCRUDPage'
 
 type FormData = {
   name: string
@@ -83,20 +78,33 @@ const initialFormData: FormData = {
 }
 
 export default function OrganizationsPage() {
-  const [organizations, setOrganizations] = useState<Organization[]>([])
-  const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState('')
-  const [sortConfig, setSortConfig] = useState<SortConfig>(null)
-  const [sheetOpen, setSheetOpen] = useState(false)
-  const [editingOrg, setEditingOrg] = useState<Organization | null>(null)
-  const [formData, setFormData] = useState(initialFormData)
-  const [saving, setSaving] = useState(false)
+  const {
+    loading,
+    search,
+    setSearch,
+    sortConfig,
+    sheetOpen,
+    setSheetOpen,
+    editing,
+    formData,
+    setFormData,
+    saving,
+    handleOpenCreate,
+    handleOpenEdit,
+    handleCloseSheet,
+    handleSubmit,
+    handleDelete,
+    handleSort,
+    filteredData,
+    totalCount,
+  } = useCRUDPage<Organization, FormData>({
+    tableName: 'organizations',
+    initialFormData,
+    entityName: 'organização',
+    searchFields: ['name', 'email', 'cnpj', 'city'],
 
-  // Carregar dados do Supabase
-  const loadData = useCallback(async () => {
-    setLoading(true)
-    try {
-      // Buscar organizações com contagem de usuários
+    // Carregamento customizado para incluir contagem de usuários
+    customLoadData: async () => {
       const { data: orgsData, error: orgsError } = await supabase
         .from('organizations')
         .select('*')
@@ -104,14 +112,12 @@ export default function OrganizationsPage() {
 
       if (orgsError) throw orgsError
 
-      // Buscar contagem de usuários por organização
       const { data: userCounts, error: countError } = await supabase
         .from('users')
         .select('organization_id')
 
       if (countError) throw countError
 
-      // Mapear contagem de usuários
       const countMap = userCounts?.reduce((acc, user) => {
         if (user.organization_id) {
           acc[user.organization_id] = (acc[user.organization_id] || 0) + 1
@@ -119,79 +125,47 @@ export default function OrganizationsPage() {
         return acc
       }, {} as Record<number, number>) || {}
 
-      // Combinar dados
-      const orgsWithCount = orgsData?.map(org => ({
+      return orgsData?.map(org => ({
         ...org,
         users_count: countMap[org.id] || 0
       })) || []
+    },
 
-      setOrganizations(orgsWithCount)
-    } catch (error) {
-      console.error('Erro ao carregar organizações:', error)
-      toast.error('Erro ao carregar organizações')
-    } finally {
-      setLoading(false)
-    }
-  }, [])
+    mapDataToForm: (org) => ({
+      name: org.name || '',
+      cnpj: org.cnpj || '',
+      email: org.email || '',
+      phone: org.phone || '',
+      address: org.address || '',
+      city: org.city || '',
+      state: org.state || '',
+      zip_code: org.zip_code || '',
+      status: org.status,
+    }),
 
-  useEffect(() => {
-    loadData()
-  }, [loadData])
+    mapFormToData: (data) => ({
+      name: data.name,
+      cnpj: data.cnpj || null,
+      email: data.email || null,
+      phone: data.phone || null,
+      address: data.address || null,
+      city: data.city || null,
+      state: data.state || null,
+      zip_code: data.zip_code || null,
+      status: data.status,
+    }),
 
-  // Filtrar e ordenar organizações
-  const filteredAndSortedOrgs = useMemo(() => {
-    let result = [...organizations]
+    validateForm: (data) => {
+      if (!data.name.trim()) {
+        return 'Nome da organização é obrigatório'
+      }
+      return null
+    },
 
-    // Filtrar por busca
-    if (search) {
-      const searchLower = search.toLowerCase()
-      result = result.filter(
-        (org) =>
-          org.name.toLowerCase().includes(searchLower) ||
-          org.email?.toLowerCase().includes(searchLower) ||
-          org.cnpj?.includes(search) ||
-          org.city?.toLowerCase().includes(searchLower)
-      )
-    }
-
-    // Ordenar
-    if (sortConfig) {
-      result.sort((a, b) => {
-        let aValue: string | number = a[sortConfig.key] ?? ''
-        let bValue: string | number = b[sortConfig.key] ?? ''
-
-        // Tratamento especial para datas
-        if (sortConfig.key === 'created_at') {
-          aValue = new Date(aValue as string).getTime()
-          bValue = new Date(bValue as string).getTime()
-        }
-
-        // Tratamento para números
-        if (sortConfig.key === 'users_count') {
-          aValue = Number(aValue) || 0
-          bValue = Number(bValue) || 0
-        }
-
-        if (aValue < bValue) {
-          return sortConfig.direction === 'asc' ? -1 : 1
-        }
-        if (aValue > bValue) {
-          return sortConfig.direction === 'asc' ? 1 : -1
-        }
-        return 0
-      })
-    }
-
-    return result
-  }, [organizations, search, sortConfig])
-
-  const handleSort = (key: keyof Organization) => {
-    let direction: 'asc' | 'desc' = 'asc'
-    if (sortConfig?.key === key && sortConfig.direction === 'asc') {
-      direction = 'desc'
-    }
-    setSortConfig({ key, direction })
-  }
+    messages: {
+      deleteConfirm: (org) => `Tem certeza que deseja excluir "${org.name}"?`,
+    },
+  })
 
   const SortIcon = ({ columnKey }: { columnKey: keyof Organization }) => {
     if (sortConfig?.key !== columnKey) {
@@ -202,115 +176,6 @@ export default function OrganizationsPage() {
     ) : (
       <ArrowDown className="ml-2 h-4 w-4" />
     )
-  }
-
-  const handleOpenCreate = () => {
-    setEditingOrg(null)
-    setFormData(initialFormData)
-    setSheetOpen(true)
-  }
-
-  const handleOpenEdit = (org: Organization) => {
-    setEditingOrg(org)
-    setFormData({
-      name: org.name || '',
-      cnpj: org.cnpj || '',
-      email: org.email || '',
-      phone: org.phone || '',
-      address: org.address || '',
-      city: org.city || '',
-      state: org.state || '',
-      zip_code: org.zip_code || '',
-      status: org.status,
-    })
-    setSheetOpen(true)
-  }
-
-  const handleCloseSheet = () => {
-    setSheetOpen(false)
-    setEditingOrg(null)
-    setFormData(initialFormData)
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    if (!formData.name.trim()) {
-      toast.error('Nome da organização é obrigatório')
-      return
-    }
-
-    setSaving(true)
-
-    try {
-      if (editingOrg) {
-        // Atualizar organização existente
-        const { error } = await supabase
-          .from('organizations')
-          .update({
-            name: formData.name,
-            cnpj: formData.cnpj || null,
-            email: formData.email || null,
-            phone: formData.phone || null,
-            address: formData.address || null,
-            city: formData.city || null,
-            state: formData.state || null,
-            zip_code: formData.zip_code || null,
-            status: formData.status,
-          })
-          .eq('id', editingOrg.id)
-
-        if (error) throw error
-        toast.success('Organização atualizada com sucesso!')
-      } else {
-        // Criar nova organização
-        const { error } = await supabase
-          .from('organizations')
-          .insert({
-            name: formData.name,
-            cnpj: formData.cnpj || null,
-            email: formData.email || null,
-            phone: formData.phone || null,
-            address: formData.address || null,
-            city: formData.city || null,
-            state: formData.state || null,
-            zip_code: formData.zip_code || null,
-            status: formData.status,
-          })
-
-        if (error) throw error
-        toast.success('Organização criada com sucesso!')
-      }
-
-      handleCloseSheet()
-      loadData() // Recarregar dados
-    } catch (error) {
-      console.error('Erro ao salvar organização:', error)
-      toast.error('Erro ao salvar organização')
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  const handleDelete = async (org: Organization) => {
-    if (!confirm(`Tem certeza que deseja excluir "${org.name}"?`)) {
-      return
-    }
-
-    try {
-      const { error } = await supabase
-        .from('organizations')
-        .delete()
-        .eq('id', org.id)
-
-      if (error) throw error
-
-      toast.success('Organização excluída com sucesso!')
-      loadData()
-    } catch (error) {
-      console.error('Erro ao excluir organização:', error)
-      toast.error('Erro ao excluir organização')
-    }
   }
 
   const handleExport = () => {
@@ -360,7 +225,7 @@ export default function OrganizationsPage() {
                 </div>
               ))}
             </div>
-          ) : filteredAndSortedOrgs.length === 0 ? (
+          ) : filteredData.length === 0 ? (
             <div className="text-center py-12">
               <Building2 className="mx-auto h-12 w-12 text-text-secondary mb-4" />
               <p className="text-text-secondary">
@@ -422,7 +287,7 @@ export default function OrganizationsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredAndSortedOrgs.map((org) => (
+                {filteredData.map((org) => (
                   <TableRow key={org.id}>
                     <TableCell className="py-2 sm:py-4">
                       <div className="flex items-center gap-2 sm:gap-3">
@@ -493,7 +358,7 @@ export default function OrganizationsPage() {
 
       {/* Resumo */}
       <div className={`${typography.body.small} text-text-secondary`}>
-        {filteredAndSortedOrgs.length} de {organizations.length} organizações
+        {filteredData.length} de {totalCount} organizações
       </div>
 
       {/* Sheet de criação/edição */}
@@ -501,10 +366,10 @@ export default function OrganizationsPage() {
         <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto p-4 sm:p-6">
           <SheetHeader>
             <SheetTitle className={typography.heading.h3}>
-              {editingOrg ? 'Editar Organização' : 'Nova Organização'}
+              {editing ? 'Editar Organização' : 'Nova Organização'}
             </SheetTitle>
             <SheetDescription className={typography.body.small}>
-              {editingOrg
+              {editing
                 ? 'Altere as informações da organização abaixo.'
                 : 'Preencha as informações para criar uma nova organização.'}
             </SheetDescription>
@@ -677,7 +542,7 @@ export default function OrganizationsPage() {
               <Button type="submit" disabled={saving} className={typography.body.small}>
                 {saving
                   ? 'Salvando...'
-                  : editingOrg
+                  : editing
                     ? 'Atualizar'
                     : 'Criar'}
               </Button>

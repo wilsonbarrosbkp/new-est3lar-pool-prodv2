@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from 'react'
+import { useState, useMemo } from 'react'
 import {
   UserCog,
   Plus,
@@ -55,11 +55,7 @@ import { formatDate } from '@/lib/formatters'
 import type { User, Role, Organization } from '@/types/super-admin'
 import { supabase } from '@/lib/supabase/client'
 import { typography } from '@/design-system/tokens'
-
-type SortConfig = {
-  key: keyof User
-  direction: 'asc' | 'desc'
-} | null
+import { useCRUDPage } from '@/hooks/useCRUDPage'
 
 type FormData = {
   name: string
@@ -80,24 +76,39 @@ const initialFormData: FormData = {
 }
 
 export default function UsersPage() {
-  const [users, setUsers] = useState<User[]>([])
+  // Estados adicionais para dados relacionados e filtros
   const [roles, setRoles] = useState<Role[]>([])
   const [organizations, setOrganizations] = useState<Pick<Organization, 'id' | 'name'>[]>([])
-  const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState('')
   const [filterStatus, setFilterStatus] = useState<string>('all')
   const [filterRole, setFilterRole] = useState<string>('all')
   const [filterOrg, setFilterOrg] = useState<string>('all')
-  const [sortConfig, setSortConfig] = useState<SortConfig>(null)
-  const [sheetOpen, setSheetOpen] = useState(false)
-  const [editingUser, setEditingUser] = useState<User | null>(null)
-  const [formData, setFormData] = useState(initialFormData)
-  const [saving, setSaving] = useState(false)
 
-  // Carregar dados do Supabase
-  const loadData = useCallback(async () => {
-    setLoading(true)
-    try {
+  const {
+    data: users,
+    loading,
+    search,
+    setSearch,
+    sortConfig,
+    sheetOpen,
+    setSheetOpen,
+    editing,
+    formData,
+    setFormData,
+    saving,
+    handleOpenCreate,
+    handleOpenEdit,
+    handleCloseSheet,
+    handleSubmit,
+    handleDelete,
+    handleSort,
+  } = useCRUDPage<User, FormData>({
+    tableName: 'users',
+    initialFormData,
+    entityName: 'usuário',
+    searchFields: ['name', 'email', 'phone', 'organization_name'],
+
+    // Carregamento customizado para incluir dados relacionados
+    customLoadData: async () => {
       // Carregar usuários via view
       const { data: usersData, error: usersError } = await supabase
         .from('v_users_details')
@@ -105,7 +116,6 @@ export default function UsersPage() {
         .order('created_at', { ascending: false })
 
       if (usersError) throw usersError
-      setUsers(usersData || [])
 
       // Carregar roles
       const { data: rolesData, error: rolesError } = await supabase
@@ -130,23 +140,100 @@ export default function UsersPage() {
       if (orgsError) throw orgsError
       setOrganizations(orgsData || [])
 
-    } catch (error) {
-      console.error('Erro ao carregar dados:', error)
-      toast.error('Erro ao carregar dados')
-    } finally {
-      setLoading(false)
-    }
-  }, [])
+      return usersData || []
+    },
 
-  useEffect(() => {
-    loadData()
-  }, [loadData])
+    mapDataToForm: (user) => ({
+      name: user.name || '',
+      email: user.email || '',
+      phone: user.phone || '',
+      organization_id: user.organization_id?.toString() || '',
+      role_id: user.role_id.toString(),
+      status: user.status,
+    }),
 
-  // Filtrar e ordenar usuários
-  const filteredAndSortedUsers = useMemo(() => {
+    validateForm: (data) => {
+      if (!data.name.trim()) return 'Nome é obrigatório'
+      if (!data.email.trim()) return 'E-mail é obrigatório'
+      if (!data.role_id) return 'Selecione uma role'
+      if (!data.organization_id) return 'Selecione uma organização'
+      return null
+    },
+
+    // Submit customizado para usar Edge Function na criação
+    customSubmit: async (formData, editing) => {
+      if (editing) {
+        // Atualizar usuário existente
+        const { error } = await supabase
+          .from('users')
+          .update({
+            name: formData.name,
+            email: formData.email,
+            phone: formData.phone || null,
+            organization_id: formData.organization_id ? Number(formData.organization_id) : null,
+            role_id: Number(formData.role_id),
+            status: formData.status,
+          })
+          .eq('id', editing.id)
+
+        if (error) throw error
+        toast.success('Usuário atualizado com sucesso!')
+      } else {
+        // Criar novo usuário via Edge Function
+        const { data: { session } } = await supabase.auth.getSession()
+
+        if (!session?.access_token) {
+          throw new Error('Sessão expirada. Por favor, faça login novamente.')
+        }
+
+        const response = await supabase.functions.invoke('create-user', {
+          body: {
+            name: formData.name,
+            email: formData.email,
+            phone: formData.phone || null,
+            organization_id: Number(formData.organization_id),
+            role_id: Number(formData.role_id),
+            status: formData.status,
+          },
+        })
+
+        if (response.error) {
+          throw new Error(response.error.message || 'Erro ao criar usuário')
+        }
+
+        if (response.data?.error) {
+          throw new Error(response.data.error)
+        }
+
+        toast.success('Usuário criado com sucesso! Um e-mail para definir a senha será enviado.')
+      }
+    },
+
+    messages: {
+      deleteConfirm: (user) => `Tem certeza que deseja excluir "${user.name}"?`,
+    },
+  })
+
+  // Filtrar usuários localmente (após o hook)
+  const filteredUsers = useMemo(() => {
     let result = [...users]
 
-    // Filtrar por busca
+    // Busca textual já é feita pelo hook via searchFields
+    // Aqui aplicamos apenas os filtros adicionais
+
+    if (filterStatus !== 'all') {
+      result = result.filter((user) => user.status === filterStatus)
+    }
+
+    if (filterRole !== 'all') {
+      result = result.filter((user) => user.role_id === Number(filterRole))
+    }
+
+    if (filterOrg !== 'all') {
+      result = result.filter((user) => user.organization_id === Number(filterOrg))
+    }
+
+    // Aplicar busca
     if (search) {
       const searchLower = search.toLowerCase()
       result = result.filter(
@@ -158,22 +245,7 @@ export default function UsersPage() {
       )
     }
 
-    // Filtrar por status
-    if (filterStatus !== 'all') {
-      result = result.filter((user) => user.status === filterStatus)
-    }
-
-    // Filtrar por role
-    if (filterRole !== 'all') {
-      result = result.filter((user) => user.role_id === Number(filterRole))
-    }
-
-    // Filtrar por organização
-    if (filterOrg !== 'all') {
-      result = result.filter((user) => user.organization_id === Number(filterOrg))
-    }
-
-    // Ordenar
+    // Aplicar ordenação
     if (sortConfig) {
       result.sort((a, b) => {
         let aValue: string | number = a[sortConfig.key] ?? ''
@@ -202,14 +274,6 @@ export default function UsersPage() {
     return result
   }, [users, search, filterStatus, filterRole, filterOrg, sortConfig])
 
-  const handleSort = (key: keyof User) => {
-    let direction: 'asc' | 'desc' = 'asc'
-    if (sortConfig?.key === key && sortConfig.direction === 'asc') {
-      direction = 'desc'
-    }
-    setSortConfig({ key, direction })
-  }
-
   const SortIcon = ({ columnKey }: { columnKey: keyof User }) => {
     if (sortConfig?.key !== columnKey) {
       return <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -219,135 +283,6 @@ export default function UsersPage() {
     ) : (
       <ArrowDown className="ml-2 h-4 w-4" />
     )
-  }
-
-  const handleOpenCreate = () => {
-    setEditingUser(null)
-    setFormData(initialFormData)
-    setSheetOpen(true)
-  }
-
-  const handleOpenEdit = (user: User) => {
-    setEditingUser(user)
-    setFormData({
-      name: user.name || '',
-      email: user.email || '',
-      phone: user.phone || '',
-      organization_id: user.organization_id?.toString() || '',
-      role_id: user.role_id.toString(),
-      status: user.status,
-    })
-    setSheetOpen(true)
-  }
-
-  const handleCloseSheet = () => {
-    setSheetOpen(false)
-    setEditingUser(null)
-    setFormData(initialFormData)
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    if (!formData.name.trim()) {
-      toast.error('Nome é obrigatório')
-      return
-    }
-
-    if (!formData.email.trim()) {
-      toast.error('E-mail é obrigatório')
-      return
-    }
-
-    if (!formData.role_id) {
-      toast.error('Selecione uma role')
-      return
-    }
-
-    if (!formData.organization_id) {
-      toast.error('Selecione uma organização')
-      return
-    }
-
-    setSaving(true)
-
-    try {
-      if (editingUser) {
-        // Atualizar usuário existente
-        const { error } = await supabase
-          .from('users')
-          .update({
-            name: formData.name,
-            email: formData.email,
-            phone: formData.phone || null,
-            organization_id: formData.organization_id ? Number(formData.organization_id) : null,
-            role_id: Number(formData.role_id),
-            status: formData.status,
-          })
-          .eq('id', editingUser.id)
-
-        if (error) throw error
-        toast.success('Usuário atualizado com sucesso!')
-      } else {
-        // Criar novo usuário via Edge Function
-        const { data: { session } } = await supabase.auth.getSession()
-
-        if (!session?.access_token) {
-          toast.error('Sessão expirada. Por favor, faça login novamente.')
-          return
-        }
-
-        const response = await supabase.functions.invoke('create-user', {
-          body: {
-            name: formData.name,
-            email: formData.email,
-            phone: formData.phone || null,
-            organization_id: Number(formData.organization_id),
-            role_id: Number(formData.role_id),
-            status: formData.status,
-          },
-        })
-
-        if (response.error) {
-          throw new Error(response.error.message || 'Erro ao criar usuário')
-        }
-
-        if (response.data?.error) {
-          throw new Error(response.data.error)
-        }
-
-        toast.success('Usuário criado com sucesso! Um e-mail para definir a senha será enviado.')
-      }
-
-      handleCloseSheet()
-      loadData() // Recarregar dados
-    } catch (error) {
-      console.error('Erro ao salvar usuário:', error)
-      toast.error(error instanceof Error ? error.message : 'Erro ao salvar usuário')
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  const handleDelete = async (user: User) => {
-    if (!confirm(`Tem certeza que deseja excluir "${user.name}"?`)) {
-      return
-    }
-
-    try {
-      const { error } = await supabase
-        .from('users')
-        .delete()
-        .eq('id', user.id)
-
-      if (error) throw error
-
-      toast.success('Usuário excluído com sucesso!')
-      loadData()
-    } catch (error) {
-      console.error('Erro ao excluir usuário:', error)
-      toast.error('Erro ao excluir usuário')
-    }
   }
 
   const handleExport = () => {
@@ -456,7 +391,7 @@ export default function UsersPage() {
                 </div>
               ))}
             </div>
-          ) : filteredAndSortedUsers.length === 0 ? (
+          ) : filteredUsers.length === 0 ? (
             <div className="text-center py-12">
               <UserCog className="mx-auto h-12 w-12 text-text-secondary mb-4" />
               <p className="text-text-secondary">
@@ -528,7 +463,7 @@ export default function UsersPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredAndSortedUsers.map((user) => (
+                {filteredUsers.map((user) => (
                   <TableRow key={user.id}>
                     <TableCell className="py-2 sm:py-4">
                       <div className="flex items-center gap-2 sm:gap-3">
@@ -633,7 +568,7 @@ export default function UsersPage() {
 
       {/* Resumo */}
       <div className={`${typography.body.small} text-text-secondary`}>
-        {filteredAndSortedUsers.length} de {users.length} usuários
+        {filteredUsers.length} de {users.length} usuários
       </div>
 
       {/* Sheet de criação/edição */}
@@ -641,10 +576,10 @@ export default function UsersPage() {
         <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto p-4 sm:p-6">
           <SheetHeader>
             <SheetTitle className={typography.modal.title}>
-              {editingUser ? 'Editar Usuário' : 'Novo Usuário'}
+              {editing ? 'Editar Usuário' : 'Novo Usuário'}
             </SheetTitle>
             <SheetDescription className={typography.modal.description}>
-              {editingUser
+              {editing
                 ? 'Altere as informações do usuário abaixo.'
                 : 'Preencha as informações para criar um novo usuário.'}
             </SheetDescription>
@@ -686,7 +621,7 @@ export default function UsersPage() {
                 />
               </div>
 
-              {!editingUser && (
+              {!editing && (
                 <p className={`${typography.form.helper} text-text-secondary bg-surface-secondary p-2 rounded-md`}>
                   O usuário receberá um e-mail para definir sua própria senha.
                 </p>
@@ -796,7 +731,7 @@ export default function UsersPage() {
               <Button type="submit" disabled={saving} className={typography.button.default}>
                 {saving
                   ? 'Salvando...'
-                  : editingUser
+                  : editing
                     ? 'Atualizar'
                     : 'Criar'}
               </Button>
