@@ -600,7 +600,7 @@ rm -rf node_modules/.vite
 
 ## Licenca
 
-Proprietario - Est3lar
+Proprietario - Genesis Pool
 
 ---
 
