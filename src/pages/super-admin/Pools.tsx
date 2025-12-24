@@ -45,6 +45,7 @@ import {
 } from '@/components/ui/Select'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
+import { typography } from '@/design-system/tokens'
 
 interface Pool {
   id: number
@@ -368,7 +369,7 @@ export default function PoolsPage() {
                   <>
                     <TableRow>
                       <TableCell colSpan={7} className="bg-surface/50">
-                        <div className="flex items-center gap-2 text-sm font-medium text-success">
+                        <div className={`flex items-center gap-2 ${typography.body.small} ${typography.weight.medium} text-success`}>
                           <Zap className="h-4 w-4" />
                           Pools Ativos ({activePools.length})
                         </div>
@@ -382,8 +383,8 @@ export default function PoolsPage() {
                               <Server className="h-5 w-5" />
                             </div>
                             <div>
-                              <p className="font-medium">{pool.name}</p>
-                              <p className="text-xs text-text-secondary">
+                              <p className={typography.weight.medium}>{pool.name}</p>
+                              <p className={`${typography.table.small} text-text-secondary`}>
                                 {pool.stratum_url ? `${pool.stratum_url}:${pool.stratum_port}` : 'Sem stratum'}
                               </p>
                             </div>
@@ -435,7 +436,7 @@ export default function PoolsPage() {
                   <>
                     <TableRow>
                       <TableCell colSpan={7} className="bg-surface/50">
-                        <div className="flex items-center gap-2 text-sm font-medium text-text-secondary">
+                        <div className={`flex items-center gap-2 ${typography.body.small} ${typography.weight.medium} text-text-secondary`}>
                           <Server className="h-4 w-4" />
                           Pools Inativos ({inactivePools.length})
                         </div>
@@ -449,8 +450,8 @@ export default function PoolsPage() {
                               <Server className="h-5 w-5" />
                             </div>
                             <div>
-                              <p className="font-medium">{pool.name}</p>
-                              <p className="text-xs text-text-secondary">
+                              <p className={typography.weight.medium}>{pool.name}</p>
+                              <p className={`${typography.table.small} text-text-secondary`}>
                                 {pool.stratum_url ? `${pool.stratum_url}:${pool.stratum_port}` : 'Sem stratum'}
                               </p>
                             </div>
@@ -503,7 +504,7 @@ export default function PoolsPage() {
       </Card>
 
       {/* Resumo */}
-      <div className="text-sm text-text-secondary">
+      <div className={`${typography.body.small} text-text-secondary`}>
         {filteredPools.length} pool(s) | {activePools.length} ativo(s) | {inactivePools.length} inativo(s)
       </div>
 

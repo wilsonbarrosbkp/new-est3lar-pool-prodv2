@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
 import { resetPasswordAction } from '@/lib/auth/reset-password'
+import { typography } from '@/design-system/tokens'
 
 export function ResetPasswordForm() {
   const [password, setPassword] = useState('')
@@ -80,7 +81,7 @@ export function ResetPasswordForm() {
               />
             )}
           </div>
-          <p className="text-xs text-white/60">
+          <p className={`${typography.body.tiny} text-white/60`}>
             Mínimo de 8 caracteres
           </p>
         </div>

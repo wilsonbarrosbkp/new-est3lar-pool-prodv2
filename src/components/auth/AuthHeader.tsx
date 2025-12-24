@@ -7,8 +7,8 @@ export function AuthHeader({ subtitle }: AuthHeaderProps) {
   return (
     <div className="flex flex-col items-center text-center">
       <img
-        src="/Est3lar-Colors.png"
-        alt="Est3lar"
+        src="/genesis-logo.png"
+        alt="Genesis Pool"
         className="h-16 w-auto mb-2 select-none pointer-events-none"
         draggable="false"
         onDragStart={(e) => e.preventDefault()}

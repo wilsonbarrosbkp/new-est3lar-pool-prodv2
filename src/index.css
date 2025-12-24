@@ -1,7 +1,7 @@
 @import 'tailwindcss';
 
 /* =============================================================================
-   DESIGN SYSTEM - Est3lar Pool v2
+   DESIGN SYSTEM - Genesis Pool v1
    Tailwind CSS 4 Theme Configuration
 
    IMPORTANTE: Este e o UNICO local para definir cores e tokens.
@@ -10,48 +10,48 @@
 
 @theme {
   /* ---------------------------------------------------------------------------
-     BASE COLORS
+     BASE COLORS - Genesis Pool Green Theme
      --------------------------------------------------------------------------- */
-  --color-background: #0B0F14;
+  --color-background: #0a1912;
   --color-foreground: #FFFFFF;
 
-  --color-card: #0F1720;
+  --color-card: #0d1f17;
   --color-card-foreground: #FFFFFF;
 
-  --color-surface: #0F1720;
+  --color-surface: #0d1f17;
 
-  --color-popover: #0F1720;
+  --color-popover: #0d1f17;
   --color-popover-foreground: #FFFFFF;
 
   /* ---------------------------------------------------------------------------
      TEXT COLORS
      --------------------------------------------------------------------------- */
   --color-text-primary: #FFFFFF;
-  --color-text-secondary: #94A3B8;
-  --color-text-inverse: #0B0F14;
+  --color-text-secondary: #8BA89E;
+  --color-text-inverse: #0a1912;
 
   /* ---------------------------------------------------------------------------
-     PRIMARY - Neutral blue-tinted (botoes, links)
+     PRIMARY - Genesis Green (botoes, links)
      --------------------------------------------------------------------------- */
-  --color-primary: #E2E8F0;
-  --color-primary-foreground: #0B0F14;
+  --color-primary: #22c55e;
+  --color-primary-foreground: #0a1912;
 
   /* ---------------------------------------------------------------------------
      SECONDARY
      --------------------------------------------------------------------------- */
-  --color-secondary: #0F1720;
+  --color-secondary: #123326;
   --color-secondary-foreground: #FFFFFF;
 
   /* ---------------------------------------------------------------------------
      MUTED - Textos e fundos sutis
      --------------------------------------------------------------------------- */
-  --color-muted: #0F1720;
-  --color-muted-foreground: #94A3B8;
+  --color-muted: #0d1f17;
+  --color-muted-foreground: #8BA89E;
 
   /* ---------------------------------------------------------------------------
      ACCENT - Hover states
      --------------------------------------------------------------------------- */
-  --color-accent: #0F1720;
+  --color-accent: #123326;
   --color-accent-foreground: #FFFFFF;
 
   /* ---------------------------------------------------------------------------
@@ -63,30 +63,30 @@
   /* ---------------------------------------------------------------------------
      SEMANTIC COLORS - Status e feedback
      --------------------------------------------------------------------------- */
-  --color-success: #10B981;
+  --color-success: #22c55e;
   --color-warning: #F59E0B;
   --color-error: #EF4444;
-  --color-info: #3B82F6;
+  --color-info: #10B981;
 
   /* ---------------------------------------------------------------------------
      BORDERS & RINGS
      --------------------------------------------------------------------------- */
-  --color-border: rgba(255, 255, 255, 0.06);
-  --color-border-emphasis: rgba(255, 255, 255, 0.12);
-  --color-input: rgba(255, 255, 255, 0.06);
-  --color-ring: rgba(226, 232, 240, 0.3);
+  --color-border: rgba(34, 197, 94, 0.12);
+  --color-border-emphasis: rgba(34, 197, 94, 0.20);
+  --color-input: rgba(34, 197, 94, 0.12);
+  --color-ring: rgba(34, 197, 94, 0.3);
 
   /* ---------------------------------------------------------------------------
      SIDEBAR - Cores especificas do sidebar
      --------------------------------------------------------------------------- */
-  --color-sidebar: #0F1720;
+  --color-sidebar: #0d1f17;
   --color-sidebar-foreground: #FFFFFF;
-  --color-sidebar-primary: #E2E8F0;
-  --color-sidebar-primary-foreground: #0B0F14;
-  --color-sidebar-accent: #0F1720;
+  --color-sidebar-primary: #22c55e;
+  --color-sidebar-primary-foreground: #0a1912;
+  --color-sidebar-accent: #123326;
   --color-sidebar-accent-foreground: #FFFFFF;
-  --color-sidebar-border: rgba(255, 255, 255, 0.06);
-  --color-sidebar-ring: rgba(226, 232, 240, 0.3);
+  --color-sidebar-border: rgba(34, 197, 94, 0.12);
+  --color-sidebar-ring: rgba(34, 197, 94, 0.3);
 
   /* ---------------------------------------------------------------------------
      RADIUS - Border radius padrao
@@ -218,6 +218,13 @@
 
   --font-size-avatar-small: 0.625rem;     /* 10px - mobile */
   --font-size-avatar-small-sm: 0.75rem;   /* 12px - desktop */
+
+  /* ==================== CARD ==================== */
+  --font-size-card-title: 1.125rem;       /* 18px - mobile e desktop */
+  --font-size-card-title-sm: 1.125rem;    /* 18px - consistente */
+
+  --font-size-card-description: 0.875rem; /* 14px - mobile e desktop */
+  --font-size-card-description-sm: 0.875rem; /* 14px - consistente */
 
   /* ==================== ICONS (tamanhos) ==================== */
   --icon-size-xs: 0.625rem;               /* 10px */

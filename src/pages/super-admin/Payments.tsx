@@ -50,6 +50,7 @@ import {
 import { Textarea } from '@/components/ui/Textarea'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
+import { typography } from '@/design-system/tokens'
 
 interface Payment {
   id: number
@@ -476,8 +477,8 @@ export default function PaymentsPage() {
                 <CreditCard className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-sm text-text-secondary">Total Pagamentos</p>
-                <p className="text-xl font-bold">{filteredPayments.length}</p>
+                <p className={`${typography.kpi.title} text-text-secondary`}>Total Pagamentos</p>
+                <p className={`${typography.kpi.value} ${typography.weight.bold}`}>{filteredPayments.length}</p>
               </div>
             </div>
           </CardContent>
@@ -489,8 +490,8 @@ export default function PaymentsPage() {
                 <Clock className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-sm text-text-secondary">Pendentes</p>
-                <p className="text-xl font-bold">{totalPending.toFixed(8)} BTC</p>
+                <p className={`${typography.kpi.title} text-text-secondary`}>Pendentes</p>
+                <p className={`${typography.kpi.value} ${typography.weight.bold}`}>{totalPending.toFixed(8)} BTC</p>
               </div>
             </div>
           </CardContent>
@@ -502,8 +503,8 @@ export default function PaymentsPage() {
                 <CheckCircle className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-sm text-text-secondary">Concluídos</p>
-                <p className="text-xl font-bold">{totalCompleted.toFixed(8)} BTC</p>
+                <p className={`${typography.kpi.title} text-text-secondary`}>Concluídos</p>
+                <p className={`${typography.kpi.value} ${typography.weight.bold}`}>{totalCompleted.toFixed(8)} BTC</p>
               </div>
             </div>
           </CardContent>
@@ -548,42 +549,42 @@ export default function PaymentsPage() {
                   const statusBadge = getStatusBadge(payment.status)
                   return (
                     <TableRow key={payment.id}>
-                      <TableCell className="font-mono text-sm">#{payment.id}</TableCell>
+                      <TableCell className={`font-mono ${typography.body.small}`}>#{payment.id}</TableCell>
                       <TableCell>
                         <div>
-                          <p className="font-medium">{payment.organization_name}</p>
+                          <p className={typography.weight.medium}>{payment.organization_name}</p>
                           {payment.pool_name && (
-                            <p className="text-xs text-text-secondary">{payment.pool_name}</p>
+                            <p className={`${typography.body.tiny} text-text-secondary`}>{payment.pool_name}</p>
                           )}
                         </div>
                       </TableCell>
                       <TableCell>
                         <div>
-                          <p className="text-sm">{payment.wallet_label}</p>
-                          <code className="text-xs text-text-secondary">
+                          <p className={typography.body.small}>{payment.wallet_label}</p>
+                          <code className={`${typography.body.tiny} text-text-secondary`}>
                             {payment.wallet_address?.slice(0, 10)}...
                           </code>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <span className="font-mono font-medium">
+                        <span className={`font-mono ${typography.weight.medium}`}>
                           {formatAmount(payment.amount, payment.currency_symbol || '')}
                         </span>
                         {payment.fee > 0 && (
-                          <p className="text-xs text-text-secondary">
+                          <p className={`${typography.body.tiny} text-text-secondary`}>
                             Fee: {payment.fee.toFixed(8)}
                           </p>
                         )}
                       </TableCell>
                       <TableCell>
-                        <Badge variant="secondary" className="text-xs">
+                        <Badge variant="secondary" className={typography.body.tiny}>
                           {getTypeLabel(payment.type)}
                         </Badge>
                       </TableCell>
                       <TableCell>
                         {payment.tx_hash ? (
                           <div className="flex items-center gap-1">
-                            <code className="text-xs">{formatTxHash(payment.tx_hash)}</code>
+                            <code className={typography.body.tiny}>{formatTxHash(payment.tx_hash)}</code>
                             <Button
                               variant="ghost"
                               size="sm"
@@ -610,7 +611,7 @@ export default function PaymentsPage() {
                         )}
                       </TableCell>
                       <TableCell>
-                        <span className="text-sm">{formatDate(payment.created_at)}</span>
+                        <span className={typography.body.small}>{formatDate(payment.created_at)}</span>
                       </TableCell>
                       <TableCell>
                         <Badge variant={statusBadge.color as any}>

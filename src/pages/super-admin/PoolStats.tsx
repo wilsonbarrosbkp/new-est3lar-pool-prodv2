@@ -34,6 +34,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts'
+import { typography, chartStyles } from '@/design-system/tokens'
 
 export default function PoolStatsPage() {
   const { stats: latestStats, loading: loadingLatest } = useLatestPoolStats(1)
@@ -105,12 +106,12 @@ export default function PoolStatsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white">Pool Stats</h1>
-          <p className="text-text-secondary text-sm mt-1">
+          <h1 className={`${typography.heading.h2} ${typography.weight.bold} text-white`}>Pool Stats</h1>
+          <p className={`${typography.body.small} text-text-secondary mt-1`}>
             Monitoramento em tempo real da pool de mineração
           </p>
         </div>
-        <div className="flex items-center gap-2 text-sm text-text-secondary">
+        <div className={`flex items-center gap-2 ${typography.body.small} text-text-secondary`}>
           <RefreshCw className="h-4 w-4 animate-spin" />
           <span>Auto-refresh ativo</span>
           <Badge variant="secondary" className="ml-2">
@@ -131,8 +132,8 @@ export default function PoolStatsPage() {
                   <Clock className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="text-sm text-text-secondary">Uptime</p>
-                  <p className="text-xl font-bold">
+                  <p className={`${typography.kpi.title} text-text-secondary`}>Uptime</p>
+                  <p className={`${typography.kpi.value} ${typography.weight.bold}`}>
                     {latestStats ? formatUptime(latestStats.runtime_seconds) : 'N/A'}
                   </p>
                 </div>
@@ -151,8 +152,8 @@ export default function PoolStatsPage() {
                   <RefreshCw className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="text-sm text-text-secondary">Last Update</p>
-                  <p className="text-xl font-bold">
+                  <p className={`${typography.kpi.title} text-text-secondary`}>Last Update</p>
+                  <p className={`${typography.kpi.value} ${typography.weight.bold}`}>
                     {latestStats ? formatLastUpdate(new Date(latestStats.collected_at)) : 'N/A'}
                   </p>
                 </div>
@@ -171,8 +172,8 @@ export default function PoolStatsPage() {
                   <Activity className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="text-sm text-text-secondary">Avg Time to Find Block</p>
-                  <p className="text-xl font-bold">N/A</p>
+                  <p className={`${typography.kpi.title} text-text-secondary`}>Avg Time to Find Block</p>
+                  <p className={`${typography.kpi.value} ${typography.weight.bold}`}>N/A</p>
                 </div>
               </div>
             )}
@@ -189,8 +190,8 @@ export default function PoolStatsPage() {
                   <Award className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="text-sm text-text-secondary">Found Blocks</p>
-                  <p className="text-xl font-bold">0</p>
+                  <p className={`${typography.kpi.title} text-text-secondary`}>Found Blocks</p>
+                  <p className={`${typography.kpi.value} ${typography.weight.bold}`}>0</p>
                 </div>
               </div>
             )}
@@ -222,8 +223,8 @@ export default function PoolStatsPage() {
               ].map((item, index) => (
                 <Card key={index}>
                   <CardContent className="p-4">
-                    <p className="text-sm text-text-secondary mb-2">{item.label}</p>
-                    <p className="text-xl font-bold mb-1">{formatHashrate(item.value)}</p>
+                    <p className={`${typography.kpi.title} text-text-secondary mb-2`}>{item.label}</p>
+                    <p className={`${typography.kpi.value} ${typography.weight.bold} mb-1`}>{formatHashrate(item.value)}</p>
                     <div className="flex items-center gap-1">
                       {item.variation > 0 ? (
                         <ChevronUp className="h-4 w-4 text-success" />
@@ -231,7 +232,7 @@ export default function PoolStatsPage() {
                         <ChevronDown className="h-4 w-4 text-error" />
                       ) : null}
                       <span
-                        className={`text-sm ${
+                        className={`${typography.body.small} ${
                           item.variation > 0
                             ? 'text-success'
                             : item.variation < 0
@@ -261,31 +262,26 @@ export default function PoolStatsPage() {
           ) : (
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
+                <CartesianGrid strokeDasharray="3 3" stroke={chartStyles.grid.stroke} />
                 <XAxis
                   dataKey="time"
-                  stroke="#71717a"
-                  style={{ fontSize: '12px' }}
+                  stroke={chartStyles.axis.stroke}
+                  style={{ fontSize: chartStyles.axis.fontSize }}
                 />
                 <YAxis
-                  stroke="#71717a"
-                  style={{ fontSize: '12px' }}
+                  stroke={chartStyles.axis.stroke}
+                  style={{ fontSize: chartStyles.axis.fontSize }}
                   tickFormatter={(value) => formatHashrate(value)}
                 />
                 <RechartsTooltip
-                  contentStyle={{
-                    backgroundColor: '#18181b',
-                    border: '1px solid #27272a',
-                    borderRadius: '6px',
-                    color: '#fff',
-                  }}
+                  contentStyle={chartStyles.tooltip}
                   formatter={(value: any) => formatHashrate(value)}
                 />
                 <Legend />
                 <Line
                   type="monotone"
                   dataKey="hashrate"
-                  stroke="#3b82f6"
+                  stroke={chartStyles.lines.primary}
                   strokeWidth={2}
                   name="1 Min"
                   dot={false}
@@ -293,7 +289,7 @@ export default function PoolStatsPage() {
                 <Line
                   type="monotone"
                   dataKey="hashrate1h"
-                  stroke="#8b5cf6"
+                  stroke={chartStyles.lines.secondary}
                   strokeWidth={2}
                   name="1 Hour"
                   dot={false}
@@ -301,7 +297,7 @@ export default function PoolStatsPage() {
                 <Line
                   type="monotone"
                   dataKey="hashrate1d"
-                  stroke="#06b6d4"
+                  stroke={chartStyles.lines.tertiary}
                   strokeWidth={2}
                   name="1 Day"
                   dot={false}
@@ -329,22 +325,22 @@ export default function PoolStatsPage() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-text-secondary">Users</span>
-                  <span className="text-2xl font-bold">
+                  <span className={`${typography.kpi.value} ${typography.weight.bold}`}>
                     {latestStats?.users || 0}
-                    <span className="text-sm text-text-secondary ml-2">
+                    <span className={`${typography.body.small} text-text-secondary ml-2`}>
                       (Idle: {latestStats?.workers_idle || 0})
                     </span>
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-text-secondary">Disconnected</span>
-                  <span className="text-2xl font-bold text-error">
+                  <span className={`${typography.kpi.value} ${typography.weight.bold} text-error`}>
                     {latestStats?.workers_disconnected || 0}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-text-secondary">Workers</span>
-                  <span className="text-2xl font-bold text-success">
+                  <span className={`${typography.kpi.value} ${typography.weight.bold} text-success`}>
                     {latestStats?.workers_active || 0}
                   </span>
                 </div>
@@ -368,25 +364,25 @@ export default function PoolStatsPage() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-text-secondary">Accepted</span>
-                  <span className="text-2xl font-bold text-success">
+                  <span className={`${typography.kpi.value} ${typography.weight.bold} text-success`}>
                     {latestStats ? formatShares(latestStats.shares_accepted) : '0'}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-text-secondary">Rejected</span>
-                  <span className="text-2xl font-bold text-error">
+                  <span className={`${typography.kpi.value} ${typography.weight.bold} text-error`}>
                     {latestStats ? formatShares(latestStats.shares_rejected) : '0'}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-text-secondary">Best Diff</span>
-                  <span className="text-2xl font-bold">
+                  <span className={`${typography.kpi.value} ${typography.weight.bold}`}>
                     {latestStats ? formatShares(latestStats.best_share) : '0'}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-text-secondary">% of Network Diff</span>
-                  <span className="text-xl font-bold">0%</span>
+                  <span className={`${typography.kpi.value} ${typography.weight.bold}`}>0%</span>
                 </div>
               </div>
             )}
@@ -408,26 +404,26 @@ export default function PoolStatsPage() {
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <div className="text-center">
-                <p className="text-sm text-text-secondary mb-1">1 Minute</p>
-                <p className="text-2xl font-bold">
+                <p className={`${typography.kpi.title} text-text-secondary mb-1`}>1 Minute</p>
+                <p className={`${typography.kpi.value} ${typography.weight.bold}`}>
                   {latestStats ? (latestStats.shares_per_second_1m / 1000).toFixed(3) : '0.000'}
                 </p>
               </div>
               <div className="text-center">
-                <p className="text-sm text-text-secondary mb-1">5 Minutes</p>
-                <p className="text-2xl font-bold">
+                <p className={`${typography.kpi.title} text-text-secondary mb-1`}>5 Minutes</p>
+                <p className={`${typography.kpi.value} ${typography.weight.bold}`}>
                   {latestStats ? (latestStats.shares_per_second_5m / 1000).toFixed(3) : '0.000'}
                 </p>
               </div>
               <div className="text-center">
-                <p className="text-sm text-text-secondary mb-1">15 Minutes</p>
-                <p className="text-2xl font-bold">
+                <p className={`${typography.kpi.title} text-text-secondary mb-1`}>15 Minutes</p>
+                <p className={`${typography.kpi.value} ${typography.weight.bold}`}>
                   {latestStats ? (latestStats.shares_per_second_15m / 1000).toFixed(3) : '0.000'}
                 </p>
               </div>
               <div className="text-center">
-                <p className="text-sm text-text-secondary mb-1">1 Hour</p>
-                <p className="text-2xl font-bold">
+                <p className={`${typography.kpi.title} text-text-secondary mb-1`}>1 Hour</p>
+                <p className={`${typography.kpi.value} ${typography.weight.bold}`}>
                   {latestStats ? (latestStats.shares_per_second_1h / 1000).toFixed(3) : '0.000'}
                 </p>
               </div>
@@ -447,26 +443,21 @@ export default function PoolStatsPage() {
           ) : (
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
+                <CartesianGrid strokeDasharray="3 3" stroke={chartStyles.grid.stroke} />
                 <XAxis
                   dataKey="time"
-                  stroke="#71717a"
-                  style={{ fontSize: '12px' }}
+                  stroke={chartStyles.axis.stroke}
+                  style={{ fontSize: chartStyles.axis.fontSize }}
                 />
-                <YAxis stroke="#71717a" style={{ fontSize: '12px' }} />
+                <YAxis stroke={chartStyles.axis.stroke} style={{ fontSize: chartStyles.axis.fontSize }} />
                 <RechartsTooltip
-                  contentStyle={{
-                    backgroundColor: '#18181b',
-                    border: '1px solid #27272a',
-                    borderRadius: '6px',
-                    color: '#fff',
-                  }}
+                  contentStyle={chartStyles.tooltip}
                 />
                 <Legend />
                 <Line
                   type="monotone"
                   dataKey="workers"
-                  stroke="#3b82f6"
+                  stroke={chartStyles.lines.primary}
                   strokeWidth={2}
                   name="Workers"
                   dot={false}

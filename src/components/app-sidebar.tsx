@@ -34,19 +34,11 @@ export function AppSidebar({
           to="/super-admin"
           className="flex items-center justify-center gap-2 py-1.5"
         >
-          {open ? (
-            <img
-              src="/Est3lar-Colors.png"
-              alt="Est3lar"
-              className="h-auto max-h-10 max-w-[10.5rem]"
-            />
-          ) : (
-            <img
-              src="/icon-est3lar-roxo.png"
-              alt="Est3lar"
-              className="h-8 w-8 flex-shrink-0"
-            />
-          )}
+          <img
+            src="/genesis-logo.png"
+            alt="Genesis Pool"
+            className={open ? "h-auto max-h-8 max-w-[9rem]" : "h-6 w-auto max-w-[2.5rem] object-contain"}
+          />
         </Link>
       </SidebarHeader>
       <SidebarContent>

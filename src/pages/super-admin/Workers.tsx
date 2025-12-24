@@ -47,6 +47,7 @@ import {
 } from '@/components/ui/Select'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
+import { typography } from '@/design-system/tokens'
 
 interface Worker {
   id: number
@@ -395,8 +396,8 @@ export default function WorkersPage() {
                 <Users className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-sm text-text-secondary">Total Workers</p>
-                <p className="text-xl font-bold">{filteredWorkers.length}</p>
+                <p className={`${typography.kpi.title} text-text-secondary`}>Total Workers</p>
+                <p className={`${typography.kpi.value} ${typography.weight.bold}`}>{filteredWorkers.length}</p>
               </div>
             </div>
           </CardContent>
@@ -408,8 +409,8 @@ export default function WorkersPage() {
                 <Wifi className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-sm text-text-secondary">Online</p>
-                <p className="text-xl font-bold">{onlineWorkers.length}</p>
+                <p className={`${typography.kpi.title} text-text-secondary`}>Online</p>
+                <p className={`${typography.kpi.value} ${typography.weight.bold}`}>{onlineWorkers.length}</p>
               </div>
             </div>
           </CardContent>
@@ -421,8 +422,8 @@ export default function WorkersPage() {
                 <WifiOff className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-sm text-text-secondary">Offline</p>
-                <p className="text-xl font-bold">{offlineWorkers.length}</p>
+                <p className={`${typography.kpi.title} text-text-secondary`}>Offline</p>
+                <p className={`${typography.kpi.value} ${typography.weight.bold}`}>{offlineWorkers.length}</p>
               </div>
             </div>
           </CardContent>
@@ -434,8 +435,8 @@ export default function WorkersPage() {
                 <Activity className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-sm text-text-secondary">Hashrate Total</p>
-                <p className="text-xl font-bold">{formatHashrate(totalHashrate)}</p>
+                <p className={`${typography.kpi.title} text-text-secondary`}>Hashrate Total</p>
+                <p className={`${typography.kpi.value} ${typography.weight.bold}`}>{formatHashrate(totalHashrate)}</p>
               </div>
             </div>
           </CardContent>
@@ -492,8 +493,8 @@ export default function WorkersPage() {
                             <StatusIcon className="h-5 w-5" />
                           </div>
                           <div>
-                            <p className="font-medium">{worker.name}</p>
-                            <p className="text-xs text-text-secondary">
+                            <p className={typography.weight.medium}>{worker.name}</p>
+                            <p className={`${typography.table.small} text-text-secondary`}>
                               {worker.organization_name}
                               {worker.hardware_name && ` • ${worker.hardware_name}`}
                             </p>
@@ -504,13 +505,13 @@ export default function WorkersPage() {
                       <TableCell>
                         <div>
                           <p className="font-mono">{formatHashrate(worker.hashrate)}</p>
-                          <p className="text-xs text-text-secondary">
+                          <p className={`${typography.table.small} text-text-secondary`}>
                             1h: {formatHashrate(worker.hashrate_1h)} | 24h: {formatHashrate(worker.hashrate_24h)}
                           </p>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="text-sm">
+                        <div className={typography.table.cell}>
                           <span className="text-success">{worker.shares_accepted.toLocaleString()}</span>
                           {' / '}
                           <span className="text-error">{worker.shares_rejected.toLocaleString()}</span>
@@ -534,7 +535,7 @@ export default function WorkersPage() {
                         </span>
                       </TableCell>
                       <TableCell>
-                        <span className="text-sm text-text-secondary">
+                        <span className={`${typography.table.cell} text-text-secondary`}>
                           {formatTimeAgo(worker.last_seen)}
                         </span>
                       </TableCell>

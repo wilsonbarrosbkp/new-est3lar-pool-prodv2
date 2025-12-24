@@ -1,7 +1,7 @@
 {
-    "name": "Est3lar Pool",
-    "short_name": "Est3lar",
-    "description": "Sistema de monitoramento de mineração e pool de criptomoedas",
+    "name": "Genesis Pool",
+    "short_name": "Genesis",
+    "description": "Sistema de gerenciamento de pool de mineração Bitcoin",
     "icons": [
         {
             "src": "/favicon/android-chrome-192x192.png",
@@ -14,8 +14,8 @@
             "type": "image/png"
         }
     ],
-    "theme_color": "#4067D6",
-    "background_color": "#0a0a0a",
+    "theme_color": "#123326",
+    "background_color": "#0a1912",
     "display": "standalone",
     "start_url": "/",
     "orientation": "portrait",

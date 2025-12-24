@@ -5,6 +5,7 @@ import { AuthProvider } from '@/contexts/AuthContext'
 import { SuperAdminRoute } from '@/components/auth/ProtectedRoute'
 import { PublicRoute } from '@/components/auth/PublicRoute'
 import { LoadingFallback } from '@/components/ui/LoadingFallback'
+import { typography } from '@/design-system/tokens'
 
 // Lazy loaded pages - Auth
 const LoginPage = lazy(() => import('@/pages/Login'))
@@ -65,8 +66,8 @@ function App() {
           <Route path="/dashboard" element={
             <div className="min-h-screen p-8">
               <div className="max-w-4xl mx-auto">
-                <h1 className="text-2xl font-bold text-white">Dashboard Minerador</h1>
-                <p className="text-[#94A3B8] mt-2">Em desenvolvimento</p>
+                <h1 className={`${typography.heading.h2} ${typography.weight.bold} text-text-primary`}>Dashboard Minerador</h1>
+                <p className="text-text-secondary mt-2">Em desenvolvimento</p>
               </div>
             </div>
           } />
@@ -75,8 +76,8 @@ function App() {
           <Route path="/org-admin" element={
             <div className="min-h-screen p-8">
               <div className="max-w-4xl mx-auto">
-                <h1 className="text-2xl font-bold text-white">Painel Administrador</h1>
-                <p className="text-[#94A3B8] mt-2">Em desenvolvimento</p>
+                <h1 className={`${typography.heading.h2} ${typography.weight.bold} text-text-primary`}>Painel Administrador</h1>
+                <p className="text-text-secondary mt-2">Em desenvolvimento</p>
               </div>
             </div>
           } />
@@ -110,8 +111,8 @@ function App() {
           {/* 404 */}
           <Route path="*" element={
             <div className="min-h-screen p-8 text-center">
-              <h1 className="text-2xl font-bold text-white mb-4">404 - Pagina nao encontrada</h1>
-              <Link to="/login" className="text-[#94A3B8] hover:text-white">Voltar para login</Link>
+              <h1 className={`${typography.heading.h2} ${typography.weight.bold} text-text-primary mb-4`}>404 - Pagina nao encontrada</h1>
+              <Link to="/login" className="text-text-secondary hover:text-text-primary">Voltar para login</Link>
             </div>
           } />
         </Routes>

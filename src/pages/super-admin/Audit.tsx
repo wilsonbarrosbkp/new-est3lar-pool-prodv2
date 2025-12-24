@@ -34,6 +34,7 @@ import {
 } from '@/components/ui/Select'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
+import { typography } from '@/design-system/tokens'
 
 interface AuditLog {
   id: number
@@ -154,14 +155,14 @@ export default function AuditPage() {
 
   const renderChanges = (log: AuditLog) => {
     if (!log.changes && !log.before_data && !log.after_data) {
-      return <p className="text-text-secondary text-sm">Sem dados detalhados</p>
+      return <p className={`text-text-secondary ${typography.body.small}`}>Sem dados detalhados</p>
     }
 
     if (log.changes && Object.keys(log.changes).length > 0) {
       return (
         <div className="space-y-2">
-          <p className="text-sm font-medium">Alterações:</p>
-          <div className="bg-background rounded-md p-3 text-xs font-mono overflow-x-auto">
+          <p className={`${typography.body.small} ${typography.weight.medium}`}>Alterações:</p>
+          <div className={`bg-background rounded-md p-3 ${typography.body.tiny} font-mono overflow-x-auto`}>
             {Object.entries(log.changes).map(([key, value]: [string, any]) => (
               <div key={key} className="flex gap-2 py-1 border-b border-border last:border-0">
                 <span className="text-text-secondary">{key}:</span>
@@ -179,16 +180,16 @@ export default function AuditPage() {
       <div className="grid grid-cols-2 gap-4">
         {log.before_data && (
           <div className="space-y-2">
-            <p className="text-sm font-medium">Antes:</p>
-            <pre className="bg-background rounded-md p-3 text-xs font-mono overflow-x-auto max-h-48">
+            <p className={`${typography.body.small} ${typography.weight.medium}`}>Antes:</p>
+            <pre className={`bg-background rounded-md p-3 ${typography.body.tiny} font-mono overflow-x-auto max-h-48`}>
               {JSON.stringify(log.before_data, null, 2)}
             </pre>
           </div>
         )}
         {log.after_data && (
           <div className="space-y-2">
-            <p className="text-sm font-medium">Depois:</p>
-            <pre className="bg-background rounded-md p-3 text-xs font-mono overflow-x-auto max-h-48">
+            <p className={`${typography.body.small} ${typography.weight.medium}`}>Depois:</p>
+            <pre className={`bg-background rounded-md p-3 ${typography.body.tiny} font-mono overflow-x-auto max-h-48`}>
               {JSON.stringify(log.after_data, null, 2)}
             </pre>
           </div>
@@ -271,8 +272,8 @@ export default function AuditPage() {
                 <FileText className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-sm text-text-secondary">Total Logs</p>
-                <p className="text-xl font-bold">{filteredLogs.length}</p>
+                <p className={`${typography.kpi.title} text-text-secondary`}>Total Logs</p>
+                <p className={`${typography.kpi.value} ${typography.weight.bold}`}>{filteredLogs.length}</p>
               </div>
             </div>
           </CardContent>
@@ -284,8 +285,8 @@ export default function AuditPage() {
                 <Plus className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-sm text-text-secondary">Criações</p>
-                <p className="text-xl font-bold">{actionCounts.CREATE}</p>
+                <p className={`${typography.kpi.title} text-text-secondary`}>Criações</p>
+                <p className={`${typography.kpi.value} ${typography.weight.bold}`}>{actionCounts.CREATE}</p>
               </div>
             </div>
           </CardContent>
@@ -297,8 +298,8 @@ export default function AuditPage() {
                 <Edit className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-sm text-text-secondary">Atualizações</p>
-                <p className="text-xl font-bold">{actionCounts.UPDATE}</p>
+                <p className={`${typography.kpi.title} text-text-secondary`}>Atualizações</p>
+                <p className={`${typography.kpi.value} ${typography.weight.bold}`}>{actionCounts.UPDATE}</p>
               </div>
             </div>
           </CardContent>
@@ -310,8 +311,8 @@ export default function AuditPage() {
                 <Trash2 className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-sm text-text-secondary">Exclusões</p>
-                <p className="text-xl font-bold">{actionCounts.DELETE}</p>
+                <p className={`${typography.kpi.title} text-text-secondary`}>Exclusões</p>
+                <p className={`${typography.kpi.value} ${typography.weight.bold}`}>{actionCounts.DELETE}</p>
               </div>
             </div>
           </CardContent>
@@ -377,13 +378,13 @@ export default function AuditPage() {
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <Clock className="h-4 w-4 text-text-secondary" />
-                            <span className="text-sm">{formatDate(log.created_at)}</span>
+                            <span className={typography.body.small}>{formatDate(log.created_at)}</span>
                           </div>
                         </TableCell>
                         <TableCell>
                           <div>
-                            <p className="font-medium">{log.user_name || 'Sistema'}</p>
-                            <p className="text-xs text-text-secondary">{log.user_email || '-'}</p>
+                            <p className={typography.weight.medium}>{log.user_name || 'Sistema'}</p>
+                            <p className={`${typography.body.tiny} text-text-secondary`}>{log.user_email || '-'}</p>
                           </div>
                         </TableCell>
                         <TableCell>
@@ -395,9 +396,9 @@ export default function AuditPage() {
                         <TableCell>
                           {log.entity_type ? (
                             <div>
-                              <p className="font-medium">{log.entity_type}</p>
+                              <p className={typography.weight.medium}>{log.entity_type}</p>
                               {log.entity_id && (
-                                <code className="text-xs text-text-secondary">#{log.entity_id}</code>
+                                <code className={`${typography.body.tiny} text-text-secondary`}>#{log.entity_id}</code>
                               )}
                             </div>
                           ) : (
@@ -405,7 +406,7 @@ export default function AuditPage() {
                           )}
                         </TableCell>
                         <TableCell>
-                          <code className="text-xs">{log.ip_address || '-'}</code>
+                          <code className={typography.body.tiny}>{log.ip_address || '-'}</code>
                         </TableCell>
                         <TableCell>{log.organization_name || '-'}</TableCell>
                       </TableRow>
@@ -415,14 +416,14 @@ export default function AuditPage() {
                             {renderChanges(log)}
                             {log.user_agent && (
                               <div className="mt-4">
-                                <p className="text-sm font-medium">User Agent:</p>
-                                <code className="text-xs text-text-secondary break-all">
+                                <p className={`${typography.body.small} ${typography.weight.medium}`}>User Agent:</p>
+                                <code className={`${typography.body.tiny} text-text-secondary break-all`}>
                                   {log.user_agent}
                                 </code>
                               </div>
                             )}
                             <div className="mt-2">
-                              <p className="text-xs text-text-secondary">
+                              <p className={`${typography.body.tiny} text-text-secondary`}>
                                 Correlation ID: <code>{log.correlation_id}</code>
                               </p>
                             </div>
@@ -439,7 +440,7 @@ export default function AuditPage() {
       </Card>
 
       {/* Info */}
-      <div className="text-sm text-text-secondary">
+      <div className={`${typography.body.small} text-text-secondary`}>
         Mostrando {filteredLogs.length} logs (máximo 200 mais recentes)
       </div>
     </div>

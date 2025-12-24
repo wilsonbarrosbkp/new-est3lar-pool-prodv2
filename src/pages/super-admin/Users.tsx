@@ -54,6 +54,7 @@ import { toast } from 'sonner'
 import { formatDate } from '@/lib/formatters'
 import type { User, Role, Organization } from '@/types/super-admin'
 import { supabase } from '@/lib/supabase/client'
+import { typography } from '@/design-system/tokens'
 
 type SortConfig = {
   key: keyof User
@@ -379,7 +380,7 @@ export default function UsersPage() {
             placeholder="Buscar nome, e-mail..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-10 text-sm"
+            className={`pl-10 ${typography.body.default}`}
           />
         </div>
 
@@ -387,7 +388,7 @@ export default function UsersPage() {
         <div className="flex flex-wrap items-center gap-2">
           {/* Filtro Status */}
           <Select value={filterStatus} onValueChange={setFilterStatus}>
-            <SelectTrigger className="w-full xs:w-[100px] sm:w-[120px] text-xs sm:text-sm">
+            <SelectTrigger className={`w-full xs:w-[100px] sm:w-[120px] ${typography.select.default}`}>
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
@@ -399,7 +400,7 @@ export default function UsersPage() {
 
           {/* Filtro Role */}
           <Select value={filterRole} onValueChange={setFilterRole}>
-            <SelectTrigger className="w-full xs:w-[110px] sm:w-[130px] text-xs sm:text-sm">
+            <SelectTrigger className={`w-full xs:w-[110px] sm:w-[130px] ${typography.select.default}`}>
               <SelectValue placeholder="Role" />
             </SelectTrigger>
             <SelectContent>
@@ -414,7 +415,7 @@ export default function UsersPage() {
 
           {/* Filtro Organização - oculto em mobile pequeno */}
           <Select value={filterOrg} onValueChange={setFilterOrg}>
-            <SelectTrigger className="hidden sm:flex w-[140px] text-xs sm:text-sm">
+            <SelectTrigger className={`hidden sm:flex w-[140px] ${typography.select.default}`}>
               <SelectValue placeholder="Org" />
             </SelectTrigger>
             <SelectContent>
@@ -472,7 +473,7 @@ export default function UsersPage() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-auto p-0 font-semibold hover:bg-transparent text-xs sm:text-sm"
+                      className={`h-auto p-0 ${typography.weight.semibold} hover:bg-transparent ${typography.table.header}`}
                       onClick={() => handleSort('name')}
                     >
                       Usuário
@@ -483,7 +484,7 @@ export default function UsersPage() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-auto p-0 font-semibold hover:bg-transparent text-xs sm:text-sm"
+                      className={`h-auto p-0 ${typography.weight.semibold} hover:bg-transparent ${typography.table.header}`}
                       onClick={() => handleSort('role_name')}
                     >
                       Role
@@ -494,7 +495,7 @@ export default function UsersPage() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-auto p-0 font-semibold hover:bg-transparent text-xs sm:text-sm"
+                      className={`h-auto p-0 ${typography.weight.semibold} hover:bg-transparent ${typography.table.header}`}
                       onClick={() => handleSort('organization_name')}
                     >
                       Organização
@@ -505,7 +506,7 @@ export default function UsersPage() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-auto p-0 font-semibold hover:bg-transparent text-xs sm:text-sm"
+                      className={`h-auto p-0 ${typography.weight.semibold} hover:bg-transparent ${typography.table.header}`}
                       onClick={() => handleSort('status')}
                     >
                       Status
@@ -516,7 +517,7 @@ export default function UsersPage() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-auto p-0 font-semibold hover:bg-transparent text-xs sm:text-sm"
+                      className={`h-auto p-0 ${typography.weight.semibold} hover:bg-transparent ${typography.table.header}`}
                       onClick={() => handleSort('created_at')}
                     >
                       Criado em
@@ -533,13 +534,13 @@ export default function UsersPage() {
                       <div className="flex items-center gap-2 sm:gap-3">
                         <Avatar className="h-8 w-8 sm:h-10 sm:w-10 shrink-0">
                           <AvatarImage src={user.avatar_url} alt={user.name} />
-                          <AvatarFallback className="bg-primary/10 text-primary text-xs sm:text-sm font-medium">
+                          <AvatarFallback className={`bg-primary/10 text-primary ${typography.avatar.small} ${typography.weight.medium}`}>
                             {getInitials(user.name)}
                           </AvatarFallback>
                         </Avatar>
                         <div className="min-w-0">
-                          <p className="font-medium text-xs sm:text-sm truncate max-w-[100px] sm:max-w-none">{user.name}</p>
-                          <div className="flex items-center gap-1 text-[10px] sm:text-xs text-text-secondary">
+                          <p className={`${typography.weight.medium} ${typography.table.cell} truncate max-w-[100px] sm:max-w-none`}>{user.name}</p>
+                          <div className={`flex items-center gap-1 ${typography.body.tiny} text-text-secondary`}>
                             <Mail className="h-2.5 w-2.5 sm:h-3 sm:w-3 shrink-0" />
                             <span className="truncate max-w-[80px] sm:max-w-none">{user.email}</span>
                           </div>
@@ -547,7 +548,7 @@ export default function UsersPage() {
                           <div className="sm:hidden mt-1">
                             <Badge
                               variant={getRoleBadgeVariant(user.role_level)}
-                              className="text-[9px] px-1.5 py-0"
+                              className={`${typography.badge.small} px-1.5 py-0`}
                               style={{
                                 backgroundColor: user.role_badge_color
                                   ? `${user.role_badge_color}20`
@@ -564,7 +565,7 @@ export default function UsersPage() {
                     <TableCell className="hidden sm:table-cell py-2 sm:py-4">
                       <Badge
                         variant={getRoleBadgeVariant(user.role_level)}
-                        className="text-[10px] sm:text-xs"
+                        className={typography.badge.default}
                         style={{
                           backgroundColor: user.role_badge_color
                             ? `${user.role_badge_color}20`
@@ -579,24 +580,24 @@ export default function UsersPage() {
                     </TableCell>
                     <TableCell className="hidden lg:table-cell py-2 sm:py-4">
                       {user.organization_name ? (
-                        <div className="flex items-center gap-1.5 text-xs sm:text-sm">
+                        <div className={`flex items-center gap-1.5 ${typography.table.cell}`}>
                           <Building2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-text-secondary shrink-0" />
                           <span className="truncate max-w-[120px]">{user.organization_name}</span>
                         </div>
                       ) : (
-                        <span className="text-text-secondary text-xs sm:text-sm">-</span>
+                        <span className={`text-text-secondary ${typography.table.cell}`}>-</span>
                       )}
                     </TableCell>
                     <TableCell className="py-2 sm:py-4">
                       <Badge
                         variant={user.status === 'ativo' ? 'success' : 'secondary'}
-                        className="text-[10px] sm:text-xs"
+                        className={typography.badge.default}
                       >
                         {user.status}
                       </Badge>
                     </TableCell>
                     <TableCell className="hidden xl:table-cell py-2 sm:py-4">
-                      <div className="flex items-center gap-1.5 text-xs sm:text-sm text-text-secondary">
+                      <div className={`flex items-center gap-1.5 ${typography.table.cell} text-text-secondary`}>
                         <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                         {formatDate(user.created_at)}
                       </div>
@@ -631,7 +632,7 @@ export default function UsersPage() {
       </Card>
 
       {/* Resumo */}
-      <div className="text-xs sm:text-sm text-text-secondary">
+      <div className={`${typography.body.small} text-text-secondary`}>
         {filteredAndSortedUsers.length} de {users.length} usuários
       </div>
 
@@ -639,10 +640,10 @@ export default function UsersPage() {
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
         <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto p-4 sm:p-6">
           <SheetHeader>
-            <SheetTitle className="text-base sm:text-lg">
+            <SheetTitle className={typography.modal.title}>
               {editingUser ? 'Editar Usuário' : 'Novo Usuário'}
             </SheetTitle>
-            <SheetDescription className="text-xs sm:text-sm">
+            <SheetDescription className={typography.modal.description}>
               {editingUser
                 ? 'Altere as informações do usuário abaixo.'
                 : 'Preencha as informações para criar um novo usuário.'}
@@ -652,12 +653,12 @@ export default function UsersPage() {
           <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 mt-4 sm:mt-6">
             {/* Dados Pessoais */}
             <div className="space-y-3 sm:space-y-4">
-              <h3 className="text-xs sm:text-sm font-medium text-text-secondary">
+              <h3 className={`${typography.body.small} ${typography.weight.medium} text-text-secondary`}>
                 Dados Pessoais
               </h3>
 
               <div className="space-y-1.5 sm:space-y-2">
-                <Label htmlFor="name" className="text-xs sm:text-sm">Nome Completo *</Label>
+                <Label htmlFor="name" className={typography.form.label}>Nome Completo *</Label>
                 <Input
                   id="name"
                   value={formData.name}
@@ -666,12 +667,12 @@ export default function UsersPage() {
                   }
                   placeholder="Nome completo"
                   required
-                  className="text-sm"
+                  className={typography.form.input}
                 />
               </div>
 
               <div className="space-y-1.5 sm:space-y-2">
-                <Label htmlFor="email" className="text-xs sm:text-sm">E-mail *</Label>
+                <Label htmlFor="email" className={typography.form.label}>E-mail *</Label>
                 <Input
                   id="email"
                   type="email"
@@ -681,18 +682,18 @@ export default function UsersPage() {
                   }
                   placeholder="email@exemplo.com"
                   required
-                  className="text-sm"
+                  className={typography.form.input}
                 />
               </div>
 
               {!editingUser && (
-                <p className="text-[10px] sm:text-xs text-text-secondary bg-surface-secondary p-2 rounded-md">
+                <p className={`${typography.form.helper} text-text-secondary bg-surface-secondary p-2 rounded-md`}>
                   O usuário receberá um e-mail para definir sua própria senha.
                 </p>
               )}
 
               <div className="space-y-1.5 sm:space-y-2">
-                <Label htmlFor="phone" className="text-xs sm:text-sm">Telefone</Label>
+                <Label htmlFor="phone" className={typography.form.label}>Telefone</Label>
                 <Input
                   id="phone"
                   value={formData.phone}
@@ -700,26 +701,26 @@ export default function UsersPage() {
                     setFormData((prev) => ({ ...prev, phone: e.target.value }))
                   }
                   placeholder="(00) 00000-0000"
-                  className="text-sm"
+                  className={typography.form.input}
                 />
               </div>
             </div>
 
             {/* Vinculação */}
             <div className="space-y-3 sm:space-y-4">
-              <h3 className="text-xs sm:text-sm font-medium text-text-secondary">
+              <h3 className={`${typography.body.small} ${typography.weight.medium} text-text-secondary`}>
                 Vinculação
               </h3>
 
               <div className="space-y-1.5 sm:space-y-2">
-                <Label htmlFor="organization_id" className="text-xs sm:text-sm">Organização</Label>
+                <Label htmlFor="organization_id" className={typography.form.label}>Organização</Label>
                 <Select
                   value={formData.organization_id}
                   onValueChange={(value) =>
                     setFormData((prev) => ({ ...prev, organization_id: value }))
                   }
                 >
-                  <SelectTrigger className="text-sm">
+                  <SelectTrigger className={typography.form.input}>
                     <SelectValue placeholder="Selecione uma organização" />
                   </SelectTrigger>
                   <SelectContent>
@@ -730,20 +731,20 @@ export default function UsersPage() {
                     ))}
                   </SelectContent>
                 </Select>
-                <p className="text-[10px] sm:text-xs text-text-secondary">
+                <p className={`${typography.form.helper} text-text-secondary`}>
                   Super Admins podem não ter organização vinculada
                 </p>
               </div>
 
               <div className="space-y-1.5 sm:space-y-2">
-                <Label htmlFor="role_id" className="text-xs sm:text-sm">Role *</Label>
+                <Label htmlFor="role_id" className={typography.form.label}>Role *</Label>
                 <Select
                   value={formData.role_id}
                   onValueChange={(value) =>
                     setFormData((prev) => ({ ...prev, role_id: value }))
                   }
                 >
-                  <SelectTrigger className="text-sm">
+                  <SelectTrigger className={typography.form.input}>
                     <SelectValue placeholder="Selecione uma role" />
                   </SelectTrigger>
                   <SelectContent>
@@ -765,14 +766,14 @@ export default function UsersPage() {
 
             {/* Status */}
             <div className="space-y-1.5 sm:space-y-2">
-              <Label htmlFor="status" className="text-xs sm:text-sm">Status</Label>
+              <Label htmlFor="status" className={typography.form.label}>Status</Label>
               <Select
                 value={formData.status}
                 onValueChange={(value: 'ativo' | 'inativo') =>
                   setFormData((prev) => ({ ...prev, status: value }))
                 }
               >
-                <SelectTrigger className="text-sm">
+                <SelectTrigger className={typography.form.input}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -788,11 +789,11 @@ export default function UsersPage() {
                 variant="outline"
                 onClick={handleCloseSheet}
                 disabled={saving}
-                className="text-sm"
+                className={typography.button.default}
               >
                 Cancelar
               </Button>
-              <Button type="submit" disabled={saving} className="text-sm">
+              <Button type="submit" disabled={saving} className={typography.button.default}>
                 {saving
                   ? 'Salvando...'
                   : editingUser

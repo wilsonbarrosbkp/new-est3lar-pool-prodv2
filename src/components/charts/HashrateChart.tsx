@@ -11,6 +11,7 @@ import {
 } from 'recharts'
 import { formatHashrate } from '@/lib/formatters'
 import type { HashrateChartPoint, Period } from '@/hooks/use-pool-stats'
+import { typography, chartStyles } from '@/design-system/tokens'
 
 interface HashrateChartProps {
   data: HashrateChartPoint[]
@@ -56,9 +57,9 @@ function CustomTooltip({ active, payload, label }: {
 
   return (
     <div className="bg-zinc-900 border border-zinc-700 rounded-lg p-3 shadow-xl">
-      <p className="text-sm text-zinc-400 mb-2">{label}</p>
+      <p className={`${typography.chart.label} text-zinc-400 mb-2`}>{label}</p>
       {payload.map((entry, index) => (
-        <div key={index} className="flex items-center gap-2 text-sm">
+        <div key={index} className={`flex items-center gap-2 ${typography.chart.label}`}>
           <div
             className="w-3 h-3 rounded-full"
             style={{ backgroundColor: entry.color }}
@@ -67,7 +68,7 @@ function CustomTooltip({ active, payload, label }: {
             {entry.dataKey === 'hashrate' && 'Atual: '}
             {entry.dataKey === 'hashrate1h' && '1h: '}
             {entry.dataKey === 'hashrate1d' && '24h: '}
-            <span className="font-mono font-medium text-white">
+            <span className={`font-mono ${typography.weight.medium} text-white`}>
               {formatHashrate(entry.value)}
             </span>
           </span>
@@ -90,7 +91,7 @@ function CustomLegend({ payload }: { payload?: Array<{ value: string; color: str
   return (
     <div className="flex items-center justify-center gap-6 mt-2">
       {payload.map((entry, index) => (
-        <div key={index} className="flex items-center gap-2 text-sm">
+        <div key={index} className={`flex items-center gap-2 ${typography.chart.label}`}>
           <div
             className="w-3 h-3 rounded-full"
             style={{ backgroundColor: entry.color }}
@@ -161,7 +162,7 @@ export function HashrateChart({
         style={{ height }}
       >
         <div className="text-zinc-500 mb-2">Sem dados disponíveis</div>
-        <div className="text-xs text-zinc-600">
+        <div className={`${typography.body.tiny} text-zinc-600`}>
           Os dados aparecerão quando houver coletas
         </div>
       </div>
@@ -198,7 +199,7 @@ export function HashrateChart({
 
           <XAxis
             dataKey="time"
-            tick={{ fill: COLORS.text, fontSize: 11 }}
+            tick={{ fill: COLORS.text, fontSize: chartStyles.axis.fontSizeSmall }}
             tickLine={{ stroke: COLORS.grid }}
             axisLine={{ stroke: COLORS.grid }}
             interval={tickInterval}
@@ -206,7 +207,7 @@ export function HashrateChart({
           />
 
           <YAxis
-            tick={{ fill: COLORS.text, fontSize: 11 }}
+            tick={{ fill: COLORS.text, fontSize: chartStyles.axis.fontSizeSmall }}
             tickLine={{ stroke: COLORS.grid }}
             axisLine={{ stroke: COLORS.grid }}
             tickFormatter={formatYAxis}

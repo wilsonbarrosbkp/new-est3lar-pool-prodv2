@@ -14,6 +14,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { cn } from '@/lib/utils'
+import { typography } from '@/design-system/tokens'
 
 export type ServerStatus = 'online' | 'offline' | 'warning' | 'maintenance'
 export type ServerRole = 'load-balancer' | 'proxy' | 'pool-stats' | 'mining-pool' | 'database' | 'monitor'
@@ -103,15 +104,15 @@ export function ServerCard({ server, onClick }: ServerCardProps) {
               <RoleIcon className="h-5 w-5" />
             </div>
             <div>
-              <CardTitle className="text-sm font-medium">{server.name}</CardTitle>
-              <p className="text-xs text-zinc-500">{server.hostname}</p>
+              <CardTitle className={`${typography.body.small} ${typography.weight.medium}`}>{server.name}</CardTitle>
+              <p className={`${typography.body.tiny} text-zinc-500`}>{server.hostname}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <div className={cn('w-2 h-2 rounded-full animate-pulse', status.bgColor)} />
             <Badge
               variant="outline"
-              className={cn('text-xs', status.color)}
+              className={cn(typography.body.tiny, status.color)}
             >
               {server.status === 'online' ? <Wifi className="h-3 w-3 mr-1" /> : <WifiOff className="h-3 w-3 mr-1" />}
               {status.label}
@@ -122,7 +123,7 @@ export function ServerCard({ server, onClick }: ServerCardProps) {
 
       <CardContent className="space-y-4">
         {/* Info básica */}
-        <div className="flex items-center justify-between text-xs text-zinc-500">
+        <div className={`flex items-center justify-between ${typography.body.tiny} text-zinc-500`}>
           <span>{server.ip}</span>
           <span className="flex items-center gap-1">
             <Clock className="h-3 w-3" />
@@ -134,7 +135,7 @@ export function ServerCard({ server, onClick }: ServerCardProps) {
         <div className="space-y-3">
           {/* CPU */}
           <div className="space-y-1">
-            <div className="flex items-center justify-between text-xs">
+            <div className={`flex items-center justify-between ${typography.body.tiny}`}>
               <span className="flex items-center gap-1.5 text-zinc-400">
                 <Cpu className="h-3 w-3" />
                 CPU
@@ -146,7 +147,7 @@ export function ServerCard({ server, onClick }: ServerCardProps) {
 
           {/* Memória */}
           <div className="space-y-1">
-            <div className="flex items-center justify-between text-xs">
+            <div className={`flex items-center justify-between ${typography.body.tiny}`}>
               <span className="flex items-center gap-1.5 text-zinc-400">
                 <MemoryStick className="h-3 w-3" />
                 RAM
@@ -160,7 +161,7 @@ export function ServerCard({ server, onClick }: ServerCardProps) {
 
           {/* Disco */}
           <div className="space-y-1">
-            <div className="flex items-center justify-between text-xs">
+            <div className={`flex items-center justify-between ${typography.body.tiny}`}>
               <span className="flex items-center gap-1.5 text-zinc-400">
                 <HardDrive className="h-3 w-3" />
                 Disco
@@ -176,7 +177,7 @@ export function ServerCard({ server, onClick }: ServerCardProps) {
         {/* Network & Extras */}
         <div className="pt-2 border-t border-zinc-800">
           <div className="grid grid-cols-2 gap-3">
-            <div className="text-xs">
+            <div className={typography.body.tiny}>
               <span className="text-zinc-500 flex items-center gap-1">
                 <Network className="h-3 w-3" />
                 Network
@@ -189,21 +190,21 @@ export function ServerCard({ server, onClick }: ServerCardProps) {
             </div>
 
             {server.metrics.connections !== undefined && (
-              <div className="text-xs">
+              <div className={typography.body.tiny}>
                 <span className="text-zinc-500">Conexões</span>
                 <p className="font-mono text-zinc-300 mt-0.5">{server.metrics.connections.toLocaleString()}</p>
               </div>
             )}
 
             {server.metrics.requestsPerSec !== undefined && (
-              <div className="text-xs">
+              <div className={typography.body.tiny}>
                 <span className="text-zinc-500">Requests/s</span>
                 <p className="font-mono text-zinc-300 mt-0.5">{server.metrics.requestsPerSec.toLocaleString()}</p>
               </div>
             )}
 
             {server.metrics.latency !== undefined && (
-              <div className="text-xs">
+              <div className={typography.body.tiny}>
                 <span className="text-zinc-500">Latência</span>
                 <p className="font-mono text-zinc-300 mt-0.5">{server.metrics.latency}ms</p>
               </div>
@@ -213,11 +214,11 @@ export function ServerCard({ server, onClick }: ServerCardProps) {
 
         {/* Role badge */}
         <div className="pt-2">
-          <Badge variant="secondary" className="text-xs">
+          <Badge variant="secondary" className={typography.body.tiny}>
             {role.label}
           </Badge>
           {server.location && (
-            <span className="text-xs text-zinc-500 ml-2">{server.location}</span>
+            <span className={`${typography.body.tiny} text-zinc-500 ml-2`}>{server.location}</span>
           )}
         </div>
       </CardContent>

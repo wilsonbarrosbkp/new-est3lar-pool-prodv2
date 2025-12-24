@@ -45,6 +45,7 @@ import {
 } from '@/components/ui/Select'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
+import { typography } from '@/design-system/tokens'
 
 interface Currency {
   id: number
@@ -273,7 +274,7 @@ export default function CurrenciesPage() {
                   <>
                     <TableRow>
                       <TableCell colSpan={5} className="bg-surface/50">
-                        <div className="flex items-center gap-2 text-sm font-medium">
+                        <div className={`flex items-center gap-2 ${typography.body.small} ${typography.weight.medium}`}>
                           <Bitcoin className="h-4 w-4" />
                           Criptomoedas ({cryptoCurrencies.length})
                         </div>
@@ -283,12 +284,12 @@ export default function CurrenciesPage() {
                       <TableRow key={currency.id}>
                         <TableCell>
                           <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 bg-warning/10 text-warning rounded-full flex items-center justify-center text-sm font-bold">
+                            <div className={`h-10 w-10 bg-warning/10 text-warning rounded-full flex items-center justify-center ${typography.body.small} ${typography.weight.bold}`}>
                               {currency.symbol.slice(0, 2)}
                             </div>
                             <div>
-                              <p className="font-medium">{currency.name}</p>
-                              <p className="text-xs text-text-secondary">{currency.symbol}</p>
+                              <p className={typography.weight.medium}>{currency.name}</p>
+                              <p className={`${typography.table.small} text-text-secondary`}>{currency.symbol}</p>
                             </div>
                           </div>
                         </TableCell>
@@ -336,7 +337,7 @@ export default function CurrenciesPage() {
                   <>
                     <TableRow>
                       <TableCell colSpan={5} className="bg-surface/50">
-                        <div className="flex items-center gap-2 text-sm font-medium">
+                        <div className={`flex items-center gap-2 ${typography.body.small} ${typography.weight.medium}`}>
                           <DollarSign className="h-4 w-4" />
                           Moedas Fiat ({fiatCurrencies.length})
                         </div>
@@ -346,12 +347,12 @@ export default function CurrenciesPage() {
                       <TableRow key={currency.id}>
                         <TableCell>
                           <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 bg-success/10 text-success rounded-full flex items-center justify-center text-sm font-bold">
+                            <div className={`h-10 w-10 bg-success/10 text-success rounded-full flex items-center justify-center ${typography.body.small} ${typography.weight.bold}`}>
                               {currency.symbol.slice(0, 2)}
                             </div>
                             <div>
-                              <p className="font-medium">{currency.name}</p>
-                              <p className="text-xs text-text-secondary">{currency.symbol}</p>
+                              <p className={typography.weight.medium}>{currency.name}</p>
+                              <p className={`${typography.table.small} text-text-secondary`}>{currency.symbol}</p>
                             </div>
                           </div>
                         </TableCell>
@@ -400,7 +401,7 @@ export default function CurrenciesPage() {
       </Card>
 
       {/* Resumo */}
-      <div className="text-sm text-text-secondary">
+      <div className={`${typography.body.small} text-text-secondary`}>
         {filteredCurrencies.length} moeda(s) | {cryptoCurrencies.length} crypto | {fiatCurrencies.length} fiat
       </div>
 

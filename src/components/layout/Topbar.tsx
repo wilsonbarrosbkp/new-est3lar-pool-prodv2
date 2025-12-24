@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { Search, Bell } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { SidebarTrigger } from '@/components/ui/Sidebar'
+import { typography } from '@/design-system/tokens'
 
 // Mapeamento de rotas para breadcrumb
 const routeLabels: Record<string, string> = {
@@ -36,9 +37,9 @@ function DynamicBreadcrumb() {
   const lastBreadcrumb = breadcrumbs[breadcrumbs.length - 1]
 
   return (
-    <nav className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm min-w-0">
+    <nav className={`flex items-center gap-1.5 sm:gap-2 ${typography.nav.breadcrumb} min-w-0`}>
       {/* Mobile: mostrar apenas a página atual */}
-      <span className="sm:hidden text-text-primary font-medium truncate">
+      <span className={`sm:hidden text-text-primary ${typography.weight.medium} truncate`}>
         {lastBreadcrumb?.label}
       </span>
 
@@ -48,7 +49,7 @@ function DynamicBreadcrumb() {
           <div key={crumb.path} className="flex items-center gap-2">
             {index > 0 && <span className="text-text-secondary">/</span>}
             {index === breadcrumbs.length - 1 ? (
-              <span className="text-text-primary font-medium">{crumb.label}</span>
+              <span className={`text-text-primary ${typography.weight.medium}`}>{crumb.label}</span>
             ) : (
               <Link
                 to={crumb.path}

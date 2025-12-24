@@ -31,6 +31,7 @@ import {
 } from '@/components/ui/DropdownMenu'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
+import { typography } from '@/design-system/tokens'
 
 interface Role {
   id: number
@@ -297,7 +298,7 @@ export default function PermissionsPage() {
         {/* Lista de Roles */}
         <Card className="lg:col-span-1">
           <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
+            <CardTitle className={`${typography.card.title} flex items-center gap-2`}>
               <Shield className="h-5 w-5" />
               Roles ({roles.length})
             </CardTitle>
@@ -312,7 +313,7 @@ export default function PermissionsPage() {
             ) : filteredRoles.length === 0 ? (
               <div className="text-center py-8">
                 <Shield className="mx-auto h-10 w-10 text-text-secondary mb-2" />
-                <p className="text-sm text-text-secondary">Nenhuma role encontrada</p>
+                <p className={`${typography.body.small} text-text-secondary`}>Nenhuma role encontrada</p>
               </div>
             ) : (
               <div className="divide-y divide-border">
@@ -331,8 +332,8 @@ export default function PermissionsPage() {
                           style={{ backgroundColor: role.badge_color || '#6366f1' }}
                         />
                         <div>
-                          <p className="font-medium">{role.name}</p>
-                          <p className="text-xs text-text-secondary">
+                          <p className={typography.weight.medium}>{role.name}</p>
+                          <p className={`${typography.table.small} text-text-secondary`}>
                             Nível {role.level} | {role.permissions_count} permissões
                           </p>
                         </div>
@@ -362,7 +363,7 @@ export default function PermissionsPage() {
                       </DropdownMenu>
                     </div>
                     {role.is_system && (
-                      <Badge variant="secondary" className="mt-2 text-xs">
+                      <Badge variant="secondary" className={`mt-2 ${typography.badge.small}`}>
                         Sistema
                       </Badge>
                     )}
@@ -376,7 +377,7 @@ export default function PermissionsPage() {
         {/* Matriz de Permissões */}
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
+            <CardTitle className={`${typography.card.title} flex items-center gap-2`}>
               <Lock className="h-5 w-5" />
               Permissões
               {selectedRoleId && (
@@ -404,7 +405,7 @@ export default function PermissionsPage() {
               <div className="space-y-6">
                 {Object.entries(permissionsByModule).map(([module, perms]) => (
                   <div key={module}>
-                    <h4 className="text-sm font-medium text-text-secondary mb-2 uppercase">
+                    <h4 className={`${typography.body.small} ${typography.weight.medium} text-text-secondary mb-2 uppercase`}>
                       {module}
                     </h4>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -414,7 +415,7 @@ export default function PermissionsPage() {
                           <button
                             key={perm.id}
                             onClick={() => togglePermission(selectedRoleId, perm.id)}
-                            className={`flex items-center gap-2 p-2 rounded-md text-left text-sm transition-colors ${
+                            className={`flex items-center gap-2 p-2 rounded-md text-left ${typography.body.small} transition-colors ${
                               has
                                 ? 'bg-success/10 text-success border border-success/20'
                                 : 'bg-surface hover:bg-surface/80 border border-border'
@@ -426,9 +427,9 @@ export default function PermissionsPage() {
                               <Lock className="h-4 w-4 flex-shrink-0 text-text-secondary" />
                             )}
                             <div>
-                              <p className="font-medium">{perm.action}</p>
+                              <p className={typography.weight.medium}>{perm.action}</p>
                               {perm.description && (
-                                <p className="text-xs text-text-secondary truncate">
+                                <p className={`${typography.table.small} text-text-secondary truncate`}>
                                   {perm.description}
                                 </p>
                               )}

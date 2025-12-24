@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
 import { forgotPasswordAction } from '@/lib/auth/reset-password'
+import { typography } from '@/design-system/tokens'
 
 export function ForgotPasswordForm() {
   const navigate = useNavigate()
@@ -51,13 +52,13 @@ export function ForgotPasswordForm() {
 
           <div className="grid gap-3">
             <div className="text-center space-y-2">
-              <p className="text-sm text-text-secondary">
+              <p className={`${typography.body.small} text-text-secondary`}>
                 E-mail enviado para:
               </p>
-              <p className="text-sm font-medium break-all">
+              <p className={`${typography.body.small} ${typography.weight.medium} break-all`}>
                 {email}
               </p>
-              <p className="text-sm text-text-secondary">
+              <p className={`${typography.body.small} text-text-secondary`}>
                 Verifique sua caixa de entrada e clique no link para redefinir sua senha
               </p>
             </div>

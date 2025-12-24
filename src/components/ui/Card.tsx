@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { cn } from '@/lib/utils'
+import { typography } from '@/design-system/tokens'
 
 const Card = React.forwardRef<
   HTMLDivElement,
@@ -35,7 +36,7 @@ const CardTitle = React.forwardRef<
   <h3
     ref={ref}
     className={cn(
-      'text-lg font-semibold leading-none tracking-tight',
+      `${typography.card.title} ${typography.weight.semibold} leading-none tracking-tight`,
       className
     )}
     {...props}
@@ -49,7 +50,7 @@ const CardDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <p
     ref={ref}
-    className={cn('text-sm text-text-secondary', className)}
+    className={cn(`${typography.card.description} text-text-secondary`, className)}
     {...props}
   />
 ))

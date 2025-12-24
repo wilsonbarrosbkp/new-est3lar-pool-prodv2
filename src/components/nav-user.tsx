@@ -16,7 +16,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/Sidebar'
-import { gradients, shadows, borders } from '@/design-system'
+import { gradients, shadows, borders, typography } from '@/design-system'
 import { useAuth } from '@/contexts/AuthContext'
 
 export type NavUserProps = {
@@ -71,9 +71,9 @@ export function NavUser({ user }: { user: NavUserProps }) {
                 {initials}
               </AvatarFallback>
             </Avatar>
-            <div className="grid flex-1 text-left text-sm leading-tight">
-              <span className="truncate font-medium">{displayName}</span>
-              <span className="truncate text-xs text-text-secondary">
+            <div className={`grid flex-1 text-left ${typography.nav.sidebar} leading-tight`}>
+              <span className={`truncate ${typography.weight.medium}`}>{displayName}</span>
+              <span className={`truncate ${typography.body.tiny} text-text-secondary`}>
                 {displaySecondLine}
               </span>
             </div>
@@ -101,9 +101,9 @@ export function NavUser({ user }: { user: NavUserProps }) {
                   {initials}
                 </AvatarFallback>
               </Avatar>
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{displayName}</span>
-                <span className="truncate text-xs text-text-secondary">
+              <div className={`grid flex-1 text-left ${typography.nav.sidebar} leading-tight`}>
+                <span className={`truncate ${typography.weight.medium}`}>{displayName}</span>
+                <span className={`truncate ${typography.body.tiny} text-text-secondary`}>
                   {displaySecondLine}
                 </span>
               </div>
@@ -117,7 +117,7 @@ export function NavUser({ user }: { user: NavUserProps }) {
             sideOffset={4}
           >
             <DropdownMenuLabel className="p-0 font-normal">
-              <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+              <div className={`flex items-center gap-2 px-1 py-1.5 text-left ${typography.nav.sidebar}`}>
                 <Avatar className={avatarClassName}>
                   {user?.avatar_url && (
                     <AvatarImage src={user.avatar_url} alt={displayName} />
@@ -126,9 +126,9 @@ export function NavUser({ user }: { user: NavUserProps }) {
                     {initials}
                   </AvatarFallback>
                 </Avatar>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{displayName}</span>
-                  <span className="truncate text-xs text-text-secondary">
+                <div className={`grid flex-1 text-left ${typography.nav.sidebar} leading-tight`}>
+                  <span className={`truncate ${typography.weight.medium}`}>{displayName}</span>
+                  <span className={`truncate ${typography.body.tiny} text-text-secondary`}>
                     {displaySecondLine}
                   </span>
                 </div>

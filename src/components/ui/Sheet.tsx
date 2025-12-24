@@ -3,6 +3,7 @@ import * as SheetPrimitive from '@radix-ui/react-dialog'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { typography } from '@/design-system/tokens'
 
 const Sheet = SheetPrimitive.Root
 
@@ -105,7 +106,7 @@ const SheetTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <SheetPrimitive.Title
     ref={ref}
-    className={cn('text-lg font-semibold text-text-primary', className)}
+    className={cn(`${typography.modal.title} ${typography.weight.semibold} text-text-primary`, className)}
     {...props}
   />
 ))
@@ -117,7 +118,7 @@ const SheetDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <SheetPrimitive.Description
     ref={ref}
-    className={cn('text-sm text-text-secondary', className)}
+    className={cn(`${typography.modal.description} text-text-secondary`, className)}
     {...props}
   />
 ))

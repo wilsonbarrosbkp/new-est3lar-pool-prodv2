@@ -49,6 +49,7 @@ import {
 import { Checkbox } from '@/components/ui/Checkbox'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
+import { typography } from '@/design-system/tokens'
 
 interface WebhookData {
   id: number
@@ -388,8 +389,8 @@ export default function WebhooksPage() {
                 <Webhook className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-sm text-text-secondary">Total Webhooks</p>
-                <p className="text-xl font-bold">{filteredWebhooks.length}</p>
+                <p className={`${typography.kpi.title} text-text-secondary`}>Total Webhooks</p>
+                <p className={`${typography.kpi.value} ${typography.weight.bold}`}>{filteredWebhooks.length}</p>
               </div>
             </div>
           </CardContent>
@@ -401,8 +402,8 @@ export default function WebhooksPage() {
                 <CheckCircle className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-sm text-text-secondary">Ativos</p>
-                <p className="text-xl font-bold">{activeWebhooks}</p>
+                <p className={`${typography.kpi.title} text-text-secondary`}>Ativos</p>
+                <p className={`${typography.kpi.value} ${typography.weight.bold}`}>{activeWebhooks}</p>
               </div>
             </div>
           </CardContent>
@@ -414,8 +415,8 @@ export default function WebhooksPage() {
                 <Clock className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-sm text-text-secondary">Inativos</p>
-                <p className="text-xl font-bold">{filteredWebhooks.length - activeWebhooks}</p>
+                <p className={`${typography.kpi.title} text-text-secondary`}>Inativos</p>
+                <p className={`${typography.kpi.value} ${typography.weight.bold}`}>{filteredWebhooks.length - activeWebhooks}</p>
               </div>
             </div>
           </CardContent>
@@ -462,8 +463,8 @@ export default function WebhooksPage() {
                           <Webhook className="h-5 w-5" />
                         </div>
                         <div>
-                          <p className="font-medium">{webhook.name}</p>
-                          <p className="text-xs text-text-secondary">
+                          <p className={typography.weight.medium}>{webhook.name}</p>
+                          <p className={`${typography.table.small} text-text-secondary`}>
                             {webhook.retry_count} retries | {webhook.timeout_ms}ms timeout
                           </p>
                         </div>
@@ -471,7 +472,7 @@ export default function WebhooksPage() {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2 max-w-[200px]">
-                        <code className="text-xs truncate">{webhook.url}</code>
+                        <code className={`${typography.table.small} truncate`}>{webhook.url}</code>
                         <Button
                           variant="ghost"
                           size="sm"
@@ -487,8 +488,8 @@ export default function WebhooksPage() {
                       </div>
                       {webhook.secret && (
                         <div className="flex items-center gap-1 mt-1">
-                          <span className="text-xs text-text-secondary">Secret:</span>
-                          <code className="text-xs">••••••••</code>
+                          <span className={`${typography.table.small} text-text-secondary`}>Secret:</span>
+                          <code className={typography.table.small}>••••••••</code>
                           <Button
                             variant="ghost"
                             size="sm"
@@ -508,12 +509,12 @@ export default function WebhooksPage() {
                     <TableCell>
                       <div className="flex flex-wrap gap-1 max-w-[200px]">
                         {webhook.events.slice(0, 2).map((event) => (
-                          <Badge key={event} variant="secondary" className="text-xs">
+                          <Badge key={event} variant="secondary" className={typography.badge.small}>
                             {event.split('.')[1]}
                           </Badge>
                         ))}
                         {webhook.events.length > 2 && (
-                          <Badge variant="secondary" className="text-xs">
+                          <Badge variant="secondary" className={typography.badge.small}>
                             +{webhook.events.length - 2}
                           </Badge>
                         )}
@@ -521,7 +522,7 @@ export default function WebhooksPage() {
                     </TableCell>
                     <TableCell>{webhook.organization_name}</TableCell>
                     <TableCell>
-                      <span className="text-sm text-text-secondary">
+                      <span className={`${typography.body.small} text-text-secondary`}>
                         {formatDate(webhook.last_triggered)}
                       </span>
                     </TableCell>
@@ -641,7 +642,7 @@ export default function WebhooksPage() {
                     />
                     <label
                       htmlFor={event.value}
-                      className="text-sm cursor-pointer"
+                      className={`${typography.body.small} cursor-pointer`}
                     >
                       {event.label}
                     </label>

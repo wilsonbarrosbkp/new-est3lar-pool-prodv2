@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/Label'
 import { AuthForm } from './AuthForm'
 import { AuthHeader } from './AuthHeader'
 import { loginAction } from '@/lib/auth/login'
+import { typography } from '@/design-system/tokens'
 
 export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false)
@@ -49,7 +50,7 @@ export function LoginForm() {
   return (
     <AuthForm>
       <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
-        <AuthHeader title="Est3lar" subtitle="Faça login para acessar o painel" />
+        <AuthHeader title="Genesis Pool" subtitle="Faça login para acessar o painel" />
 
         {/* Email Field */}
         <div className="grid gap-3">
@@ -71,7 +72,7 @@ export function LoginForm() {
             <Label htmlFor="password">Senha</Label>
             <Link
               to="/forgot-password"
-              className="text-xs text-text-secondary hover:text-text-primary transition-colors"
+              className={`${typography.body.tiny} text-text-secondary hover:text-text-primary transition-colors`}
             >
               Esqueci a senha
             </Link>

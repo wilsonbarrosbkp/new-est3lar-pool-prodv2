@@ -47,6 +47,7 @@ import {
 } from '@/components/ui/Select'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
+import { typography } from '@/design-system/tokens'
 
 interface RevenueReport {
   id: number
@@ -386,8 +387,8 @@ export default function RevenuePage() {
                 <DollarSign className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-sm text-text-secondary">Receita Bruta Total</p>
-                <p className="text-xl font-bold">{formatBTC(totalGrossRevenue)}</p>
+                <p className={`${typography.kpi.title} text-text-secondary`}>Receita Bruta Total</p>
+                <p className={`${typography.kpi.value} ${typography.weight.bold}`}>{formatBTC(totalGrossRevenue)}</p>
               </div>
             </div>
           </CardContent>
@@ -401,8 +402,8 @@ export default function RevenuePage() {
                 {totalProfit >= 0 ? <TrendingUp className="h-5 w-5" /> : <Minus className="h-5 w-5" />}
               </div>
               <div>
-                <p className="text-sm text-text-secondary">Lucro Total</p>
-                <p className={`text-xl font-bold ${totalProfit >= 0 ? 'text-success' : 'text-error'}`}>
+                <p className={`${typography.kpi.title} text-text-secondary`}>Lucro Total</p>
+                <p className={`${typography.kpi.value} ${typography.weight.bold} ${totalProfit >= 0 ? 'text-success' : 'text-error'}`}>
                   {formatBTC(totalProfit)}
                 </p>
               </div>
@@ -416,8 +417,8 @@ export default function RevenuePage() {
                 <Zap className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-sm text-text-secondary">Blocos Encontrados</p>
-                <p className="text-xl font-bold">{totalBlocks}</p>
+                <p className={`${typography.kpi.title} text-text-secondary`}>Blocos Encontrados</p>
+                <p className={`${typography.kpi.value} ${typography.weight.bold}`}>{totalBlocks}</p>
               </div>
             </div>
           </CardContent>
@@ -462,7 +463,7 @@ export default function RevenuePage() {
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Calendar className="h-4 w-4 text-text-secondary" />
-                        <span className="text-sm">
+                        <span className={typography.table.cell}>
                           {formatDate(report.period_start)} - {formatDate(report.period_end)}
                         </span>
                       </div>
@@ -475,7 +476,7 @@ export default function RevenuePage() {
                     </TableCell>
                     <TableCell className="font-mono">{formatBTC(report.gross_revenue)}</TableCell>
                     <TableCell>
-                      <span className={`font-mono font-medium ${
+                      <span className={`font-mono ${typography.weight.medium} ${
                         report.profit >= 0 ? 'text-success' : 'text-error'
                       }`}>
                         {formatBTC(report.profit)}
@@ -696,8 +697,8 @@ export default function RevenuePage() {
             </div>
 
             <div className="p-4 bg-surface rounded-lg space-y-2">
-              <p className="text-sm font-medium">Valores Calculados:</p>
-              <div className="grid grid-cols-2 gap-4 text-sm">
+              <p className={`${typography.body.small} ${typography.weight.medium}`}>Valores Calculados:</p>
+              <div className={`grid grid-cols-2 gap-4 ${typography.body.small}`}>
                 <div>
                   <span className="text-text-secondary">Receita Líquida: </span>
                   <span className="font-mono">{(formData.gross_revenue - formData.pool_fees).toFixed(8)} BTC</span>

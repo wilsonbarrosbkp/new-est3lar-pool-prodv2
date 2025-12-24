@@ -49,6 +49,7 @@ import {
 import { Switch } from '@/components/ui/Switch'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
+import { typography } from '@/design-system/tokens'
 
 interface Endpoint {
   id: number
@@ -350,8 +351,8 @@ export default function EndpointsPage() {
                     <TypeIcon className="h-5 w-5" />
                   </div>
                   <div>
-                    <p className="text-sm text-text-secondary">{type.label} Ativos</p>
-                    <p className="text-xl font-bold">{count}</p>
+                    <p className={`${typography.kpi.title} text-text-secondary`}>{type.label} Ativos</p>
+                    <p className={`${typography.kpi.value} ${typography.weight.bold}`}>{count}</p>
                   </div>
                 </div>
               </CardContent>
@@ -403,9 +404,9 @@ export default function EndpointsPage() {
                             <TypeIcon className="h-5 w-5" />
                           </div>
                           <div>
-                            <p className="font-medium">{endpoint.name}</p>
+                            <p className={typography.weight.medium}>{endpoint.name}</p>
                             {endpoint.difficulty && (
-                              <p className="text-xs text-text-secondary">
+                              <p className={`${typography.table.small} text-text-secondary`}>
                                 Diff: {endpoint.difficulty}
                               </p>
                             )}
@@ -417,7 +418,7 @@ export default function EndpointsPage() {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <code className="text-xs bg-surface px-2 py-1 rounded">
+                          <code className={`${typography.table.small} bg-surface px-2 py-1 rounded`}>
                             {formatUrl(endpoint)}
                           </code>
                           <Button
@@ -602,7 +603,7 @@ export default function EndpointsPage() {
             <div className="flex items-center justify-between py-2">
               <div>
                 <Label htmlFor="is_ssl">Usar SSL/TLS</Label>
-                <p className="text-xs text-text-secondary">Conexão segura</p>
+                <p className={`${typography.form.helper} text-text-secondary`}>Conexão segura</p>
               </div>
               <Switch
                 id="is_ssl"

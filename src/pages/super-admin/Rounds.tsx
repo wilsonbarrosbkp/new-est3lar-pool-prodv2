@@ -32,6 +32,7 @@ import {
 } from '@/components/ui/Select'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
+import { typography } from '@/design-system/tokens'
 
 interface Round {
   id: number
@@ -240,8 +241,8 @@ export default function RoundsPage() {
                 <RotateCcw className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-sm text-text-secondary">Total Rounds</p>
-                <p className="text-xl font-bold">{filteredRounds.length}</p>
+                <p className={`${typography.kpi.title} text-text-secondary`}>Total Rounds</p>
+                <p className={`${typography.kpi.value} ${typography.weight.bold}`}>{filteredRounds.length}</p>
               </div>
             </div>
           </CardContent>
@@ -253,8 +254,8 @@ export default function RoundsPage() {
                 <CheckCircle className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-sm text-text-secondary">Recompensa Total</p>
-                <p className="text-xl font-bold">{formatReward(totalReward)}</p>
+                <p className={`${typography.kpi.title} text-text-secondary`}>Recompensa Total</p>
+                <p className={`${typography.kpi.value} ${typography.weight.bold}`}>{formatReward(totalReward)}</p>
               </div>
             </div>
           </CardContent>
@@ -266,8 +267,8 @@ export default function RoundsPage() {
                 <Clock className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-sm text-text-secondary">Pendentes</p>
-                <p className="text-xl font-bold">{pendingRounds}</p>
+                <p className={`${typography.kpi.title} text-text-secondary`}>Pendentes</p>
+                <p className={`${typography.kpi.value} ${typography.weight.bold}`}>{pendingRounds}</p>
               </div>
             </div>
           </CardContent>
@@ -279,8 +280,8 @@ export default function RoundsPage() {
                 <XCircle className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-sm text-text-secondary">Órfãos</p>
-                <p className="text-xl font-bold">{orphanRounds}</p>
+                <p className={`${typography.kpi.title} text-text-secondary`}>Órfãos</p>
+                <p className={`${typography.kpi.value} ${typography.weight.bold}`}>{orphanRounds}</p>
               </div>
             </div>
           </CardContent>
@@ -326,12 +327,12 @@ export default function RoundsPage() {
                   return (
                     <TableRow key={round.id} className={round.status === 'orfao' ? 'opacity-60' : ''}>
                       <TableCell>
-                        <span className="font-mono font-bold">{round.height.toLocaleString()}</span>
+                        <span className={`font-mono ${typography.weight.bold}`}>{round.height.toLocaleString()}</span>
                       </TableCell>
                       <TableCell>{round.pool_name}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <code className="text-xs">{formatHash(round.hash)}</code>
+                          <code className={typography.table.small}>{formatHash(round.hash)}</code>
                           <Button
                             variant="ghost"
                             size="sm"
@@ -358,7 +359,7 @@ export default function RoundsPage() {
                         <div>
                           <span className="font-mono">{formatReward(round.reward)}</span>
                           {round.transaction_fees > 0 && (
-                            <p className="text-xs text-text-secondary">
+                            <p className={`${typography.table.small} text-text-secondary`}>
                               +{round.transaction_fees.toFixed(8)} fees
                             </p>
                           )}
@@ -368,13 +369,13 @@ export default function RoundsPage() {
                         <span className="font-mono">{formatShares(round.total_shares)}</span>
                       </TableCell>
                       <TableCell>
-                        <code className="text-xs">{round.found_by || '-'}</code>
+                        <code className={typography.table.small}>{round.found_by || '-'}</code>
                       </TableCell>
                       <TableCell>
                         <div>
-                          <p className="text-sm">{formatDate(round.found_at)}</p>
+                          <p className={typography.table.cell}>{formatDate(round.found_at)}</p>
                           {round.status === 'maturo' && round.mature_at && (
-                            <p className="text-xs text-success">Maturo: {formatDate(round.mature_at)}</p>
+                            <p className={`${typography.table.small} text-success`}>Maturo: {formatDate(round.mature_at)}</p>
                           )}
                         </div>
                       </TableCell>
@@ -407,7 +408,7 @@ export default function RoundsPage() {
       </Card>
 
       {/* Info */}
-      <div className="text-sm text-text-secondary">
+      <div className={`${typography.body.small} text-text-secondary`}>
         Mostrando {filteredRounds.length} rounds (máximo 100 mais recentes)
       </div>
     </div>

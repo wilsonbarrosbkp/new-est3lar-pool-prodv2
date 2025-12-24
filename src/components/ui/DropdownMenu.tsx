@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as DropdownMenuPrimitive from '@radix-ui/react-dropdown-menu'
 import { Check, ChevronRight, Circle } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { typography } from '@/design-system/tokens'
 
 const DropdownMenu = DropdownMenuPrimitive.Root
 
@@ -24,7 +25,7 @@ const DropdownMenuSubTrigger = React.forwardRef<
   <DropdownMenuPrimitive.SubTrigger
     ref={ref}
     className={cn(
-      'flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none focus:bg-surface data-[state=open]:bg-surface',
+      `flex cursor-default select-none items-center rounded-sm px-2 py-1.5 ${typography.select.item} outline-none focus:bg-surface data-[state=open]:bg-surface`,
       inset && 'pl-8',
       className
     )}
@@ -80,7 +81,7 @@ const DropdownMenuItem = React.forwardRef<
   <DropdownMenuPrimitive.Item
     ref={ref}
     className={cn(
-      'relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-surface focus:text-text-primary data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+      `relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 ${typography.select.item} outline-none transition-colors focus:bg-surface focus:text-text-primary data-[disabled]:pointer-events-none data-[disabled]:opacity-50`,
       inset && 'pl-8',
       className
     )}
@@ -96,7 +97,7 @@ const DropdownMenuCheckboxItem = React.forwardRef<
   <DropdownMenuPrimitive.CheckboxItem
     ref={ref}
     className={cn(
-      'relative flex cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none transition-colors focus:bg-surface focus:text-text-primary data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+      `relative flex cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 ${typography.select.item} outline-none transition-colors focus:bg-surface focus:text-text-primary data-[disabled]:pointer-events-none data-[disabled]:opacity-50`,
       className
     )}
     checked={checked}
@@ -120,7 +121,7 @@ const DropdownMenuRadioItem = React.forwardRef<
   <DropdownMenuPrimitive.RadioItem
     ref={ref}
     className={cn(
-      'relative flex cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none transition-colors focus:bg-surface focus:text-text-primary data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+      `relative flex cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 ${typography.select.item} outline-none transition-colors focus:bg-surface focus:text-text-primary data-[disabled]:pointer-events-none data-[disabled]:opacity-50`,
       className
     )}
     {...props}
@@ -144,7 +145,7 @@ const DropdownMenuLabel = React.forwardRef<
   <DropdownMenuPrimitive.Label
     ref={ref}
     className={cn(
-      'px-2 py-1.5 text-sm font-semibold',
+      `px-2 py-1.5 ${typography.select.default} ${typography.weight.semibold}`,
       inset && 'pl-8',
       className
     )}
@@ -171,7 +172,7 @@ const DropdownMenuShortcut = ({
 }: React.HTMLAttributes<HTMLSpanElement>) => {
   return (
     <span
-      className={cn('ml-auto text-xs tracking-widest opacity-60', className)}
+      className={cn(`ml-auto ${typography.badge.small} tracking-widest opacity-60`, className)}
       {...props}
     />
   )

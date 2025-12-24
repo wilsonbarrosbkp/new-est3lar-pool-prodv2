@@ -15,7 +15,6 @@ import {
   TrendingDown,
   Minus,
   UserCheck,
-  Settings,
   BarChart3,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
@@ -35,6 +34,7 @@ import { cn } from '@/lib/utils'
 import { formatHashrate, formatNumber, formatRelativeTime } from '@/lib/formatters'
 import { supabase } from '@/lib/supabase/client'
 import { toast } from 'sonner'
+import { typography } from '@/design-system/tokens'
 
 interface SystemStats {
   totalOrganizations: number
@@ -153,14 +153,14 @@ export default function SuperAdminDashboard() {
         <div className="flex items-center gap-3 min-w-0">
           <Shield className="h-5 w-5 sm:h-6 sm:w-6 text-primary shrink-0" />
           <div className="min-w-0">
-            <h1 className="text-lg sm:text-2xl font-bold truncate">Super Admin Dashboard</h1>
-            <p className="text-xs sm:text-sm text-text-secondary truncate">
-              Visão completa do sistema Est3lar Pool
+            <h1 className={`${typography.heading.h1} ${typography.weight.bold} truncate`}>Super Admin Dashboard</h1>
+            <p className={`${typography.body.small} text-text-secondary truncate`}>
+              Visão completa do sistema Genesis Pool
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <Badge variant="secondary" className="gap-1 text-xs">
+          <Badge variant="secondary" className={`gap-1 ${typography.body.tiny}`}>
             <Clock className="h-3 w-3" />
             <span className="hidden xs:inline">Atualizado</span> {formatRelativeTime(lastUpdate)}
           </Badge>
@@ -183,7 +183,7 @@ export default function SuperAdminDashboard() {
         {/* Organizações */}
         <Card>
           <CardHeader className="pb-1 sm:pb-2 px-3 sm:px-4 pt-3 sm:pt-4">
-            <CardTitle className="text-[10px] sm:text-xs font-medium text-text-secondary flex items-center gap-1">
+            <CardTitle className={`${typography.kpi.title} ${typography.weight.medium} text-text-secondary flex items-center gap-1`}>
               <Globe className="h-3 w-3 sm:h-3.5 sm:w-3.5 shrink-0" />
               <span className="truncate">Organizações</span>
             </CardTitle>
@@ -193,10 +193,10 @@ export default function SuperAdminDashboard() {
               <Skeleton className="h-6 sm:h-8 w-10 sm:w-12" />
             ) : (
               <>
-                <div className="text-xl sm:text-2xl font-bold tabular-nums">
+                <div className={`${typography.kpi.value} ${typography.weight.bold} tabular-nums`}>
                   {systemStats.totalOrganizations}
                 </div>
-                <p className="text-[10px] sm:text-xs text-text-secondary mt-0.5">
+                <p className={`${typography.kpi.subtitle} text-text-secondary mt-0.5`}>
                   {systemStats.totalOrganizations === 0 ? 'Nenhuma' : 'Ativas'}
                 </p>
               </>
@@ -207,7 +207,7 @@ export default function SuperAdminDashboard() {
         {/* Usuários */}
         <Card>
           <CardHeader className="pb-1 sm:pb-2 px-3 sm:px-4 pt-3 sm:pt-4">
-            <CardTitle className="text-[10px] sm:text-xs font-medium text-text-secondary flex items-center gap-1">
+            <CardTitle className={`${typography.kpi.title} ${typography.weight.medium} text-text-secondary flex items-center gap-1`}>
               <Users className="h-3 w-3 sm:h-3.5 sm:w-3.5 shrink-0" />
               <span className="truncate">Usuários</span>
             </CardTitle>
@@ -217,10 +217,10 @@ export default function SuperAdminDashboard() {
               <Skeleton className="h-6 sm:h-8 w-10 sm:w-12" />
             ) : (
               <>
-                <div className="text-xl sm:text-2xl font-bold tabular-nums">
+                <div className={`${typography.kpi.value} ${typography.weight.bold} tabular-nums`}>
                   {systemStats.totalUsers}
                 </div>
-                <p className="text-[10px] sm:text-xs text-text-secondary mt-0.5">
+                <p className={`${typography.kpi.subtitle} text-text-secondary mt-0.5`}>
                   {systemStats.totalUsers === 0 ? 'Nenhum' : 'Cadastrados'}
                 </p>
               </>
@@ -231,8 +231,9 @@ export default function SuperAdminDashboard() {
         {/* Hashrate Global */}
         <Card>
           <CardHeader className="pb-1 sm:pb-2 px-3 sm:px-4 pt-3 sm:pt-4">
-            <CardTitle className="text-[10px] sm:text-xs font-medium text-text-secondary truncate">
-              Hashrate Global
+            <CardTitle className={`${typography.kpi.title} ${typography.weight.medium} text-text-secondary flex items-center gap-1`}>
+              <BarChart3 className="h-3 w-3 sm:h-3.5 sm:w-3.5 shrink-0" />
+              <span className="truncate">Hashrate Global</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="px-3 sm:px-4 pb-3 sm:pb-4">
@@ -240,38 +241,38 @@ export default function SuperAdminDashboard() {
               <Skeleton className="h-6 sm:h-8 w-16 sm:w-20" />
             ) : poolStats.hashrate1m === 0 ? (
               <>
-                <div className="text-base sm:text-lg font-bold tabular-nums text-text-secondary">
+                <div className={`${typography.kpi.value} ${typography.weight.bold} tabular-nums text-text-secondary`}>
                   --
                 </div>
-                <p className="text-[10px] sm:text-xs text-text-secondary mt-0.5">
+                <p className={`${typography.kpi.subtitle} text-text-secondary mt-0.5`}>
                   Sem dados
                 </p>
               </>
             ) : (
               <>
-                <div className="text-sm sm:text-lg font-bold tabular-nums truncate">
+                <div className={`${typography.kpi.value} ${typography.weight.bold} tabular-nums truncate`}>
                   {formatHashrate(poolStats.hashrate1m)}
                 </div>
-                <p className="text-[10px] sm:text-xs text-text-secondary mt-0.5 truncate">
+                <p className={`${typography.kpi.subtitle} text-text-secondary mt-0.5 truncate`}>
                   1h: {formatHashrate(poolStats.hashrate1h)}
                 </p>
                 <div className="flex items-center gap-1 mt-1 sm:mt-2">
                   {Math.abs(hashrateChange) < 0.5 ? (
                     <>
                       <Minus className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-text-secondary" />
-                      <span className="text-[10px] sm:text-xs text-text-secondary">Estável</span>
+                      <span className={`${typography.kpi.subtitle} text-text-secondary`}>Estável</span>
                     </>
                   ) : hashrateChange > 0 ? (
                     <>
                       <TrendingUp className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-success" />
-                      <span className="text-[10px] sm:text-xs text-success">
+                      <span className={`${typography.kpi.subtitle} text-success`}>
                         +{hashrateChange.toFixed(1)}%
                       </span>
                     </>
                   ) : (
                     <>
                       <TrendingDown className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-error" />
-                      <span className="text-[10px] sm:text-xs text-error">
+                      <span className={`${typography.kpi.subtitle} text-error`}>
                         {hashrateChange.toFixed(1)}%
                       </span>
                     </>
@@ -285,8 +286,9 @@ export default function SuperAdminDashboard() {
         {/* Workers Globais */}
         <Card>
           <CardHeader className="pb-1 sm:pb-2 px-3 sm:px-4 pt-3 sm:pt-4">
-            <CardTitle className="text-[10px] sm:text-xs font-medium text-text-secondary truncate">
-              Workers Globais
+            <CardTitle className={`${typography.kpi.title} ${typography.weight.medium} text-text-secondary flex items-center gap-1`}>
+              <UserCheck className="h-3 w-3 sm:h-3.5 sm:w-3.5 shrink-0" />
+              <span className="truncate">Workers Globais</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="px-3 sm:px-4 pb-3 sm:pb-4">
@@ -294,34 +296,34 @@ export default function SuperAdminDashboard() {
               <Skeleton className="h-6 sm:h-8 w-12 sm:w-16" />
             ) : poolStats.workersTotal === 0 ? (
               <>
-                <div className="text-base sm:text-lg font-bold tabular-nums text-text-secondary">
+                <div className={`${typography.kpi.value} ${typography.weight.bold} tabular-nums text-text-secondary`}>
                   --
                 </div>
-                <p className="text-[10px] sm:text-xs text-text-secondary mt-0.5">
+                <p className={`${typography.kpi.subtitle} text-text-secondary mt-0.5`}>
                   Sem workers
                 </p>
               </>
             ) : (
               <>
-                <div className="text-sm sm:text-lg font-bold tabular-nums truncate">
+                <div className={`${typography.kpi.value} ${typography.weight.bold} tabular-nums truncate`}>
                   {formatNumber(poolStats.workersActive)}/
                   {formatNumber(poolStats.workersTotal)}
                 </div>
-                <p className="text-[10px] sm:text-xs text-text-secondary mt-0.5 truncate">
+                <p className={`${typography.kpi.subtitle} text-text-secondary mt-0.5 truncate`}>
                   Idle: {formatNumber(poolStats.workersIdle)}
                 </p>
                 <div className="flex items-center gap-1.5 sm:gap-2 mt-1 sm:mt-2 flex-wrap">
                   <div className="flex items-center gap-0.5 sm:gap-1">
                     <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-success" />
-                    <span className="text-[10px] sm:text-xs">{poolStats.workersActive}</span>
+                    <span className={typography.kpi.subtitle}>{poolStats.workersActive}</span>
                   </div>
                   <div className="flex items-center gap-0.5 sm:gap-1">
                     <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-warning" />
-                    <span className="text-[10px] sm:text-xs">{poolStats.workersIdle}</span>
+                    <span className={typography.kpi.subtitle}>{poolStats.workersIdle}</span>
                   </div>
                   <div className="flex items-center gap-0.5 sm:gap-1">
                     <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-text-secondary" />
-                    <span className="text-[10px] sm:text-xs">{poolStats.workersDisconnected}</span>
+                    <span className={typography.kpi.subtitle}>{poolStats.workersDisconnected}</span>
                   </div>
                 </div>
               </>
@@ -332,7 +334,7 @@ export default function SuperAdminDashboard() {
         {/* Endpoints */}
         <Card>
           <CardHeader className="pb-1 sm:pb-2 px-3 sm:px-4 pt-3 sm:pt-4">
-            <CardTitle className="text-[10px] sm:text-xs font-medium text-text-secondary flex items-center gap-1">
+            <CardTitle className={`${typography.kpi.title} ${typography.weight.medium} text-text-secondary flex items-center gap-1`}>
               <Network className="h-3 w-3 sm:h-3.5 sm:w-3.5 shrink-0" />
               <span className="truncate">Endpoints</span>
             </CardTitle>
@@ -343,18 +345,20 @@ export default function SuperAdminDashboard() {
             ) : (
               <>
                 <div className={cn(
-                  "text-xl sm:text-2xl font-bold tabular-nums",
+                  typography.kpi.value,
+                  typography.weight.bold,
+                  "tabular-nums",
                   systemStats.activeEndpoints > 0 ? "text-success" : "text-text-secondary"
                 )}>
                   {systemStats.activeEndpoints}
                 </div>
-                <p className="text-[10px] sm:text-xs text-text-secondary mt-0.5">
+                <p className={`${typography.kpi.subtitle} text-text-secondary mt-0.5`}>
                   {systemStats.activeEndpoints === 0 ? 'Nenhum' : 'Configurados'}
                 </p>
                 {systemStats.activeEndpoints > 0 && (
                   <div className="flex items-center gap-1 mt-1 sm:mt-1.5">
                     <CheckCircle className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-success" />
-                    <span className="text-[10px] sm:text-xs text-success">Ativos</span>
+                    <span className={`${typography.kpi.subtitle} text-success`}>Ativos</span>
                   </div>
                 )}
               </>
@@ -365,7 +369,7 @@ export default function SuperAdminDashboard() {
         {/* Sistema */}
         <Card>
           <CardHeader className="pb-1 sm:pb-2 px-3 sm:px-4 pt-3 sm:pt-4">
-            <CardTitle className="text-[10px] sm:text-xs font-medium text-text-secondary flex items-center gap-1">
+            <CardTitle className={`${typography.kpi.title} ${typography.weight.medium} text-text-secondary flex items-center gap-1`}>
               <Database className="h-3 w-3 sm:h-3.5 sm:w-3.5 shrink-0" />
               <span className="truncate">Sistema</span>
             </CardTitle>
@@ -377,7 +381,9 @@ export default function SuperAdminDashboard() {
               <>
                 <div
                   className={cn(
-                    'text-lg sm:text-2xl font-bold tabular-nums',
+                    typography.kpi.value,
+                    typography.weight.bold,
+                    'tabular-nums',
                     systemStats.uptime >= 99
                       ? 'text-success'
                       : systemStats.uptime >= 95
@@ -387,24 +393,24 @@ export default function SuperAdminDashboard() {
                 >
                   {systemStats.uptime.toFixed(2)}%
                 </div>
-                <p className="text-[10px] sm:text-xs text-text-secondary mt-0.5">Uptime</p>
+                <p className={`${typography.kpi.subtitle} text-text-secondary mt-0.5`}>Uptime</p>
                 <div className="flex items-center gap-1 mt-1 sm:mt-2">
                   {systemStats.systemHealth === 'healthy' && (
                     <>
                       <CheckCircle className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-success" />
-                      <span className="text-[10px] sm:text-xs text-success">Saudável</span>
+                      <span className={`${typography.kpi.subtitle} text-success`}>Saudável</span>
                     </>
                   )}
                   {systemStats.systemHealth === 'degraded' && (
                     <>
                       <AlertTriangle className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-warning" />
-                      <span className="text-[10px] sm:text-xs text-warning">Degradado</span>
+                      <span className={`${typography.kpi.subtitle} text-warning`}>Degradado</span>
                     </>
                   )}
                   {systemStats.systemHealth === 'critical' && (
                     <>
                       <XCircle className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-error" />
-                      <span className="text-[10px] sm:text-xs text-error">Crítico</span>
+                      <span className={`${typography.kpi.subtitle} text-error`}>Crítico</span>
                     </>
                   )}
                 </div>
@@ -418,7 +424,7 @@ export default function SuperAdminDashboard() {
       <Card>
         <CardHeader className="px-3 sm:px-6 pt-4 sm:pt-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <CardTitle className="text-sm sm:text-base flex items-center gap-2">
+            <CardTitle className={`${typography.card.title} flex items-center gap-2`}>
               <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" />
               <span className="truncate">Hashrate Global do Sistema</span>
             </CardTitle>
@@ -453,13 +459,13 @@ export default function SuperAdminDashboard() {
         <Link to="/super-admin/users">
           <Card className="cursor-pointer hover:shadow-md transition-shadow h-full">
             <CardHeader className="pb-2 sm:pb-3 px-3 sm:px-4 pt-3 sm:pt-4">
-              <CardTitle className="text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2">
-                <UserCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary shrink-0" />
+              <CardTitle className={`${typography.body.small} flex items-center gap-1.5 sm:gap-2`}>
+                <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary shrink-0" />
                 <span className="truncate">Usuários</span>
               </CardTitle>
             </CardHeader>
             <CardContent className="px-3 sm:px-4 pb-3 sm:pb-4">
-              <p className="text-[10px] sm:text-xs text-text-secondary line-clamp-2">
+              <p className={`${typography.body.tiny} text-text-secondary line-clamp-2`}>
                 Criar admins, editar permissões
               </p>
             </CardContent>
@@ -469,13 +475,13 @@ export default function SuperAdminDashboard() {
         <Link to="/super-admin/organizations">
           <Card className="cursor-pointer hover:shadow-md transition-shadow h-full">
             <CardHeader className="pb-2 sm:pb-3 px-3 sm:px-4 pt-3 sm:pt-4">
-              <CardTitle className="text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2">
-                <Settings className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary shrink-0" />
+              <CardTitle className={`${typography.body.small} flex items-center gap-1.5 sm:gap-2`}>
+                <Globe className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary shrink-0" />
                 <span className="truncate">Organizações</span>
               </CardTitle>
             </CardHeader>
             <CardContent className="px-3 sm:px-4 pb-3 sm:pb-4">
-              <p className="text-[10px] sm:text-xs text-text-secondary line-clamp-2">
+              <p className={`${typography.body.tiny} text-text-secondary line-clamp-2`}>
                 Gerenciar orgs e configurações
               </p>
             </CardContent>
@@ -485,13 +491,13 @@ export default function SuperAdminDashboard() {
         <Link to="/super-admin/audit">
           <Card className="cursor-pointer hover:shadow-md transition-shadow h-full">
             <CardHeader className="pb-2 sm:pb-3 px-3 sm:px-4 pt-3 sm:pt-4">
-              <CardTitle className="text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2">
+              <CardTitle className={`${typography.body.small} flex items-center gap-1.5 sm:gap-2`}>
                 <Shield className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-success shrink-0" />
                 <span className="truncate">Auditoria</span>
               </CardTitle>
             </CardHeader>
             <CardContent className="px-3 sm:px-4 pb-3 sm:pb-4">
-              <p className="text-[10px] sm:text-xs text-text-secondary line-clamp-2">
+              <p className={`${typography.body.tiny} text-text-secondary line-clamp-2`}>
                 Logs de ações e segurança
               </p>
             </CardContent>
@@ -501,13 +507,13 @@ export default function SuperAdminDashboard() {
         <Link to="/super-admin/endpoints">
           <Card className="cursor-pointer hover:shadow-md transition-shadow h-full">
             <CardHeader className="pb-2 sm:pb-3 px-3 sm:px-4 pt-3 sm:pt-4">
-              <CardTitle className="text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2">
+              <CardTitle className={`${typography.body.small} flex items-center gap-1.5 sm:gap-2`}>
                 <Database className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-warning shrink-0" />
                 <span className="truncate">Sistema</span>
               </CardTitle>
             </CardHeader>
             <CardContent className="px-3 sm:px-4 pb-3 sm:pb-4">
-              <p className="text-[10px] sm:text-xs text-text-secondary line-clamp-2">
+              <p className={`${typography.body.tiny} text-text-secondary line-clamp-2`}>
                 Endpoints, hardware e webhooks
               </p>
             </CardContent>

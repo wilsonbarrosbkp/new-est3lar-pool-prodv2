@@ -49,6 +49,7 @@ import {
 } from '@/components/ui/Select'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
+import { typography } from '@/design-system/tokens'
 
 interface Hardware {
   id: number
@@ -457,8 +458,8 @@ export default function HardwarePage() {
                 <Cpu className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-sm text-text-secondary">Total Equipamentos</p>
-                <p className="text-xl font-bold">{filteredHardware.length}</p>
+                <p className={`${typography.kpi.title} text-text-secondary`}>Total Equipamentos</p>
+                <p className={`${typography.kpi.value} ${typography.weight.bold}`}>{filteredHardware.length}</p>
               </div>
             </div>
           </CardContent>
@@ -470,8 +471,8 @@ export default function HardwarePage() {
                 <Zap className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-sm text-text-secondary">Hashrate Total (Ativos)</p>
-                <p className="text-xl font-bold">{totalHashrate.toLocaleString()} TH/s</p>
+                <p className={`${typography.kpi.title} text-text-secondary`}>Hashrate Total (Ativos)</p>
+                <p className={`${typography.kpi.value} ${typography.weight.bold}`}>{totalHashrate.toLocaleString()} TH/s</p>
               </div>
             </div>
           </CardContent>
@@ -483,8 +484,8 @@ export default function HardwarePage() {
                 <Thermometer className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-sm text-text-secondary">Consumo Total (Ativos)</p>
-                <p className="text-xl font-bold">{(totalPower / 1000).toFixed(1)} kW</p>
+                <p className={`${typography.kpi.title} text-text-secondary`}>Consumo Total (Ativos)</p>
+                <p className={`${typography.kpi.value} ${typography.weight.bold}`}>{(totalPower / 1000).toFixed(1)} kW</p>
               </div>
             </div>
           </CardContent>
@@ -495,7 +496,7 @@ export default function HardwarePage() {
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="text-base flex items-center gap-2">
+            <CardTitle className={`${typography.card.title} flex items-center gap-2`}>
               <Server className="h-5 w-5" />
               Infraestrutura Genesis Pool
             </CardTitle>
@@ -583,8 +584,8 @@ export default function HardwarePage() {
                             <Cpu className="h-5 w-5" />
                           </div>
                           <div>
-                            <p className="font-medium">{item.name}</p>
-                            <p className="text-xs text-text-secondary">
+                            <p className={typography.weight.medium}>{item.name}</p>
+                            <p className={`${typography.table.small} text-text-secondary`}>
                               {item.manufacturer} {item.model}
                             </p>
                           </div>

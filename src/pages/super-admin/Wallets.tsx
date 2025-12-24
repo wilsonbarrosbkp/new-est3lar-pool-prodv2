@@ -46,6 +46,7 @@ import {
 } from '@/components/ui/Select'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
+import { typography } from '@/design-system/tokens'
 
 interface WalletData {
   id: number
@@ -411,12 +412,12 @@ export default function WalletsPage() {
                         </div>
                         <div>
                           <div className="flex items-center gap-2">
-                            <p className="font-medium">{wallet.label}</p>
+                            <p className={typography.weight.medium}>{wallet.label}</p>
                             {wallet.is_primary && (
-                              <Badge variant="warning" className="text-xs">Principal</Badge>
+                              <Badge variant="warning" className={typography.badge.small}>Principal</Badge>
                             )}
                           </div>
-                          <p className="text-xs text-text-secondary">{wallet.currency_name}</p>
+                          <p className={`${typography.table.small} text-text-secondary`}>{wallet.currency_name}</p>
                         </div>
                       </div>
                     </TableCell>
@@ -428,7 +429,7 @@ export default function WalletsPage() {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <code className="text-xs bg-surface px-2 py-1 rounded">
+                        <code className={`${typography.table.small} bg-surface px-2 py-1 rounded`}>
                           {formatAddress(wallet.address)}
                         </code>
                         <Button
@@ -489,7 +490,7 @@ export default function WalletsPage() {
       </Card>
 
       {/* Resumo */}
-      <div className="text-sm text-text-secondary">
+      <div className={`${typography.body.small} text-text-secondary`}>
         {filteredWallets.length} carteira(s) | {filteredWallets.filter(w => w.is_primary).length} principal(is) | {filteredWallets.filter(w => w.is_active).length} ativa(s)
       </div>
 
