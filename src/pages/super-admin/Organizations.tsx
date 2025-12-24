@@ -52,6 +52,7 @@ import type { Organization } from '@/types/super-admin'
 import { supabase } from '@/lib/supabase/client'
 import { typography } from '@/design-system/tokens'
 import { useCRUDPage } from '@/hooks/useCRUDPage'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 
 type FormData = {
   name: string
@@ -89,11 +90,15 @@ export default function OrganizationsPage() {
     formData,
     setFormData,
     saving,
+    deleteDialogOpen,
+    setDeleteDialogOpen,
+    deleteConfirmMessage,
     handleOpenCreate,
     handleOpenEdit,
     handleCloseSheet,
     handleSubmit,
     handleDelete,
+    handleConfirmDelete,
     handleSort,
     filteredData,
     totalCount,
@@ -550,6 +555,18 @@ export default function OrganizationsPage() {
           </form>
         </SheetContent>
       </Sheet>
+
+      {/* Dialog de confirmação de exclusão */}
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title="Confirmar Exclusão"
+        description={deleteConfirmMessage}
+        confirmLabel="Excluir"
+        cancelLabel="Cancelar"
+        variant="destructive"
+        onConfirm={handleConfirmDelete}
+      />
     </div>
   )
 }

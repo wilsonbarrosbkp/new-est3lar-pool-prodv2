@@ -1,4 +1,3 @@
-import { useState, useEffect, useCallback } from 'react'
 import {
   FileText,
   Search,
@@ -32,9 +31,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/Select'
-import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
 import { typography } from '@/design-system/tokens'
+import { useReadOnlyPage } from '@/hooks/useReadOnlyPage'
+import { useState } from 'react'
 
 interface AuditLog {
   id: number
@@ -70,74 +70,90 @@ const actionOptions = [
 ] as const
 
 export default function AuditPage() {
-  const [logs, setLogs] = useState<AuditLog[]>([])
   const [organizations, setOrganizations] = useState<Organization[]>([])
-  const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState('')
-  const [filterOrg, setFilterOrg] = useState<string>('all')
-  const [filterAction, setFilterAction] = useState<string>('all')
-  const [filterEntity, setFilterEntity] = useState<string>('all')
-  const [expandedLog, setExpandedLog] = useState<number | null>(null)
   const [entityTypes, setEntityTypes] = useState<string[]>([])
 
-  const loadData = useCallback(async () => {
-    setLoading(true)
-    try {
-      const [logsResult, orgsResult] = await Promise.all([
-        supabase
-          .from('audit_logs')
-          .select(`
-            *,
-            organizations(name),
-            users(name, email)
-          `)
-          .order('created_at', { ascending: false })
-          .limit(200),
-        supabase.from('organizations').select('id, name').order('name'),
-      ])
+  // Hook useReadOnlyPage
+  const {
+    loading,
+    search,
+    setSearch,
+    filters,
+    setFilter,
+    loadData,
+    expandedIds,
+    toggleExpand,
+    filteredData: baseFilteredData,
+  } = useReadOnlyPage<AuditLog>({
+    tableName: 'audit_logs',
+    selectFields: `
+      *,
+      organizations(name),
+      users(name, email)
+    `,
+    searchFields: ['user_name', 'user_email', 'entity_type', 'entity_id', 'ip_address'],
+    defaultOrderBy: { column: 'created_at', ascending: false },
+    limit: 200,
+    entityName: 'log de auditoria',
+    onDataLoaded: async (data) => {
+      // Carregar organizations quando os dados forem carregados
+      try {
+        const { data: orgsData, error } = await supabase
+          .from('organizations')
+          .select('id, name')
+          .order('name')
+        if (error) throw error
+        setOrganizations(orgsData || [])
+      } catch (error) {
+        console.error('Erro ao carregar organizations:', error)
+      }
 
-      if (logsResult.error) throw logsResult.error
-      if (orgsResult.error) throw orgsResult.error
+      // Extrair tipos de entidades únicos
+      const types = [...new Set(data
+        .map((log: AuditLog) => log.entity_type)
+        .filter((type: string | null): type is string => type !== null)
+      )]
+      setEntityTypes(types)
+    },
+    customLoadData: async () => {
+      const { data, error } = await supabase
+        .from('audit_logs')
+        .select(`
+          *,
+          organizations(name),
+          users(name, email)
+        `)
+        .order('created_at', { ascending: false })
+        .limit(200)
 
-      const logsWithDetails = (logsResult.data || []).map((log: any) => ({
+      if (error) throw error
+
+      // Tipo para o resultado da query com joins
+      type AuditLogWithRelations = AuditLog & {
+        organizations: { name: string } | null
+        users: { name: string; email: string } | null
+      }
+
+      return (data || []).map((log: AuditLogWithRelations) => ({
         ...log,
         organization_name: log.organizations?.name,
         user_name: log.users?.name,
         user_email: log.users?.email,
       }))
+    },
+  })
 
-      setLogs(logsWithDetails)
-      setOrganizations(orgsResult.data || [])
+  // Inicializar filtros com 'all'
+  if (!filters.org) setFilter('org', 'all')
+  if (!filters.action) setFilter('action', 'all')
+  if (!filters.entity) setFilter('entity', 'all')
 
-      // Extract unique entity types
-      const types = [...new Set(logsWithDetails
-        .map((log: AuditLog) => log.entity_type)
-        .filter((type: string | null): type is string => type !== null)
-      )]
-      setEntityTypes(types)
-    } catch (error) {
-      console.error('Erro ao carregar dados:', error)
-      toast.error('Erro ao carregar logs de auditoria')
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    loadData()
-  }, [loadData])
-
-  const filteredLogs = logs.filter(log => {
-    const matchesSearch =
-      log.user_name?.toLowerCase().includes(search.toLowerCase()) ||
-      log.user_email?.toLowerCase().includes(search.toLowerCase()) ||
-      log.entity_type?.toLowerCase().includes(search.toLowerCase()) ||
-      log.entity_id?.toLowerCase().includes(search.toLowerCase()) ||
-      log.ip_address?.includes(search)
-    const matchesOrg = filterOrg === 'all' || log.organization_id?.toString() === filterOrg
-    const matchesAction = filterAction === 'all' || log.action === filterAction
-    const matchesEntity = filterEntity === 'all' || log.entity_type === filterEntity
-    return matchesSearch && matchesOrg && matchesAction && matchesEntity
+  // Aplicar filtros customizados
+  const filteredLogs = baseFilteredData.filter(log => {
+    const matchesOrg = filters.org === 'all' || !filters.org || log.organization_id?.toString() === filters.org
+    const matchesAction = filters.action === 'all' || !filters.action || log.action === filters.action
+    const matchesEntity = filters.entity === 'all' || !filters.entity || log.entity_type === filters.entity
+    return matchesOrg && matchesAction && matchesEntity
   })
 
   const formatDate = (date: string) => {
@@ -147,10 +163,6 @@ export default function AuditPage() {
   const getActionBadge = (action: string) => {
     const option = actionOptions.find(a => a.value === action)
     return option || { label: action, color: 'secondary', icon: Eye }
-  }
-
-  const toggleExpand = (id: number) => {
-    setExpandedLog(expandedLog === id ? null : id)
   }
 
   const renderChanges = (log: AuditLog) => {
@@ -218,7 +230,7 @@ export default function AuditPage() {
               className="pl-10"
             />
           </div>
-          <Select value={filterOrg} onValueChange={setFilterOrg}>
+          <Select value={filters.org || 'all'} onValueChange={(value) => setFilter('org', value)}>
             <SelectTrigger className="w-[160px]">
               <SelectValue placeholder="Organização" />
             </SelectTrigger>
@@ -231,7 +243,7 @@ export default function AuditPage() {
               ))}
             </SelectContent>
           </Select>
-          <Select value={filterAction} onValueChange={setFilterAction}>
+          <Select value={filters.action || 'all'} onValueChange={(value) => setFilter('action', value)}>
             <SelectTrigger className="w-[140px]">
               <SelectValue placeholder="Ação" />
             </SelectTrigger>
@@ -244,7 +256,7 @@ export default function AuditPage() {
               ))}
             </SelectContent>
           </Select>
-          <Select value={filterEntity} onValueChange={setFilterEntity}>
+          <Select value={filters.entity || 'all'} onValueChange={(value) => setFilter('entity', value)}>
             <SelectTrigger className="w-[160px]">
               <SelectValue placeholder="Entidade" />
             </SelectTrigger>
@@ -332,7 +344,7 @@ export default function AuditPage() {
             <div className="text-center py-12">
               <FileText className="mx-auto h-12 w-12 text-text-secondary mb-4" />
               <p className="text-text-secondary">
-                {search || filterOrg !== 'all' || filterAction !== 'all' || filterEntity !== 'all'
+                {search || filters.org !== 'all' || filters.action !== 'all' || filters.entity !== 'all'
                   ? 'Nenhum log encontrado'
                   : 'Nenhum log de auditoria registrado'}
               </p>
@@ -354,7 +366,7 @@ export default function AuditPage() {
                 {filteredLogs.map((log) => {
                   const actionBadge = getActionBadge(log.action)
                   const ActionIcon = actionBadge.icon
-                  const isExpanded = expandedLog === log.id
+                  const isExpanded = expandedIds.has(log.id)
                   const hasDetails = log.changes || log.before_data || log.after_data
 
                   return (

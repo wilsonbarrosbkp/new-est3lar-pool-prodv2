@@ -130,7 +130,12 @@ export default function EndpointsPage() {
 
       setOrganizations(orgsResult.data || [])
 
-      return (endpointsResult.data || []).map((endpoint: any) => ({
+      // Tipo para o resultado da query com join
+      type EndpointWithOrg = Endpoint & {
+        organizations: { name: string } | null
+      }
+
+      return (endpointsResult.data || []).map((endpoint: EndpointWithOrg) => ({
         ...endpoint,
         organization_name: endpoint.organizations?.name,
       })) as Endpoint[]

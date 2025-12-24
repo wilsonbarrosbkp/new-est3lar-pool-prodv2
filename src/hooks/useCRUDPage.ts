@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
-import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
+import { toast } from 'sonner'
 
 /**
  * Configuração de ordenação
@@ -100,13 +100,20 @@ export interface UseCRUDPageReturn<T extends { id: number | string }, F> {
   setFormData: React.Dispatch<React.SetStateAction<F>>
   saving: boolean
 
+  // Estados do ConfirmDialog
+  deleteDialogOpen: boolean
+  setDeleteDialogOpen: (open: boolean) => void
+  itemToDelete: T | null
+  deleteConfirmMessage: string
+
   // Ações
   loadData: () => Promise<void>
   handleOpenCreate: () => void
   handleOpenEdit: (item: T) => void
   handleCloseSheet: () => void
   handleSubmit: (e: React.FormEvent) => Promise<void>
-  handleDelete: (item: T) => Promise<void>
+  handleDelete: (item: T) => void
+  handleConfirmDelete: () => Promise<void>
   handleSort: (key: keyof T) => void
 
   // Dados filtrados e ordenados
@@ -189,6 +196,11 @@ export function useCRUDPage<T extends { id: number | string }, F>(
   const [formData, setFormData] = useState<F>(initialFormData)
   const [saving, setSaving] = useState(false)
 
+  // Estados do ConfirmDialog
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [itemToDelete, setItemToDelete] = useState<T | null>(null)
+  const [deleteConfirmMessage, setDeleteConfirmMessage] = useState('')
+
   // Função para obter mensagens (usa refs para evitar loops)
   const getMessages = useCallback(() => {
     const msgs = messagesRef.current
@@ -244,8 +256,10 @@ export function useCRUDPage<T extends { id: number | string }, F>(
       setData(items)
       onDataLoadedRef.current?.(items)
     } catch (error) {
-      console.error(`Erro ao carregar ${entityName}s:`, error)
-      toast.error(getMessages().loadError)
+      console.error(`Erro ao excluir ${entityName}:`, error)
+      // Usar mensagem customizada se fornecida, senão usar a do error handler
+      const errorMessage = getMessages().loadError
+      toast.error(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -353,9 +367,9 @@ export function useCRUDPage<T extends { id: number | string }, F>(
 
       // Validação
       if (validateFormRef.current) {
-        const error = validateFormRef.current(formData)
-        if (error) {
-          toast.error(error)
+        const validationError = validateFormRef.current(formData)
+        if (validationError) {
+          toast.error(validationError)
           return
         }
       }
@@ -415,7 +429,8 @@ export function useCRUDPage<T extends { id: number | string }, F>(
         handleCloseSheet()
         loadData()
       } catch (error) {
-        console.error(`Erro ao salvar ${entityName}:`, error)
+        console.error(`Erro ao excluir ${entityName}:`, error)
+        // Usar mensagem customizada se fornecida, senão usar a do error handler
         toast.error(msgs.saveError)
       } finally {
         setSaving(false)
@@ -432,32 +447,45 @@ export function useCRUDPage<T extends { id: number | string }, F>(
     ]
   )
 
-  // Deletar item
+  // Abrir dialog de confirmação de delete
   const handleDelete = useCallback(
-    async (item: T) => {
+    (item: T) => {
       const msgs = getMessages()
       const confirmMessage = msgs.deleteConfirm(item)
-      if (!confirm(confirmMessage)) {
-        return
-      }
+      setItemToDelete(item)
+      setDeleteConfirmMessage(confirmMessage)
+      setDeleteDialogOpen(true)
+    },
+    [getMessages]
+  )
+
+  // Executar delete após confirmação
+  const handleConfirmDelete = useCallback(
+    async () => {
+      if (!itemToDelete) return
+
+      const msgs = getMessages()
 
       try {
         const { error } = await supabase
           .from(tableName)
           .delete()
-          .eq('id', item.id)
+          .eq('id', itemToDelete.id)
 
         if (error) throw error
 
         toast.success(msgs.deleteSuccess)
-        onAfterDeleteRef.current?.(item.id)
+        onAfterDeleteRef.current?.(itemToDelete.id)
+        setDeleteDialogOpen(false)
+        setItemToDelete(null)
         loadData()
       } catch (error) {
         console.error(`Erro ao excluir ${entityName}:`, error)
+        // Usar mensagem customizada se fornecida, senão usar a do error handler
         toast.error(msgs.deleteError)
       }
     },
-    [tableName, loadData, entityName, getMessages]
+    [itemToDelete, tableName, loadData, entityName, getMessages]
   )
 
   return {
@@ -477,6 +505,12 @@ export function useCRUDPage<T extends { id: number | string }, F>(
     setFormData,
     saving,
 
+    // Estados do ConfirmDialog
+    deleteDialogOpen,
+    setDeleteDialogOpen,
+    itemToDelete,
+    deleteConfirmMessage,
+
     // Ações
     loadData,
     handleOpenCreate,
@@ -484,6 +518,7 @@ export function useCRUDPage<T extends { id: number | string }, F>(
     handleCloseSheet,
     handleSubmit,
     handleDelete,
+    handleConfirmDelete,
     handleSort,
 
     // Dados filtrados

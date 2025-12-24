@@ -136,7 +136,12 @@ export default function WebhooksPage() {
 
       setOrganizations(orgsResult.data || [])
 
-      return (webhooksResult.data || []).map((webhook: any) => ({
+      // Tipo para o resultado da query com join
+      type WebhookWithOrg = Webhook & {
+        organizations: { name: string } | null
+      }
+
+      return (webhooksResult.data || []).map((webhook: WebhookWithOrg) => ({
         ...webhook,
         organization_name: webhook.organizations?.name,
       })) as Webhook[]

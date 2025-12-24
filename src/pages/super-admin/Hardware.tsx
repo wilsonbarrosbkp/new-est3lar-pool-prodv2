@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import {
   Cpu,
   Plus,
@@ -50,6 +50,7 @@ import {
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
 import { typography } from '@/design-system/tokens'
+import { useCRUDPage } from '@/hooks/useCRUDPage'
 import type {
   Hardware,
   OrganizationOption,
@@ -160,19 +161,100 @@ function mapServerFromDB(server: ServerFromDB): ServerData {
 }
 
 export default function HardwarePage() {
-  const [hardware, setHardware] = useState<Hardware[]>([])
+  // Estados locais para dados relacionados e filtros
   const [organizations, setOrganizations] = useState<OrganizationOption[]>([])
   const [servers, setServers] = useState<ServerData[]>([])
   const [loadingServers, setLoadingServers] = useState(true)
-  const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState('')
   const [filterOrg, setFilterOrg] = useState<string>('all')
   const [filterStatus, setFilterStatus] = useState<string>('all')
-  const [sheetOpen, setSheetOpen] = useState(false)
-  const [editingHardware, setEditingHardware] = useState<Hardware | null>(null)
-  const [formData, setFormData] = useState(initialFormData)
-  const [saving, setSaving] = useState(false)
 
+  const {
+    loading,
+    search,
+    setSearch,
+    sheetOpen,
+    setSheetOpen,
+    editing,
+    formData,
+    setFormData,
+    saving,
+    loadData,
+    handleOpenCreate,
+    handleOpenEdit,
+    handleCloseSheet,
+    handleSubmit,
+    handleDelete,
+    filteredData: baseFilteredData,
+  } = useCRUDPage<Hardware, FormData>({
+    tableName: 'hardware',
+    initialFormData,
+    customLoadData: async () => {
+      const [hardwareResult, orgsResult] = await Promise.all([
+        supabase
+          .from('hardware')
+          .select(`
+            *,
+            organizations(name)
+          `)
+          .order('name'),
+        supabase.from('organizations').select('id, name').eq('status', 'ativo').order('name'),
+      ])
+
+      if (hardwareResult.error) throw hardwareResult.error
+      if (orgsResult.error) throw orgsResult.error
+
+      setOrganizations(orgsResult.data || [])
+
+      return (hardwareResult.data || []).map((item: Record<string, unknown>) => ({
+        ...item,
+        organization_name: (item.organizations as { name?: string } | null)?.name,
+      })) as Hardware[]
+    },
+    mapDataToForm: (item) => ({
+      name: item.name,
+      model: item.model,
+      manufacturer: item.manufacturer,
+      hashrate: item.hashrate,
+      hashrate_unit: item.hashrate_unit ?? 'TH/s',
+      power_consumption: item.power_consumption,
+      efficiency: item.efficiency ?? null,
+      organization_id: item.organization_id,
+      serial_number: item.serial_number || '',
+      purchase_date: item.purchase_date || '',
+      warranty_until: item.warranty_until || '',
+      status: item.status,
+    }),
+    mapFormToData: (data) => ({
+      name: data.name,
+      model: data.model,
+      manufacturer: data.manufacturer,
+      hashrate: data.hashrate,
+      hashrate_unit: data.hashrate_unit,
+      power_consumption: data.power_consumption,
+      efficiency: data.efficiency,
+      organization_id: data.organization_id,
+      serial_number: data.serial_number || null,
+      purchase_date: data.purchase_date || null,
+      warranty_until: data.warranty_until || null,
+      status: data.status,
+    }),
+    validateForm: (data) => {
+      if (!data.name.trim() || !data.model.trim() || !data.manufacturer.trim()) {
+        return 'Nome, modelo e fabricante são obrigatórios'
+      }
+      if (!data.organization_id) {
+        return 'Organização é obrigatória'
+      }
+      return null
+    },
+    searchFields: ['name', 'model', 'manufacturer', 'organization_name'],
+    entityName: 'hardware',
+    messages: {
+      deleteConfirm: (item) => `Tem certeza que deseja excluir "${item.name}"?`,
+    },
+  })
+
+  // Carregar servidores separadamente
   const loadServers = useCallback(async () => {
     setLoadingServers(true)
     try {
@@ -193,165 +275,21 @@ export default function HardwarePage() {
     }
   }, [])
 
-  const loadData = useCallback(async () => {
-    setLoading(true)
-    try {
-      const [hardwareResult, orgsResult] = await Promise.all([
-        supabase
-          .from('hardware')
-          .select(`
-            *,
-            organizations(name)
-          `)
-          .order('name'),
-        supabase.from('organizations').select('id, name').eq('status', 'ativo').order('name'),
-      ])
-
-      if (hardwareResult.error) throw hardwareResult.error
-      if (orgsResult.error) throw orgsResult.error
-
-      const hardwareWithDetails = (hardwareResult.data || []).map((item: any) => ({
-        ...item,
-        organization_name: item.organizations?.name,
-      }))
-
-      setHardware(hardwareWithDetails)
-      setOrganizations(orgsResult.data || [])
-    } catch (error) {
-      console.error('Erro ao carregar dados:', error)
-      toast.error('Erro ao carregar dados')
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
   useEffect(() => {
-    loadData()
     loadServers()
-  }, [loadData, loadServers])
+  }, [loadServers])
 
-  const filteredHardware = hardware.filter(item => {
-    const matchesSearch =
-      item.name.toLowerCase().includes(search.toLowerCase()) ||
-      item.model.toLowerCase().includes(search.toLowerCase()) ||
-      item.manufacturer.toLowerCase().includes(search.toLowerCase()) ||
-      item.organization_name?.toLowerCase().includes(search.toLowerCase())
-    const matchesOrg = filterOrg === 'all' || item.organization_id.toString() === filterOrg
-    const matchesStatus = filterStatus === 'all' || item.status === filterStatus
-    return matchesSearch && matchesOrg && matchesStatus
-  })
-
-  const handleOpenCreate = () => {
-    setEditingHardware(null)
-    setFormData(initialFormData)
-    setSheetOpen(true)
-  }
-
-  const handleOpenEdit = (item: Hardware) => {
-    setEditingHardware(item)
-    setFormData({
-      name: item.name,
-      model: item.model,
-      manufacturer: item.manufacturer,
-      hashrate: item.hashrate,
-      hashrate_unit: item.hashrate_unit ?? 'TH/s',
-      power_consumption: item.power_consumption,
-      efficiency: item.efficiency ?? null,
-      organization_id: item.organization_id,
-      serial_number: item.serial_number || '',
-      purchase_date: item.purchase_date || '',
-      warranty_until: item.warranty_until || '',
-      status: item.status,
+  // Filtros adicionais sobre os dados já filtrados pelo hook
+  const filteredHardware = useMemo(() => {
+    return baseFilteredData.filter((item) => {
+      const matchesOrg = filterOrg === 'all' || item.organization_id.toString() === filterOrg
+      const matchesStatus = filterStatus === 'all' || item.status === filterStatus
+      return matchesOrg && matchesStatus
     })
-    setSheetOpen(true)
-  }
+  }, [baseFilteredData, filterOrg, filterStatus])
 
-  const handleCloseSheet = () => {
-    setSheetOpen(false)
-    setEditingHardware(null)
-    setFormData(initialFormData)
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    if (!formData.name.trim() || !formData.model.trim() || !formData.manufacturer.trim()) {
-      toast.error('Nome, modelo e fabricante são obrigatórios')
-      return
-    }
-
-    if (!formData.organization_id) {
-      toast.error('Organização é obrigatória')
-      return
-    }
-
-    setSaving(true)
-
-    try {
-      const hardwareData = {
-        name: formData.name,
-        model: formData.model,
-        manufacturer: formData.manufacturer,
-        hashrate: formData.hashrate,
-        hashrate_unit: formData.hashrate_unit,
-        power_consumption: formData.power_consumption,
-        efficiency: formData.efficiency,
-        organization_id: formData.organization_id,
-        serial_number: formData.serial_number || null,
-        purchase_date: formData.purchase_date || null,
-        warranty_until: formData.warranty_until || null,
-        status: formData.status,
-      }
-
-      if (editingHardware) {
-        const { error } = await supabase
-          .from('hardware')
-          .update(hardwareData)
-          .eq('id', editingHardware.id)
-
-        if (error) throw error
-        toast.success('Hardware atualizado com sucesso!')
-      } else {
-        const { error } = await supabase
-          .from('hardware')
-          .insert(hardwareData)
-
-        if (error) throw error
-        toast.success('Hardware criado com sucesso!')
-      }
-
-      handleCloseSheet()
-      loadData()
-    } catch (error) {
-      console.error('Erro ao salvar hardware:', error)
-      toast.error('Erro ao salvar hardware')
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  const handleDelete = async (item: Hardware) => {
-    if (!confirm(`Tem certeza que deseja excluir "${item.name}"?`)) {
-      return
-    }
-
-    try {
-      const { error } = await supabase
-        .from('hardware')
-        .delete()
-        .eq('id', item.id)
-
-      if (error) throw error
-
-      toast.success('Hardware excluído com sucesso!')
-      loadData()
-    } catch (error) {
-      console.error('Erro ao excluir hardware:', error)
-      toast.error('Erro ao excluir hardware')
-    }
-  }
-
-  const updateStatus = async (item: Hardware, newStatus: 'ativo' | 'inativo' | 'manutencao') => {
+  // Funções auxiliares
+  const updateStatus = useCallback(async (item: Hardware, newStatus: 'ativo' | 'inativo' | 'manutencao') => {
     try {
       const { error } = await supabase
         .from('hardware')
@@ -364,24 +302,26 @@ export default function HardwarePage() {
       console.error('Erro ao atualizar status:', error)
       toast.error('Erro ao atualizar status')
     }
-  }
+  }, [loadData])
 
-  const formatHashrate = (hashrate: number, unit: string) => {
+  const formatHashrate = useCallback((hashrate: number, unit: string) => {
     return `${hashrate.toLocaleString()} ${unit}`
-  }
+  }, [])
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = useCallback((status: string) => {
     const option = statusOptions.find(s => s.value === status)
     return option || { label: status, color: 'secondary' }
-  }
+  }, [])
 
-  const totalHashrate = filteredHardware
-    .filter(h => h.status === 'ativo')
-    .reduce((acc, h) => acc + h.hashrate, 0)
+  const totalHashrate = useMemo(
+    () => filteredHardware.filter(h => h.status === 'ativo').reduce((acc, h) => acc + h.hashrate, 0),
+    [filteredHardware]
+  )
 
-  const totalPower = filteredHardware
-    .filter(h => h.status === 'ativo')
-    .reduce((acc, h) => acc + h.power_consumption, 0)
+  const totalPower = useMemo(
+    () => filteredHardware.filter(h => h.status === 'ativo').reduce((acc, h) => acc + h.power_consumption, 0),
+    [filteredHardware]
+  )
 
   return (
     <div className="space-y-6">
@@ -581,7 +521,7 @@ export default function HardwarePage() {
                         {item.efficiency ? `${item.efficiency} J/TH` : '-'}
                       </TableCell>
                       <TableCell>
-                        <Badge variant={statusBadge.color as any}>
+                        <Badge variant={statusBadge.color as 'success' | 'secondary' | 'warning'}>
                           {statusBadge.label}
                         </Badge>
                       </TableCell>
@@ -636,10 +576,10 @@ export default function HardwarePage() {
         <SheetContent side="right" className="sm:max-w-lg overflow-y-auto">
           <SheetHeader>
             <SheetTitle>
-              {editingHardware ? 'Editar Hardware' : 'Novo Hardware'}
+              {editing ? 'Editar Hardware' : 'Novo Hardware'}
             </SheetTitle>
             <SheetDescription>
-              {editingHardware
+              {editing
                 ? 'Altere as informações do hardware abaixo.'
                 : 'Preencha as informações para cadastrar um novo hardware.'}
             </SheetDescription>
@@ -850,7 +790,7 @@ export default function HardwarePage() {
                 Cancelar
               </Button>
               <Button type="submit" disabled={saving}>
-                {saving ? 'Salvando...' : editingHardware ? 'Atualizar' : 'Criar'}
+                {saving ? 'Salvando...' : editing ? 'Atualizar' : 'Criar'}
               </Button>
             </SheetFooter>
           </form>

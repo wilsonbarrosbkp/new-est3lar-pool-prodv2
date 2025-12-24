@@ -132,7 +132,14 @@ export default function PoolsPage() {
       if (currenciesResult.error) throw currenciesResult.error
       if (payoutModelsResult.error) throw payoutModelsResult.error
 
-      const poolsWithDetails = (poolsResult.data || []).map((pool: any) => ({
+      // Tipo para o resultado da query com joins
+      type PoolWithRelations = Pool & {
+        organizations: { name: string } | null
+        currencies: { symbol: string } | null
+        payout_models: { name: string } | null
+      }
+
+      const poolsWithDetails = (poolsResult.data || []).map((pool: PoolWithRelations) => ({
         ...pool,
         organization_name: pool.organizations?.name,
         currency_symbol: pool.currencies?.symbol,

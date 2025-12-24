@@ -131,7 +131,14 @@ export default function WorkersPage() {
       setPools(poolsResult.data || [])
       setHardware(hardwareResult.data || [])
 
-      return (workersResult.data || []).map((worker: any) => ({
+      // Tipo para o resultado da query com joins
+      type WorkerWithRelations = Worker & {
+        organizations: { name: string } | null
+        pools: { name: string } | null
+        hardware: { name: string } | null
+      }
+
+      return (workersResult.data || []).map((worker: WorkerWithRelations) => ({
         ...worker,
         organization_name: worker.organizations?.name,
         pool_name: worker.pools?.name,

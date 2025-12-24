@@ -1,11 +1,10 @@
 import { FormEvent, useState } from 'react'
 import { toast } from 'sonner'
-import { Eye, EyeOff } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { AuthHeader } from './AuthHeader'
 import { AuthForm } from './AuthForm'
 import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
+import { PasswordInput } from '@/components/ui/password-input'
 import { Label } from '@/components/ui/Label'
 import { resetPasswordAction } from '@/lib/auth/reset-password'
 import { typography } from '@/design-system/tokens'
@@ -13,8 +12,6 @@ import { typography } from '@/design-system/tokens'
 export function ResetPasswordForm() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
 
@@ -57,30 +54,15 @@ export function ResetPasswordForm() {
 
         <div className="grid gap-3">
           <Label htmlFor="password">Nova Senha</Label>
-          <div className="relative">
-            <Input
-              id="password"
-              type={showPassword ? 'text' : 'password'}
-              placeholder="••••••••"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={isLoading}
-              className="pr-10"
-              minLength={8}
-            />
-            {showPassword ? (
-              <EyeOff
-                className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-secondary cursor-pointer hover:text-text-primary"
-                onClick={() => setShowPassword(false)}
-              />
-            ) : (
-              <Eye
-                className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-secondary cursor-pointer hover:text-text-primary"
-                onClick={() => setShowPassword(true)}
-              />
-            )}
-          </div>
+          <PasswordInput
+            id="password"
+            placeholder="••••••••"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            disabled={isLoading}
+            minLength={8}
+          />
           <p className={`${typography.body.tiny} text-white/60`}>
             Mínimo de 8 caracteres
           </p>
@@ -88,30 +70,15 @@ export function ResetPasswordForm() {
 
         <div className="grid gap-3">
           <Label htmlFor="confirmPassword">Confirmar Nova Senha</Label>
-          <div className="relative">
-            <Input
-              id="confirmPassword"
-              type={showConfirmPassword ? 'text' : 'password'}
-              placeholder="••••••••"
-              required
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              disabled={isLoading}
-              className="pr-10"
-              minLength={8}
-            />
-            {showConfirmPassword ? (
-              <EyeOff
-                className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-secondary cursor-pointer hover:text-text-primary"
-                onClick={() => setShowConfirmPassword(false)}
-              />
-            ) : (
-              <Eye
-                className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-secondary cursor-pointer hover:text-text-primary"
-                onClick={() => setShowConfirmPassword(true)}
-              />
-            )}
-          </div>
+          <PasswordInput
+            id="confirmPassword"
+            placeholder="••••••••"
+            required
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            disabled={isLoading}
+            minLength={8}
+          />
         </div>
 
         <Button type="submit" variant="gradient" className="w-full" disabled={isLoading}>

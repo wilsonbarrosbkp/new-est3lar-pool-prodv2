@@ -275,7 +275,7 @@ export default function PoolStatsPage() {
                 />
                 <RechartsTooltip
                   contentStyle={chartStyles.tooltip}
-                  formatter={(value: any) => formatHashrate(value)}
+                  formatter={(value: number | string | undefined) => formatHashrate(Number(value || 0))}
                 />
                 <Legend />
                 <Line

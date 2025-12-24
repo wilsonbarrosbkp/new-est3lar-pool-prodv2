@@ -124,7 +124,14 @@ export default function RevenuePage() {
       if (poolsResult.error) throw poolsResult.error
       if (currenciesResult.error) throw currenciesResult.error
 
-      const reportsWithDetails = (reportsResult.data || []).map((report: any) => ({
+      // Tipo para o resultado da query com joins
+      type RevenueReportWithRelations = RevenueReport & {
+        organizations: { name: string } | null
+        pools: { name: string } | null
+        currencies: { symbol: string } | null
+      }
+
+      const reportsWithDetails = (reportsResult.data || []).map((report: RevenueReportWithRelations) => ({
         ...report,
         organization_name: report.organizations?.name,
         pool_name: report.pools?.name,
