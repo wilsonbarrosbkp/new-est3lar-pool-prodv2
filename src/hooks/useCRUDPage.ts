@@ -146,7 +146,7 @@ export function useCRUDPage<T extends { id: number | string }, F>(
     entityName = 'registro',
   } = options
 
-  // Refs para funções callback (evita loops infinitos)
+  // Refs para funções callback e objetos (evita loops infinitos)
   const customLoadDataRef = useRef(customLoadData)
   const customSubmitRef = useRef(customSubmit)
   const onDataLoadedRef = useRef(onDataLoaded)
@@ -158,8 +158,10 @@ export function useCRUDPage<T extends { id: number | string }, F>(
   const validateFormRef = useRef(validateForm)
   const mapFormToDataRef = useRef(mapFormToData)
   const mapDataToFormRef = useRef(mapDataToForm)
+  const defaultOrderByRef = useRef(defaultOrderBy)
+  const messagesRef = useRef(messages)
 
-  // Atualizar refs quando as funções mudarem
+  // Atualizar refs quando as funções/objetos mudarem
   useEffect(() => {
     customLoadDataRef.current = customLoadData
     customSubmitRef.current = customSubmit
@@ -172,6 +174,8 @@ export function useCRUDPage<T extends { id: number | string }, F>(
     validateFormRef.current = validateForm
     mapFormToDataRef.current = mapFormToData
     mapDataToFormRef.current = mapDataToForm
+    defaultOrderByRef.current = defaultOrderBy
+    messagesRef.current = messages
   })
 
   // Estados principais
@@ -185,17 +189,19 @@ export function useCRUDPage<T extends { id: number | string }, F>(
   const [formData, setFormData] = useState<F>(initialFormData)
   const [saving, setSaving] = useState(false)
 
-  // Mensagens padrão
-  const defaultMessages = {
-    loadError: `Erro ao carregar ${entityName}s`,
-    createSuccess: `${capitalize(entityName)} criado(a) com sucesso!`,
-    updateSuccess: `${capitalize(entityName)} atualizado(a) com sucesso!`,
-    deleteSuccess: `${capitalize(entityName)} excluído(a) com sucesso!`,
-    deleteConfirm: (_item: T) => `Tem certeza que deseja excluir este(a) ${entityName}?`,
-    saveError: `Erro ao salvar ${entityName}`,
-    deleteError: `Erro ao excluir ${entityName}`,
-    ...messages,
-  }
+  // Função para obter mensagens (usa refs para evitar loops)
+  const getMessages = useCallback(() => {
+    const msgs = messagesRef.current
+    return {
+      loadError: msgs.loadError ?? `Erro ao carregar ${entityName}s`,
+      createSuccess: msgs.createSuccess ?? `${capitalize(entityName)} criado(a) com sucesso!`,
+      updateSuccess: msgs.updateSuccess ?? `${capitalize(entityName)} atualizado(a) com sucesso!`,
+      deleteSuccess: msgs.deleteSuccess ?? `${capitalize(entityName)} excluído(a) com sucesso!`,
+      deleteConfirm: msgs.deleteConfirm ?? ((_item: T) => `Tem certeza que deseja excluir este(a) ${entityName}?`),
+      saveError: msgs.saveError ?? `Erro ao salvar ${entityName}`,
+      deleteError: msgs.deleteError ?? `Erro ao excluir ${entityName}`,
+    }
+  }, [entityName])
 
   // Função para definir um filtro
   const setFilter = useCallback((key: string, value: string) => {
@@ -216,9 +222,10 @@ export function useCRUDPage<T extends { id: number | string }, F>(
         let query = supabase.from(tableName).select(selectFields)
 
         // Ordenação
-        if (defaultOrderBy) {
-          query = query.order(defaultOrderBy.column, {
-            ascending: defaultOrderBy.ascending ?? false,
+        const orderBy = defaultOrderByRef.current
+        if (orderBy) {
+          query = query.order(orderBy.column, {
+            ascending: orderBy.ascending ?? false,
           })
         }
 
@@ -238,11 +245,11 @@ export function useCRUDPage<T extends { id: number | string }, F>(
       onDataLoadedRef.current?.(items)
     } catch (error) {
       console.error(`Erro ao carregar ${entityName}s:`, error)
-      toast.error(defaultMessages.loadError)
+      toast.error(getMessages().loadError)
     } finally {
       setLoading(false)
     }
-  }, [tableName, selectFields, defaultOrderBy, limit, entityName, defaultMessages.loadError])
+  }, [tableName, selectFields, limit, entityName, getMessages])
 
   // Carregar dados na montagem
   useEffect(() => {
@@ -354,6 +361,7 @@ export function useCRUDPage<T extends { id: number | string }, F>(
       }
 
       setSaving(true)
+      const msgs = getMessages()
 
       try {
         // Usar submit customizado se fornecido
@@ -384,7 +392,7 @@ export function useCRUDPage<T extends { id: number | string }, F>(
 
           if (error) throw error
 
-          toast.success(defaultMessages.updateSuccess)
+          toast.success(msgs.updateSuccess)
           onAfterUpdateRef.current?.(updated as T)
         } else {
           // Create
@@ -400,7 +408,7 @@ export function useCRUDPage<T extends { id: number | string }, F>(
 
           if (error) throw error
 
-          toast.success(defaultMessages.createSuccess)
+          toast.success(msgs.createSuccess)
           onAfterCreateRef.current?.(created as T)
         }
 
@@ -408,7 +416,7 @@ export function useCRUDPage<T extends { id: number | string }, F>(
         loadData()
       } catch (error) {
         console.error(`Erro ao salvar ${entityName}:`, error)
-        toast.error(defaultMessages.saveError)
+        toast.error(msgs.saveError)
       } finally {
         setSaving(false)
       }
@@ -420,14 +428,15 @@ export function useCRUDPage<T extends { id: number | string }, F>(
       handleCloseSheet,
       loadData,
       entityName,
-      defaultMessages,
+      getMessages,
     ]
   )
 
   // Deletar item
   const handleDelete = useCallback(
     async (item: T) => {
-      const confirmMessage = defaultMessages.deleteConfirm(item)
+      const msgs = getMessages()
+      const confirmMessage = msgs.deleteConfirm(item)
       if (!confirm(confirmMessage)) {
         return
       }
@@ -440,15 +449,15 @@ export function useCRUDPage<T extends { id: number | string }, F>(
 
         if (error) throw error
 
-        toast.success(defaultMessages.deleteSuccess)
+        toast.success(msgs.deleteSuccess)
         onAfterDeleteRef.current?.(item.id)
         loadData()
       } catch (error) {
         console.error(`Erro ao excluir ${entityName}:`, error)
-        toast.error(defaultMessages.deleteError)
+        toast.error(msgs.deleteError)
       }
     },
-    [tableName, loadData, entityName, defaultMessages]
+    [tableName, loadData, entityName, getMessages]
   )
 
   return {

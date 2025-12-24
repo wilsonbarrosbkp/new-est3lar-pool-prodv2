@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import {
   Webhook as WebhookIcon,
   Plus,
@@ -50,6 +50,7 @@ import { Checkbox } from '@/components/ui/Checkbox'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
 import { typography } from '@/design-system/tokens'
+import { useCRUDPage } from '@/hooks/useCRUDPage'
 import type {
   Webhook,
   OrganizationOption,
@@ -91,22 +92,34 @@ const availableEvents = [
 ]
 
 export default function WebhooksPage() {
-  const [webhooks, setWebhooks] = useState<Webhook[]>([])
+  // Estados locais para dados relacionados e filtros
   const [organizations, setOrganizations] = useState<OrganizationOption[]>([])
-  const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState('')
   const [filterOrg, setFilterOrg] = useState<string>('all')
   const [filterStatus, setFilterStatus] = useState<string>('all')
-  const [sheetOpen, setSheetOpen] = useState(false)
-  const [editingWebhook, setEditingWebhook] = useState<Webhook | null>(null)
-  const [formData, setFormData] = useState(initialFormData)
-  const [saving, setSaving] = useState(false)
   const [copiedId, setCopiedId] = useState<number | null>(null)
   const [copiedSecretId, setCopiedSecretId] = useState<number | null>(null)
 
-  const loadData = useCallback(async () => {
-    setLoading(true)
-    try {
+  const {
+    loading,
+    search,
+    setSearch,
+    sheetOpen,
+    setSheetOpen,
+    editing,
+    formData,
+    setFormData,
+    saving,
+    loadData,
+    handleOpenCreate,
+    handleOpenEdit,
+    handleCloseSheet,
+    handleSubmit,
+    handleDelete,
+    filteredData: baseFilteredData,
+  } = useCRUDPage<Webhook, FormData>({
+    tableName: 'webhooks',
+    initialFormData,
+    customLoadData: async () => {
       const [webhooksResult, orgsResult] = await Promise.all([
         supabase
           .from('webhooks')
@@ -121,36 +134,63 @@ export default function WebhooksPage() {
       if (webhooksResult.error) throw webhooksResult.error
       if (orgsResult.error) throw orgsResult.error
 
-      const webhooksWithDetails = (webhooksResult.data || []).map((webhook: any) => ({
+      setOrganizations(orgsResult.data || [])
+
+      return (webhooksResult.data || []).map((webhook: any) => ({
         ...webhook,
         organization_name: webhook.organizations?.name,
-      }))
-
-      setWebhooks(webhooksWithDetails)
-      setOrganizations(orgsResult.data || [])
-    } catch (error) {
-      console.error('Erro ao carregar dados:', error)
-      toast.error('Erro ao carregar webhooks')
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    loadData()
-  }, [loadData])
-
-  const filteredWebhooks = webhooks.filter(webhook => {
-    const matchesSearch =
-      webhook.name.toLowerCase().includes(search.toLowerCase()) ||
-      webhook.url.toLowerCase().includes(search.toLowerCase()) ||
-      webhook.organization_name?.toLowerCase().includes(search.toLowerCase())
-    const matchesOrg = filterOrg === 'all' || webhook.organization_id.toString() === filterOrg
-    const matchesStatus = filterStatus === 'all' || webhook.status === filterStatus
-    return matchesSearch && matchesOrg && matchesStatus
+      })) as Webhook[]
+    },
+    mapDataToForm: (webhook) => ({
+      name: webhook.name,
+      url: webhook.url,
+      events: webhook.events || [],
+      organization_id: webhook.organization_id,
+      secret: webhook.secret || '',
+      retry_count: webhook.retry_count ?? 3,
+      timeout_ms: webhook.timeout_ms ?? 30000,
+      status: webhook.status,
+    }),
+    mapFormToData: (data) => ({
+      name: data.name,
+      url: data.url,
+      events: data.events,
+      organization_id: data.organization_id,
+      secret: data.secret || null,
+      retry_count: data.retry_count,
+      timeout_ms: data.timeout_ms,
+      status: data.status,
+    }),
+    validateForm: (data) => {
+      if (!data.name.trim() || !data.url.trim()) {
+        return 'Nome e URL são obrigatórios'
+      }
+      if (!data.organization_id) {
+        return 'Organização é obrigatória'
+      }
+      if (data.events.length === 0) {
+        return 'Selecione pelo menos um evento'
+      }
+      return null
+    },
+    searchFields: ['name', 'url', 'organization_name'],
+    entityName: 'webhook',
+    messages: {
+      deleteConfirm: (webhook) => `Tem certeza que deseja excluir "${webhook.name}"?`,
+    },
   })
 
-  const handleCopyUrl = async (webhook: Webhook) => {
+  // Filtros adicionais sobre os dados já filtrados pelo hook
+  const filteredWebhooks = useMemo(() => {
+    return baseFilteredData.filter((webhook) => {
+      const matchesOrg = filterOrg === 'all' || webhook.organization_id.toString() === filterOrg
+      const matchesStatus = filterStatus === 'all' || webhook.status === filterStatus
+      return matchesOrg && matchesStatus
+    })
+  }, [baseFilteredData, filterOrg, filterStatus])
+
+  // Funções auxiliares
+  const handleCopyUrl = useCallback(async (webhook: Webhook) => {
     try {
       await navigator.clipboard.writeText(webhook.url)
       setCopiedId(webhook.id)
@@ -159,9 +199,9 @@ export default function WebhooksPage() {
     } catch {
       toast.error('Erro ao copiar URL')
     }
-  }
+  }, [])
 
-  const handleCopySecret = async (webhook: Webhook) => {
+  const handleCopySecret = useCallback(async (webhook: Webhook) => {
     if (!webhook.secret) return
     try {
       await navigator.clipboard.writeText(webhook.secret)
@@ -171,116 +211,9 @@ export default function WebhooksPage() {
     } catch {
       toast.error('Erro ao copiar secret')
     }
-  }
+  }, [])
 
-  const handleOpenCreate = () => {
-    setEditingWebhook(null)
-    setFormData(initialFormData)
-    setSheetOpen(true)
-  }
-
-  const handleOpenEdit = (webhook: Webhook) => {
-    setEditingWebhook(webhook)
-    setFormData({
-      name: webhook.name,
-      url: webhook.url,
-      events: webhook.events || [],
-      organization_id: webhook.organization_id,
-      secret: webhook.secret || '',
-      retry_count: webhook.retry_count ?? 3,
-      timeout_ms: webhook.timeout_ms ?? 30000,
-      status: webhook.status,
-    })
-    setSheetOpen(true)
-  }
-
-  const handleCloseSheet = () => {
-    setSheetOpen(false)
-    setEditingWebhook(null)
-    setFormData(initialFormData)
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    if (!formData.name.trim() || !formData.url.trim()) {
-      toast.error('Nome e URL são obrigatórios')
-      return
-    }
-
-    if (!formData.organization_id) {
-      toast.error('Organização é obrigatória')
-      return
-    }
-
-    if (formData.events.length === 0) {
-      toast.error('Selecione pelo menos um evento')
-      return
-    }
-
-    setSaving(true)
-
-    try {
-      const webhookData = {
-        name: formData.name,
-        url: formData.url,
-        events: formData.events,
-        organization_id: formData.organization_id,
-        secret: formData.secret || null,
-        retry_count: formData.retry_count,
-        timeout_ms: formData.timeout_ms,
-        status: formData.status,
-      }
-
-      if (editingWebhook) {
-        const { error } = await supabase
-          .from('webhooks')
-          .update(webhookData)
-          .eq('id', editingWebhook.id)
-
-        if (error) throw error
-        toast.success('Webhook atualizado com sucesso!')
-      } else {
-        const { error } = await supabase
-          .from('webhooks')
-          .insert(webhookData)
-
-        if (error) throw error
-        toast.success('Webhook criado com sucesso!')
-      }
-
-      handleCloseSheet()
-      loadData()
-    } catch (error) {
-      console.error('Erro ao salvar webhook:', error)
-      toast.error('Erro ao salvar webhook')
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  const handleDelete = async (webhook: Webhook) => {
-    if (!confirm(`Tem certeza que deseja excluir "${webhook.name}"?`)) {
-      return
-    }
-
-    try {
-      const { error } = await supabase
-        .from('webhooks')
-        .delete()
-        .eq('id', webhook.id)
-
-      if (error) throw error
-
-      toast.success('Webhook excluído com sucesso!')
-      loadData()
-    } catch (error) {
-      console.error('Erro ao excluir webhook:', error)
-      toast.error('Erro ao excluir webhook')
-    }
-  }
-
-  const toggleStatus = async (webhook: Webhook) => {
+  const toggleStatus = useCallback(async (webhook: Webhook) => {
     try {
       const { error } = await supabase
         .from('webhooks')
@@ -293,31 +226,34 @@ export default function WebhooksPage() {
       console.error('Erro ao atualizar status:', error)
       toast.error('Erro ao atualizar status')
     }
-  }
+  }, [loadData])
 
-  const testWebhook = async (webhook: Webhook) => {
+  const testWebhook = useCallback((webhook: Webhook) => {
     toast.info(`Testando webhook "${webhook.name}"...`)
     // In a real implementation, this would trigger a test payload
     setTimeout(() => {
       toast.success('Webhook testado com sucesso!')
     }, 1000)
-  }
+  }, [])
 
-  const formatDate = (date: string | null) => {
+  const formatDate = useCallback((date: string | null) => {
     if (!date) return 'Nunca'
     return new Date(date).toLocaleString('pt-BR')
-  }
+  }, [])
 
-  const toggleEvent = (event: string) => {
+  const toggleEvent = useCallback((event: string) => {
     setFormData((prev) => ({
       ...prev,
       events: prev.events.includes(event)
         ? prev.events.filter((e) => e !== event)
         : [...prev.events, event],
     }))
-  }
+  }, [setFormData])
 
-  const activeWebhooks = filteredWebhooks.filter(w => w.status === 'ativo').length
+  const activeWebhooks = useMemo(
+    () => filteredWebhooks.filter(w => w.status === 'ativo').length,
+    [filteredWebhooks]
+  )
 
   return (
     <div className="space-y-6">
@@ -556,10 +492,10 @@ export default function WebhooksPage() {
         <SheetContent side="right" className="sm:max-w-lg overflow-y-auto">
           <SheetHeader>
             <SheetTitle>
-              {editingWebhook ? 'Editar Webhook' : 'Novo Webhook'}
+              {editing ? 'Editar Webhook' : 'Novo Webhook'}
             </SheetTitle>
             <SheetDescription>
-              {editingWebhook
+              {editing
                 ? 'Altere as informações do webhook abaixo.'
                 : 'Preencha as informações para criar um novo webhook.'}
             </SheetDescription>
@@ -705,7 +641,7 @@ export default function WebhooksPage() {
                 Cancelar
               </Button>
               <Button type="submit" disabled={saving}>
-                {saving ? 'Salvando...' : editingWebhook ? 'Atualizar' : 'Criar'}
+                {saving ? 'Salvando...' : editing ? 'Atualizar' : 'Criar'}
               </Button>
             </SheetFooter>
           </form>
