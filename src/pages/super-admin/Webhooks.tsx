@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import {
-  Webhook,
+  Webhook as WebhookIcon,
   Plus,
   MoreHorizontal,
   Search,
@@ -50,27 +50,10 @@ import { Checkbox } from '@/components/ui/Checkbox'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
 import { typography } from '@/design-system/tokens'
-
-interface WebhookData {
-  id: number
-  name: string
-  url: string
-  events: string[]
-  organization_id: number
-  organization_name?: string
-  secret: string | null
-  headers: Record<string, string> | null
-  retry_count: number
-  timeout_ms: number
-  status: 'ativo' | 'inativo'
-  created_at: string
-  last_triggered: string | null
-}
-
-interface Organization {
-  id: number
-  name: string
-}
+import type {
+  Webhook,
+  OrganizationOption,
+} from '@/types/super-admin'
 
 type FormData = {
   name: string
@@ -108,14 +91,14 @@ const availableEvents = [
 ]
 
 export default function WebhooksPage() {
-  const [webhooks, setWebhooks] = useState<WebhookData[]>([])
-  const [organizations, setOrganizations] = useState<Organization[]>([])
+  const [webhooks, setWebhooks] = useState<Webhook[]>([])
+  const [organizations, setOrganizations] = useState<OrganizationOption[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [filterOrg, setFilterOrg] = useState<string>('all')
   const [filterStatus, setFilterStatus] = useState<string>('all')
   const [sheetOpen, setSheetOpen] = useState(false)
-  const [editingWebhook, setEditingWebhook] = useState<WebhookData | null>(null)
+  const [editingWebhook, setEditingWebhook] = useState<Webhook | null>(null)
   const [formData, setFormData] = useState(initialFormData)
   const [saving, setSaving] = useState(false)
   const [copiedId, setCopiedId] = useState<number | null>(null)
@@ -167,7 +150,7 @@ export default function WebhooksPage() {
     return matchesSearch && matchesOrg && matchesStatus
   })
 
-  const handleCopyUrl = async (webhook: WebhookData) => {
+  const handleCopyUrl = async (webhook: Webhook) => {
     try {
       await navigator.clipboard.writeText(webhook.url)
       setCopiedId(webhook.id)
@@ -178,7 +161,7 @@ export default function WebhooksPage() {
     }
   }
 
-  const handleCopySecret = async (webhook: WebhookData) => {
+  const handleCopySecret = async (webhook: Webhook) => {
     if (!webhook.secret) return
     try {
       await navigator.clipboard.writeText(webhook.secret)
@@ -196,7 +179,7 @@ export default function WebhooksPage() {
     setSheetOpen(true)
   }
 
-  const handleOpenEdit = (webhook: WebhookData) => {
+  const handleOpenEdit = (webhook: Webhook) => {
     setEditingWebhook(webhook)
     setFormData({
       name: webhook.name,
@@ -204,8 +187,8 @@ export default function WebhooksPage() {
       events: webhook.events || [],
       organization_id: webhook.organization_id,
       secret: webhook.secret || '',
-      retry_count: webhook.retry_count,
-      timeout_ms: webhook.timeout_ms,
+      retry_count: webhook.retry_count ?? 3,
+      timeout_ms: webhook.timeout_ms ?? 30000,
       status: webhook.status,
     })
     setSheetOpen(true)
@@ -276,7 +259,7 @@ export default function WebhooksPage() {
     }
   }
 
-  const handleDelete = async (webhook: WebhookData) => {
+  const handleDelete = async (webhook: Webhook) => {
     if (!confirm(`Tem certeza que deseja excluir "${webhook.name}"?`)) {
       return
     }
@@ -297,7 +280,7 @@ export default function WebhooksPage() {
     }
   }
 
-  const toggleStatus = async (webhook: WebhookData) => {
+  const toggleStatus = async (webhook: Webhook) => {
     try {
       const { error } = await supabase
         .from('webhooks')
@@ -312,7 +295,7 @@ export default function WebhooksPage() {
     }
   }
 
-  const testWebhook = async (webhook: WebhookData) => {
+  const testWebhook = async (webhook: Webhook) => {
     toast.info(`Testando webhook "${webhook.name}"...`)
     // In a real implementation, this would trigger a test payload
     setTimeout(() => {
@@ -386,7 +369,7 @@ export default function WebhooksPage() {
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 bg-primary/10 text-primary rounded-full flex items-center justify-center">
-                <Webhook className="h-5 w-5" />
+                <WebhookIcon className="h-5 w-5" />
               </div>
               <div>
                 <p className={`${typography.kpi.title} text-text-secondary`}>Total Webhooks</p>
@@ -434,7 +417,7 @@ export default function WebhooksPage() {
             </div>
           ) : filteredWebhooks.length === 0 ? (
             <div className="text-center py-12">
-              <Webhook className="mx-auto h-12 w-12 text-text-secondary mb-4" />
+              <WebhookIcon className="mx-auto h-12 w-12 text-text-secondary mb-4" />
               <p className="text-text-secondary">
                 {search || filterOrg !== 'all' || filterStatus !== 'all'
                   ? 'Nenhum webhook encontrado'
@@ -460,7 +443,7 @@ export default function WebhooksPage() {
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <div className="h-10 w-10 bg-primary/10 text-primary rounded-full flex items-center justify-center">
-                          <Webhook className="h-5 w-5" />
+                          <WebhookIcon className="h-5 w-5" />
                         </div>
                         <div>
                           <p className={typography.weight.medium}>{webhook.name}</p>
@@ -523,7 +506,7 @@ export default function WebhooksPage() {
                     <TableCell>{webhook.organization_name}</TableCell>
                     <TableCell>
                       <span className={`${typography.body.small} text-text-secondary`}>
-                        {formatDate(webhook.last_triggered)}
+                        {webhook.last_triggered ? formatDate(webhook.last_triggered) : '-'}
                       </span>
                     </TableCell>
                     <TableCell>

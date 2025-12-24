@@ -51,43 +51,15 @@ import { Textarea } from '@/components/ui/Textarea'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
 import { typography } from '@/design-system/tokens'
+import type {
+  Payment,
+  OrganizationOption,
+  PoolOption,
+  PaymentType,
+} from '@/types/super-admin'
 
-interface Payment {
-  id: number
-  organization_id: number
-  organization_name?: string
-  pool_id: number | null
-  pool_name?: string
-  wallet_id: number
-  wallet_address?: string
-  wallet_label?: string
-  amount: number
-  currency_id: number
-  currency_symbol?: string
-  type: 'block_reward' | 'transaction_fee' | 'withdrawal' | 'manual' | 'adjustment'
-  fee: number
-  tx_hash: string | null
-  block_height: number | null
-  confirmations: number
-  status: 'pendente' | 'processando' | 'concluido' | 'falhou' | 'cancelado'
-  notes: string | null
-  created_at: string
-  processed_at: string | null
-  confirmed_at: string | null
-}
-
-interface Organization {
-  id: number
-  name: string
-}
-
-interface Pool {
-  id: number
-  name: string
-  organization_id: number
-}
-
-interface Wallet {
+/** Wallet parcial para uso em selects */
+type WalletOption = {
   id: number
   label: string
   address: string
@@ -95,7 +67,8 @@ interface Wallet {
   currency_id: number
 }
 
-interface Currency {
+/** Currency parcial para uso em selects */
+type CurrencyOption = {
   id: number
   name: string
   symbol: string
@@ -108,7 +81,7 @@ type FormData = {
   wallet_id: number | null
   amount: number
   currency_id: number | null
-  type: Payment['type']
+  type: PaymentType
   fee: number
   tx_hash: string
   block_height: number | null
@@ -148,10 +121,10 @@ const typeOptions = [
 
 export default function PaymentsPage() {
   const [payments, setPayments] = useState<Payment[]>([])
-  const [organizations, setOrganizations] = useState<Organization[]>([])
-  const [pools, setPools] = useState<Pool[]>([])
-  const [wallets, setWallets] = useState<Wallet[]>([])
-  const [currencies, setCurrencies] = useState<Currency[]>([])
+  const [organizations, setOrganizations] = useState<OrganizationOption[]>([])
+  const [pools, setPools] = useState<PoolOption[]>([])
+  const [wallets, setWallets] = useState<WalletOption[]>([])
+  const [currencies, setCurrencies] = useState<CurrencyOption[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [filterOrg, setFilterOrg] = useState<string>('all')
@@ -258,14 +231,14 @@ export default function PaymentsPage() {
     setEditingPayment(payment)
     setFormData({
       organization_id: payment.organization_id,
-      pool_id: payment.pool_id,
+      pool_id: payment.pool_id ?? null,
       wallet_id: payment.wallet_id,
       amount: payment.amount,
       currency_id: payment.currency_id,
-      type: payment.type,
-      fee: payment.fee,
+      type: payment.type ?? 'manual',
+      fee: payment.fee ?? 0,
       tx_hash: payment.tx_hash || '',
-      block_height: payment.block_height,
+      block_height: payment.block_height ?? null,
       status: payment.status,
       notes: payment.notes || '',
     })
@@ -570,15 +543,15 @@ export default function PaymentsPage() {
                         <span className={`font-mono ${typography.weight.medium}`}>
                           {formatAmount(payment.amount, payment.currency_symbol || '')}
                         </span>
-                        {payment.fee > 0 && (
+                        {(payment.fee ?? 0) > 0 && (
                           <p className={`${typography.body.tiny} text-text-secondary`}>
-                            Fee: {payment.fee.toFixed(8)}
+                            Fee: {(payment.fee ?? 0).toFixed(8)}
                           </p>
                         )}
                       </TableCell>
                       <TableCell>
                         <Badge variant="secondary" className={typography.body.tiny}>
-                          {getTypeLabel(payment.type)}
+                          {getTypeLabel(payment.type ?? 'manual')}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -800,8 +773,8 @@ export default function PaymentsPage() {
                 <Label htmlFor="type">Tipo</Label>
                 <Select
                   value={formData.type}
-                  onValueChange={(value: Payment['type']) =>
-                    setFormData((prev) => ({ ...prev, type: value }))
+                  onValueChange={(value: string) =>
+                    setFormData((prev) => ({ ...prev, type: value as PaymentType }))
                   }
                 >
                   <SelectTrigger>

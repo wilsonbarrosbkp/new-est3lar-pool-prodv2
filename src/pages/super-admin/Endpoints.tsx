@@ -50,25 +50,10 @@ import { Switch } from '@/components/ui/Switch'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
 import { typography } from '@/design-system/tokens'
-
-interface Endpoint {
-  id: number
-  name: string
-  url: string
-  type: 'stratum' | 'api' | 'webhook'
-  organization_id: number | null
-  organization_name?: string
-  port: number | null
-  difficulty: number | null
-  is_ssl: boolean
-  status: 'ativo' | 'inativo'
-  created_at: string
-}
-
-interface Organization {
-  id: number
-  name: string
-}
+import type {
+  Endpoint,
+  OrganizationOption,
+} from '@/types/super-admin'
 
 type FormData = {
   name: string
@@ -100,7 +85,7 @@ const typeOptions = [
 
 export default function EndpointsPage() {
   const [endpoints, setEndpoints] = useState<Endpoint[]>([])
-  const [organizations, setOrganizations] = useState<Organization[]>([])
+  const [organizations, setOrganizations] = useState<OrganizationOption[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [filterType, setFilterType] = useState<string>('all')
@@ -184,10 +169,10 @@ export default function EndpointsPage() {
       name: endpoint.name,
       url: endpoint.url,
       type: endpoint.type,
-      organization_id: endpoint.organization_id,
-      port: endpoint.port,
-      difficulty: endpoint.difficulty,
-      is_ssl: endpoint.is_ssl,
+      organization_id: endpoint.organization_id ?? null,
+      port: endpoint.port ?? null,
+      difficulty: endpoint.difficulty ?? null,
+      is_ssl: endpoint.is_ssl ?? false,
       status: endpoint.status,
     })
     setSheetOpen(true)

@@ -46,41 +46,12 @@ import {
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
 import { typography } from '@/design-system/tokens'
-
-interface Pool {
-  id: number
-  name: string
-  organization_id: number
-  organization_name?: string
-  currency_id: number
-  currency_symbol?: string
-  payout_model_id: number
-  payout_model_name?: string
-  pool_fee_percent: number
-  min_payout: number
-  stratum_url: string | null
-  stratum_port: number | null
-  stratum_difficulty: number | null
-  is_active: boolean
-  created_at: string
-}
-
-interface Organization {
-  id: number
-  name: string
-}
-
-interface Currency {
-  id: number
-  name: string
-  symbol: string
-}
-
-interface PayoutModel {
-  id: number
-  name: string
-  description: string
-}
+import type {
+  Pool,
+  OrganizationOption,
+  CurrencyOption,
+  PayoutModel,
+} from '@/types/super-admin'
 
 type FormData = {
   name: string
@@ -110,8 +81,8 @@ const initialFormData: FormData = {
 
 export default function PoolsPage() {
   const [pools, setPools] = useState<Pool[]>([])
-  const [organizations, setOrganizations] = useState<Organization[]>([])
-  const [currencies, setCurrencies] = useState<Currency[]>([])
+  const [organizations, setOrganizations] = useState<OrganizationOption[]>([])
+  const [currencies, setCurrencies] = useState<CurrencyOption[]>([])
   const [payoutModels, setPayoutModels] = useState<PayoutModel[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -187,14 +158,14 @@ export default function PoolsPage() {
     setFormData({
       name: pool.name,
       organization_id: pool.organization_id,
-      currency_id: pool.currency_id,
+      currency_id: pool.currency_id ?? null,
       payout_model_id: pool.payout_model_id,
       pool_fee_percent: pool.pool_fee_percent,
-      min_payout: pool.min_payout,
+      min_payout: pool.min_payout ?? 0.001,
       stratum_url: pool.stratum_url || '',
-      stratum_port: pool.stratum_port,
-      stratum_difficulty: pool.stratum_difficulty,
-      is_active: pool.is_active,
+      stratum_port: pool.stratum_port ?? null,
+      stratum_difficulty: pool.stratum_difficulty ?? null,
+      is_active: pool.is_active ?? true,
     })
     setSheetOpen(true)
   }

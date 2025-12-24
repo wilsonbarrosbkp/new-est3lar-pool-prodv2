@@ -48,47 +48,12 @@ import {
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
 import { typography } from '@/design-system/tokens'
-
-interface Worker {
-  id: number
-  name: string
-  hardware_id: number | null
-  hardware_name?: string
-  organization_id: number
-  organization_name?: string
-  pool_id: number
-  pool_name?: string
-  hashrate: number
-  hashrate_1h: number
-  hashrate_24h: number
-  shares_accepted: number
-  shares_rejected: number
-  shares_stale: number
-  difficulty: number
-  status: 'online' | 'offline' | 'idle'
-  last_share_at: string | null
-  last_seen: string | null
-  ip_address: string | null
-  user_agent: string | null
-  created_at: string
-}
-
-interface Organization {
-  id: number
-  name: string
-}
-
-interface Pool {
-  id: number
-  name: string
-  organization_id: number
-}
-
-interface Hardware {
-  id: number
-  name: string
-  organization_id: number
-}
+import type {
+  Worker,
+  OrganizationOption,
+  PoolOption,
+  HardwareOption,
+} from '@/types/super-admin'
 
 type FormData = {
   name: string
@@ -114,9 +79,9 @@ const statusOptions = [
 
 export default function WorkersPage() {
   const [workers, setWorkers] = useState<Worker[]>([])
-  const [organizations, setOrganizations] = useState<Organization[]>([])
-  const [pools, setPools] = useState<Pool[]>([])
-  const [hardware, setHardware] = useState<Hardware[]>([])
+  const [organizations, setOrganizations] = useState<OrganizationOption[]>([])
+  const [pools, setPools] = useState<PoolOption[]>([])
+  const [hardware, setHardware] = useState<HardwareOption[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [filterOrg, setFilterOrg] = useState<string>('all')
@@ -207,7 +172,7 @@ export default function WorkersPage() {
       name: worker.name,
       organization_id: worker.organization_id,
       pool_id: worker.pool_id,
-      hardware_id: worker.hardware_id,
+      hardware_id: worker.hardware_id ?? null,
       status: worker.status,
     })
     setSheetOpen(true)
@@ -318,7 +283,7 @@ export default function WorkersPage() {
   }
 
   const getSharesEfficiency = (worker: Worker) => {
-    const total = worker.shares_accepted + worker.shares_rejected + worker.shares_stale
+    const total = worker.shares_accepted + worker.shares_rejected + (worker.shares_stale ?? 0)
     if (total === 0) return 0
     return ((worker.shares_accepted / total) * 100).toFixed(1)
   }
@@ -506,7 +471,7 @@ export default function WorkersPage() {
                         <div>
                           <p className="font-mono">{formatHashrate(worker.hashrate)}</p>
                           <p className={`${typography.table.small} text-text-secondary`}>
-                            1h: {formatHashrate(worker.hashrate_1h)} | 24h: {formatHashrate(worker.hashrate_24h)}
+                            1h: {formatHashrate(worker.hashrate_1h ?? 0)} | 24h: {formatHashrate(worker.hashrate_24h ?? 0)}
                           </p>
                         </div>
                       </TableCell>
@@ -515,10 +480,10 @@ export default function WorkersPage() {
                           <span className="text-success">{worker.shares_accepted.toLocaleString()}</span>
                           {' / '}
                           <span className="text-error">{worker.shares_rejected.toLocaleString()}</span>
-                          {worker.shares_stale > 0 && (
+                          {(worker.shares_stale ?? 0) > 0 && (
                             <>
                               {' / '}
-                              <span className="text-warning">{worker.shares_stale.toLocaleString()}</span>
+                              <span className="text-warning">{(worker.shares_stale ?? 0).toLocaleString()}</span>
                             </>
                           )}
                         </div>
@@ -536,7 +501,7 @@ export default function WorkersPage() {
                       </TableCell>
                       <TableCell>
                         <span className={`${typography.table.cell} text-text-secondary`}>
-                          {formatTimeAgo(worker.last_seen)}
+                          {formatTimeAgo(worker.last_seen ?? null)}
                         </span>
                       </TableCell>
                       <TableCell>

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import {
-  Wallet,
+  Wallet as WalletIcon,
   Plus,
   MoreHorizontal,
   Search,
@@ -47,32 +47,11 @@ import {
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
 import { typography } from '@/design-system/tokens'
-
-interface WalletData {
-  id: number
-  address: string
-  label: string
-  organization_id: number
-  organization_name?: string
-  currency_id: number
-  currency_symbol?: string
-  currency_name?: string
-  is_primary: boolean
-  is_active: boolean
-  created_at: string
-}
-
-interface Organization {
-  id: number
-  name: string
-}
-
-interface Currency {
-  id: number
-  name: string
-  symbol: string
-  type: string
-}
+import type {
+  Wallet,
+  OrganizationOption,
+  Currency,
+} from '@/types/super-admin'
 
 type FormData = {
   address: string
@@ -93,15 +72,15 @@ const initialFormData: FormData = {
 }
 
 export default function WalletsPage() {
-  const [wallets, setWallets] = useState<WalletData[]>([])
-  const [organizations, setOrganizations] = useState<Organization[]>([])
+  const [wallets, setWallets] = useState<Wallet[]>([])
+  const [organizations, setOrganizations] = useState<OrganizationOption[]>([])
   const [currencies, setCurrencies] = useState<Currency[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [filterOrg, setFilterOrg] = useState<string>('all')
   const [filterCurrency, setFilterCurrency] = useState<string>('all')
   const [sheetOpen, setSheetOpen] = useState(false)
-  const [editingWallet, setEditingWallet] = useState<WalletData | null>(null)
+  const [editingWallet, setEditingWallet] = useState<Wallet | null>(null)
   const [formData, setFormData] = useState(initialFormData)
   const [saving, setSaving] = useState(false)
   const [copiedId, setCopiedId] = useState<number | null>(null)
@@ -159,7 +138,7 @@ export default function WalletsPage() {
     return matchesSearch && matchesOrg && matchesCurrency
   })
 
-  const handleCopyAddress = async (wallet: WalletData) => {
+  const handleCopyAddress = async (wallet: Wallet) => {
     try {
       await navigator.clipboard.writeText(wallet.address)
       setCopiedId(wallet.id)
@@ -176,15 +155,15 @@ export default function WalletsPage() {
     setSheetOpen(true)
   }
 
-  const handleOpenEdit = (wallet: WalletData) => {
+  const handleOpenEdit = (wallet: Wallet) => {
     setEditingWallet(wallet)
     setFormData({
       address: wallet.address,
       label: wallet.label,
       organization_id: wallet.organization_id,
       currency_id: wallet.currency_id,
-      is_primary: wallet.is_primary,
-      is_active: wallet.is_active,
+      is_primary: wallet.is_primary ?? false,
+      is_active: wallet.is_active ?? true,
     })
     setSheetOpen(true)
   }
@@ -256,7 +235,7 @@ export default function WalletsPage() {
     }
   }
 
-  const handleDelete = async (wallet: WalletData) => {
+  const handleDelete = async (wallet: Wallet) => {
     if (!confirm(`Tem certeza que deseja excluir "${wallet.label}"?`)) {
       return
     }
@@ -277,7 +256,7 @@ export default function WalletsPage() {
     }
   }
 
-  const toggleActive = async (wallet: WalletData) => {
+  const toggleActive = async (wallet: Wallet) => {
     try {
       const { error } = await supabase
         .from('wallets')
@@ -292,7 +271,7 @@ export default function WalletsPage() {
     }
   }
 
-  const setPrimary = async (wallet: WalletData) => {
+  const setPrimary = async (wallet: Wallet) => {
     try {
       // Remover flag das outras
       await supabase
@@ -379,7 +358,7 @@ export default function WalletsPage() {
             </div>
           ) : filteredWallets.length === 0 ? (
             <div className="text-center py-12">
-              <Wallet className="mx-auto h-12 w-12 text-text-secondary mb-4" />
+              <WalletIcon className="mx-auto h-12 w-12 text-text-secondary mb-4" />
               <p className="text-text-secondary">
                 {search || filterOrg !== 'all' || filterCurrency !== 'all'
                   ? 'Nenhuma carteira encontrada'
@@ -407,7 +386,7 @@ export default function WalletsPage() {
                           {wallet.is_primary ? (
                             <Star className="h-5 w-5 fill-current" />
                           ) : (
-                            <Wallet className="h-5 w-5" />
+                            <WalletIcon className="h-5 w-5" />
                           )}
                         </div>
                         <div>

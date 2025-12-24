@@ -48,44 +48,12 @@ import {
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
 import { typography } from '@/design-system/tokens'
-
-interface RevenueReport {
-  id: number
-  organization_id: number
-  organization_name?: string
-  pool_id: number | null
-  pool_name?: string
-  period_start: string
-  period_end: string
-  total_hashrate: number
-  total_shares: number
-  blocks_found: number
-  gross_revenue: number
-  pool_fees: number
-  net_revenue: number
-  energy_cost: number
-  profit: number
-  currency_id: number | null
-  currency_symbol?: string
-  created_at: string
-}
-
-interface Organization {
-  id: number
-  name: string
-}
-
-interface Pool {
-  id: number
-  name: string
-  organization_id: number
-}
-
-interface Currency {
-  id: number
-  name: string
-  symbol: string
-}
+import type {
+  RevenueReport,
+  OrganizationOption,
+  PoolOption,
+  CurrencyOption,
+} from '@/types/super-admin'
 
 type FormData = {
   organization_id: number | null
@@ -121,9 +89,9 @@ const initialFormData: FormData = {
 
 export default function RevenuePage() {
   const [reports, setReports] = useState<RevenueReport[]>([])
-  const [organizations, setOrganizations] = useState<Organization[]>([])
-  const [pools, setPools] = useState<Pool[]>([])
-  const [currencies, setCurrencies] = useState<Currency[]>([])
+  const [organizations, setOrganizations] = useState<OrganizationOption[]>([])
+  const [pools, setPools] = useState<PoolOption[]>([])
+  const [currencies, setCurrencies] = useState<CurrencyOption[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [filterOrg, setFilterOrg] = useState<string>('all')
@@ -202,7 +170,7 @@ export default function RevenuePage() {
     setEditingReport(report)
     setFormData({
       organization_id: report.organization_id,
-      pool_id: report.pool_id,
+      pool_id: report.pool_id ?? null,
       period_start: report.period_start,
       period_end: report.period_end,
       total_hashrate: report.total_hashrate,
@@ -213,7 +181,7 @@ export default function RevenuePage() {
       net_revenue: report.net_revenue,
       energy_cost: report.energy_cost,
       profit: report.profit,
-      currency_id: report.currency_id,
+      currency_id: report.currency_id ?? null,
     })
     setSheetOpen(true)
   }

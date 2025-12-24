@@ -50,29 +50,10 @@ import {
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
 import { typography } from '@/design-system/tokens'
-
-interface Hardware {
-  id: number
-  name: string
-  model: string
-  manufacturer: string
-  hashrate: number
-  hashrate_unit: string
-  power_consumption: number
-  efficiency: number | null
-  organization_id: number
-  organization_name?: string
-  serial_number: string | null
-  purchase_date: string | null
-  warranty_until: string | null
-  status: 'ativo' | 'inativo' | 'manutencao'
-  created_at: string
-}
-
-interface Organization {
-  id: number
-  name: string
-}
+import type {
+  Hardware,
+  OrganizationOption,
+} from '@/types/super-admin'
 
 type FormData = {
   name: string
@@ -180,7 +161,7 @@ function mapServerFromDB(server: ServerFromDB): ServerData {
 
 export default function HardwarePage() {
   const [hardware, setHardware] = useState<Hardware[]>([])
-  const [organizations, setOrganizations] = useState<Organization[]>([])
+  const [organizations, setOrganizations] = useState<OrganizationOption[]>([])
   const [servers, setServers] = useState<ServerData[]>([])
   const [loadingServers, setLoadingServers] = useState(true)
   const [loading, setLoading] = useState(true)
@@ -273,9 +254,9 @@ export default function HardwarePage() {
       model: item.model,
       manufacturer: item.manufacturer,
       hashrate: item.hashrate,
-      hashrate_unit: item.hashrate_unit,
+      hashrate_unit: item.hashrate_unit ?? 'TH/s',
       power_consumption: item.power_consumption,
-      efficiency: item.efficiency,
+      efficiency: item.efficiency ?? null,
       organization_id: item.organization_id,
       serial_number: item.serial_number || '',
       purchase_date: item.purchase_date || '',
@@ -593,7 +574,7 @@ export default function HardwarePage() {
                       </TableCell>
                       <TableCell>{item.organization_name}</TableCell>
                       <TableCell>
-                        <span className="font-mono">{formatHashrate(item.hashrate, item.hashrate_unit)}</span>
+                        <span className="font-mono">{formatHashrate(item.hashrate, item.hashrate_unit ?? 'TH/s')}</span>
                       </TableCell>
                       <TableCell>{item.power_consumption}W</TableCell>
                       <TableCell>
