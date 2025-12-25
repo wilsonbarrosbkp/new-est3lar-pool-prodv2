@@ -1,14 +1,10 @@
 import {
   Building2,
   Plus,
-  MoreHorizontal,
   Users,
   Calendar,
   Download,
   Search,
-  ArrowUpDown,
-  ArrowUp,
-  ArrowDown,
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -25,21 +21,6 @@ import {
   TableRow,
 } from '@/components/ui/Table'
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/Sheet'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/DropdownMenu'
-import {
   Select,
   SelectContent,
   SelectItem,
@@ -53,6 +34,7 @@ import { supabase } from '@/lib/supabase/client'
 import { typography } from '@/design-system/tokens'
 import { useCRUDPage } from '@/hooks/useCRUDPage'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+import { DataTableSortHeader, TableActionMenu, CRUDFormSheet } from '@/components/crud'
 
 type FormData = {
   name: string
@@ -108,7 +90,6 @@ export default function OrganizationsPage() {
     entityName: 'organização',
     searchFields: ['name', 'email', 'cnpj', 'city'],
 
-    // Carregamento customizado para incluir contagem de usuários
     customLoadData: async () => {
       const { data: orgsData, error: orgsError } = await supabase
         .from('organizations')
@@ -172,17 +153,6 @@ export default function OrganizationsPage() {
     },
   })
 
-  const SortIcon = ({ columnKey }: { columnKey: keyof Organization }) => {
-    if (sortConfig?.key !== columnKey) {
-      return <ArrowUpDown className="ml-2 h-4 w-4" />
-    }
-    return sortConfig.direction === 'asc' ? (
-      <ArrowUp className="ml-2 h-4 w-4" />
-    ) : (
-      <ArrowDown className="ml-2 h-4 w-4" />
-    )
-  }
-
   const handleExport = () => {
     toast.info('Exportação em desenvolvimento')
   }
@@ -191,7 +161,6 @@ export default function OrganizationsPage() {
     <div className="space-y-4 sm:space-y-6">
       {/* Header com ações */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-        {/* Busca */}
         <div className="relative flex-1 sm:max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-secondary" />
           <Input
@@ -202,7 +171,6 @@ export default function OrganizationsPage() {
           />
         </div>
 
-        {/* Ações */}
         <div className="flex items-center gap-2 shrink-0">
           <Button variant="outline" size="sm" onClick={handleExport}>
             <Download className="h-4 w-4" />
@@ -243,51 +211,33 @@ export default function OrganizationsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className={`h-auto p-0 ${typography.weight.semibold} hover:bg-transparent ${typography.table.header}`}
-                      onClick={() => handleSort('name')}
-                    >
-                      Nome
-                      <SortIcon columnKey="name" />
-                    </Button>
-                  </TableHead>
-                  <TableHead>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className={`h-auto p-0 ${typography.weight.semibold} hover:bg-transparent ${typography.table.header}`}
-                      onClick={() => handleSort('status')}
-                    >
-                      Status
-                      <SortIcon columnKey="status" />
-                    </Button>
-                  </TableHead>
-                  <TableHead className="hidden sm:table-cell">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className={`h-auto p-0 ${typography.weight.semibold} hover:bg-transparent ${typography.table.header}`}
-                      onClick={() => handleSort('users_count')}
-                    >
-                      Usuários
-                      <SortIcon columnKey="users_count" />
-                    </Button>
-                  </TableHead>
+                  <DataTableSortHeader
+                    label="Nome"
+                    columnKey="name"
+                    sortConfig={sortConfig}
+                    onSort={handleSort}
+                  />
+                  <DataTableSortHeader
+                    label="Status"
+                    columnKey="status"
+                    sortConfig={sortConfig}
+                    onSort={handleSort}
+                  />
+                  <DataTableSortHeader
+                    label="Usuários"
+                    columnKey="users_count"
+                    sortConfig={sortConfig}
+                    onSort={handleSort}
+                    className="hidden sm:table-cell"
+                  />
                   <TableHead className="hidden lg:table-cell">Cidade/UF</TableHead>
-                  <TableHead className="hidden md:table-cell">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className={`h-auto p-0 ${typography.weight.semibold} hover:bg-transparent ${typography.table.header}`}
-                      onClick={() => handleSort('created_at')}
-                    >
-                      Criada em
-                      <SortIcon columnKey="created_at" />
-                    </Button>
-                  </TableHead>
+                  <DataTableSortHeader
+                    label="Criada em"
+                    columnKey="created_at"
+                    sortConfig={sortConfig}
+                    onSort={handleSort}
+                    className="hidden md:table-cell"
+                  />
                   <TableHead className="w-10 sm:w-12">Ações</TableHead>
                 </TableRow>
               </TableHeader>
@@ -333,25 +283,12 @@ export default function OrganizationsPage() {
                       </div>
                     </TableCell>
                     <TableCell className="py-2 sm:py-4">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-7 w-7 sm:h-8 sm:w-8 p-0">
-                            <MoreHorizontal className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleOpenEdit(org)}>
-                            Editar
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            className="text-error"
-                            onClick={() => handleDelete(org)}
-                          >
-                            Excluir
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <TableActionMenu
+                        actions={[
+                          { label: 'Editar', onClick: () => handleOpenEdit(org) },
+                          { label: 'Excluir', onClick: () => handleDelete(org), variant: 'destructive' },
+                        ]}
+                      />
                     </TableCell>
                   </TableRow>
                 ))}
@@ -367,194 +304,171 @@ export default function OrganizationsPage() {
       </div>
 
       {/* Sheet de criação/edição */}
-      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto p-4 sm:p-6">
-          <SheetHeader>
-            <SheetTitle className={typography.heading.h3}>
-              {editing ? 'Editar Organização' : 'Nova Organização'}
-            </SheetTitle>
-            <SheetDescription className={typography.body.small}>
-              {editing
-                ? 'Altere as informações da organização abaixo.'
-                : 'Preencha as informações para criar uma nova organização.'}
-            </SheetDescription>
-          </SheetHeader>
+      <CRUDFormSheet
+        open={sheetOpen}
+        onOpenChange={setSheetOpen}
+        title={editing ? 'Editar Organização' : 'Nova Organização'}
+        description={editing
+          ? 'Altere as informações da organização abaixo.'
+          : 'Preencha as informações para criar uma nova organização.'}
+        onSubmit={handleSubmit}
+        onCancel={handleCloseSheet}
+        saving={saving}
+        isEditing={!!editing}
+      >
+        {/* Dados da Empresa */}
+        <div className="space-y-3 sm:space-y-4">
+          <h3 className={`${typography.body.small} ${typography.weight.medium} text-text-secondary`}>
+            Dados da Empresa
+          </h3>
 
-          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 mt-4 sm:mt-6">
-            {/* Dados da Empresa */}
-            <div className="space-y-3 sm:space-y-4">
-              <h3 className={`${typography.body.small} ${typography.weight.medium} text-text-secondary`}>
-                Dados da Empresa
-              </h3>
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label htmlFor="name" className={typography.body.small}>Nome/Razão Social *</Label>
+            <Input
+              id="name"
+              value={formData.name}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, name: e.target.value }))
+              }
+              placeholder="Razão Social da empresa"
+              required
+              className={typography.body.small}
+            />
+          </div>
 
-              <div className="space-y-1.5 sm:space-y-2">
-                <Label htmlFor="name" className={typography.body.small}>Nome/Razão Social *</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, name: e.target.value }))
-                  }
-                  placeholder="Razão Social da empresa"
-                  required
-                  className={typography.body.small}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                <div className="space-y-1.5 sm:space-y-2">
-                  <Label htmlFor="cnpj" className={typography.body.small}>CNPJ</Label>
-                  <Input
-                    id="cnpj"
-                    value={formData.cnpj}
-                    onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, cnpj: e.target.value }))
-                    }
-                    placeholder="00.000.000/0000-00"
-                    className={typography.body.small}
-                  />
-                </div>
-
-                <div className="space-y-1.5 sm:space-y-2">
-                  <Label htmlFor="phone" className={typography.body.small}>Telefone</Label>
-                  <Input
-                    id="phone"
-                    value={formData.phone}
-                    onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, phone: e.target.value }))
-                    }
-                    placeholder="(00) 00000-0000"
-                    className={typography.body.small}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1.5 sm:space-y-2">
-                <Label htmlFor="email" className={typography.body.small}>E-mail</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, email: e.target.value }))
-                  }
-                  placeholder="contato@empresa.com"
-                  className={typography.body.small}
-                />
-              </div>
-            </div>
-
-            {/* Endereço */}
-            <div className="space-y-3 sm:space-y-4">
-              <h3 className={`${typography.body.small} ${typography.weight.medium} text-text-secondary`}>Endereço</h3>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-                <div className="space-y-1.5 sm:space-y-2">
-                  <Label htmlFor="zip_code" className={typography.body.small}>CEP</Label>
-                  <Input
-                    id="zip_code"
-                    value={formData.zip_code}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        zip_code: e.target.value,
-                      }))
-                    }
-                    placeholder="00000-000"
-                    className={typography.body.small}
-                  />
-                </div>
-
-                <div className="space-y-1.5 sm:space-y-2 sm:col-span-2">
-                  <Label htmlFor="address" className={typography.body.small}>Logradouro</Label>
-                  <Input
-                    id="address"
-                    value={formData.address}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        address: e.target.value,
-                      }))
-                    }
-                    placeholder="Rua, Avenida, número"
-                    className={typography.body.small}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-3 sm:gap-4">
-                <div className="space-y-1.5 sm:space-y-2 col-span-2">
-                  <Label htmlFor="city" className={typography.body.small}>Cidade</Label>
-                  <Input
-                    id="city"
-                    value={formData.city}
-                    onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, city: e.target.value }))
-                    }
-                    placeholder="Nome da cidade"
-                    className={typography.body.small}
-                  />
-                </div>
-
-                <div className="space-y-1.5 sm:space-y-2">
-                  <Label htmlFor="state" className={typography.body.small}>UF</Label>
-                  <Input
-                    id="state"
-                    value={formData.state}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        state: e.target.value.toUpperCase(),
-                      }))
-                    }
-                    placeholder="SP"
-                    maxLength={2}
-                    className={typography.body.small}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Status */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div className="space-y-1.5 sm:space-y-2">
-              <Label htmlFor="status" className={typography.body.small}>Status</Label>
-              <Select
-                value={formData.status}
-                onValueChange={(value: 'ativo' | 'inativo') =>
-                  setFormData((prev) => ({ ...prev, status: value }))
+              <Label htmlFor="cnpj" className={typography.body.small}>CNPJ</Label>
+              <Input
+                id="cnpj"
+                value={formData.cnpj}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, cnpj: e.target.value }))
                 }
-              >
-                <SelectTrigger className={typography.body.small}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ativo">Ativo</SelectItem>
-                  <SelectItem value="inativo">Inativo</SelectItem>
-                </SelectContent>
-              </Select>
+                placeholder="00.000.000/0000-00"
+                className={typography.body.small}
+              />
             </div>
 
-            <SheetFooter className="gap-2 sm:gap-0 pt-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleCloseSheet}
-                disabled={saving}
+            <div className="space-y-1.5 sm:space-y-2">
+              <Label htmlFor="phone" className={typography.body.small}>Telefone</Label>
+              <Input
+                id="phone"
+                value={formData.phone}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, phone: e.target.value }))
+                }
+                placeholder="(00) 00000-0000"
                 className={typography.body.small}
-              >
-                Cancelar
-              </Button>
-              <Button type="submit" disabled={saving} className={typography.body.small}>
-                {saving
-                  ? 'Salvando...'
-                  : editing
-                    ? 'Atualizar'
-                    : 'Criar'}
-              </Button>
-            </SheetFooter>
-          </form>
-        </SheetContent>
-      </Sheet>
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label htmlFor="email" className={typography.body.small}>E-mail</Label>
+            <Input
+              id="email"
+              type="email"
+              value={formData.email}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, email: e.target.value }))
+              }
+              placeholder="contato@empresa.com"
+              className={typography.body.small}
+            />
+          </div>
+        </div>
+
+        {/* Endereço */}
+        <div className="space-y-3 sm:space-y-4">
+          <h3 className={`${typography.body.small} ${typography.weight.medium} text-text-secondary`}>Endereço</h3>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+            <div className="space-y-1.5 sm:space-y-2">
+              <Label htmlFor="zip_code" className={typography.body.small}>CEP</Label>
+              <Input
+                id="zip_code"
+                value={formData.zip_code}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    zip_code: e.target.value,
+                  }))
+                }
+                placeholder="00000-000"
+                className={typography.body.small}
+              />
+            </div>
+
+            <div className="space-y-1.5 sm:space-y-2 sm:col-span-2">
+              <Label htmlFor="address" className={typography.body.small}>Logradouro</Label>
+              <Input
+                id="address"
+                value={formData.address}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    address: e.target.value,
+                  }))
+                }
+                placeholder="Rua, Avenida, número"
+                className={typography.body.small}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-3 sm:gap-4">
+            <div className="space-y-1.5 sm:space-y-2 col-span-2">
+              <Label htmlFor="city" className={typography.body.small}>Cidade</Label>
+              <Input
+                id="city"
+                value={formData.city}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, city: e.target.value }))
+                }
+                placeholder="Nome da cidade"
+                className={typography.body.small}
+              />
+            </div>
+
+            <div className="space-y-1.5 sm:space-y-2">
+              <Label htmlFor="state" className={typography.body.small}>UF</Label>
+              <Input
+                id="state"
+                value={formData.state}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    state: e.target.value.toUpperCase(),
+                  }))
+                }
+                placeholder="SP"
+                maxLength={2}
+                className={typography.body.small}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Status */}
+        <div className="space-y-1.5 sm:space-y-2">
+          <Label htmlFor="status" className={typography.body.small}>Status</Label>
+          <Select
+            value={formData.status}
+            onValueChange={(value: 'ativo' | 'inativo') =>
+              setFormData((prev) => ({ ...prev, status: value }))
+            }
+          >
+            <SelectTrigger className={typography.body.small}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ativo">Ativo</SelectItem>
+              <SelectItem value="inativo">Inativo</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </CRUDFormSheet>
 
       {/* Dialog de confirmação de exclusão */}
       <ConfirmDialog

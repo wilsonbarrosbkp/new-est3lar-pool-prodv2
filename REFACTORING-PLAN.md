@@ -163,22 +163,15 @@ src/components/crud/
 
 ### Checklist
 
-- [ ] **4.1** Criar `/src/components/crud/CRUDPageHeader.tsx`
-- [ ] **4.2** `pnpm run build` + teste
-- [ ] **4.3** Criar `/src/components/crud/CRUDPageFilters.tsx`
-- [ ] **4.4** `pnpm run build` + teste
-- [ ] **4.5** Criar `/src/components/crud/CRUDFormSheet.tsx`
-- [ ] **4.6** `pnpm run build` + teste
-- [ ] **4.7** Criar `/src/components/crud/DataTableSortHeader.tsx`
-- [ ] **4.8** `pnpm run build` + teste
-- [ ] **4.9** Criar `/src/components/crud/index.ts` com exports
-- [ ] **4.10** Refatorar Users.tsx usando novos componentes
-- [ ] **4.11** `pnpm run build` + teste completo da pagina
-- [ ] **4.12** Refatorar Pools.tsx usando novos componentes
-- [ ] **4.13** `pnpm run build` + teste completo da pagina
-- [ ] **4.14** Aplicar em demais paginas CRUD
-- [ ] **4.15** `pnpm run build` + teste geral
-- [ ] **4.16** Commit: "refactor: create reusable CRUD page components"
+- [x] **4.1** Criar `/src/components/crud/DataTableSortHeader.tsx`
+- [x] **4.2** Criar `/src/components/crud/TableActionMenu.tsx`
+- [x] **4.3** Criar `/src/components/crud/CRUDFormSheet.tsx`
+- [x] **4.4** `pnpm run build` + teste
+- [x] **4.5** Criar `/src/components/crud/index.ts` com exports
+- [x] **4.6** Refatorar Organizations.tsx usando novos componentes
+- [x] **4.7** `pnpm run build` + teste completo da pagina
+- [ ] **4.8** Aplicar em demais paginas CRUD (Users, Pools, etc.) - PENDENTE
+- [x] **4.9** Commit: "refactor: create reusable CRUD page components" - CONCLUIDO
 
 ---
 
