@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase/client'
+import { POOL, REFRESH_INTERVALS } from '@/lib/constants'
 
 export interface PoolStatsData {
   id: number
@@ -98,10 +99,10 @@ function getDataPoints(period: Period): number {
 
 export function usePoolStats(options: UsePoolStatsOptions = {}) {
   const {
-    poolId = 1,
+    poolId = POOL.DEFAULT_ID,
     period = '24h',
     autoRefresh = false,
-    refreshInterval = 60000, // 1 minuto
+    refreshInterval = REFRESH_INTERVALS.DEFAULT,
   } = options
 
   const [data, setData] = useState<PoolStatsData[]>([])

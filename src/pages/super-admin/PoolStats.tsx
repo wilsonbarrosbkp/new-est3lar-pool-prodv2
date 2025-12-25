@@ -36,14 +36,15 @@ import {
 } from 'recharts'
 import { typography, chartStyles } from '@/design-system/tokens'
 import { formatHashrate, formatShares, formatUptime } from '@/lib/formatters'
+import { POOL, REFRESH_INTERVALS } from '@/lib/constants'
 
 export default function PoolStatsPage() {
-  const { stats: latestStats, loading: loadingLatest } = useLatestPoolStats(1)
+  const { stats: latestStats, loading: loadingLatest } = useLatestPoolStats(POOL.DEFAULT_ID)
   const { chartData, loading: loadingChart } = usePoolStats({
-    poolId: 1,
+    poolId: POOL.DEFAULT_ID,
     period: '24h',
     autoRefresh: true,
-    refreshInterval: 60000,
+    refreshInterval: REFRESH_INTERVALS.DEFAULT,
   })
   const [lastRefresh, setLastRefresh] = useState(new Date())
 

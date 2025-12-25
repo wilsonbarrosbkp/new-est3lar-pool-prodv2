@@ -25,6 +25,7 @@ import {
 } from '@/components/ui/Select'
 import { supabase } from '@/lib/supabase/client'
 import { handleError } from '@/lib/error-handler'
+import { POOL } from '@/lib/constants'
 
 const chartConfig = {
   hashrate: {
@@ -44,7 +45,7 @@ interface HashrateAreaChartProps {
   poolId?: number
 }
 
-export function HashrateAreaChart({ poolId = 1 }: HashrateAreaChartProps) {
+export function HashrateAreaChart({ poolId = POOL.DEFAULT_ID }: HashrateAreaChartProps) {
   const [timeRange, setTimeRange] = React.useState('1m')
   const [chartData, setChartData] = React.useState<
     Array<{ date: string; hashrate1m: number; hashrate1h: number }>

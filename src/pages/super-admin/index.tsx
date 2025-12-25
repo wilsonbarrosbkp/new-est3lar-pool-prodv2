@@ -36,6 +36,7 @@ import { supabase } from '@/lib/supabase/client'
 import { handleError, showErrorToast } from '@/lib/error-handler'
 import { toast } from 'sonner'
 import { typography } from '@/design-system/tokens'
+import { POOL } from '@/lib/constants'
 
 interface SystemStats {
   totalOrganizations: number
@@ -86,7 +87,7 @@ export default function SuperAdminDashboard() {
     chartData,
     loading: chartLoading,
     refetch: refetchChart,
-  } = usePoolStats({ poolId: 1, period, autoRefresh: true })
+  } = usePoolStats({ poolId: POOL.DEFAULT_ID, period, autoRefresh: true })
 
   const loadData = useCallback(async () => {
     try {

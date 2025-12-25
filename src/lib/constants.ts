@@ -4,6 +4,26 @@
  */
 
 /**
+ * Configuração de Pool
+ */
+export const POOL = {
+  /** ID do pool padrão usado quando nenhum pool específico é selecionado */
+  DEFAULT_ID: 1,
+} as const
+
+/**
+ * Intervalos de atualização automática (em milissegundos)
+ */
+export const REFRESH_INTERVALS = {
+  /** Intervalo padrão (1 minuto) */
+  DEFAULT: 60000,
+  /** Intervalo curto (30 segundos) */
+  SHORT: 30000,
+  /** Intervalo longo (5 minutos) */
+  LONG: 300000,
+} as const
+
+/**
  * Limites de paginação e consultas
  */
 export const QUERY_LIMITS = {
