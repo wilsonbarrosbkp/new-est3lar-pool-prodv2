@@ -10,12 +10,12 @@ import { supabase } from '@/lib/supabase/client'
 // Super Admin navigation items
 const superAdminNavItems: NavItem[] = [
   { title: 'Dashboard', url: '/super-admin', iconName: 'LayoutDashboard' },
-  { title: 'Organizacoes', url: '/super-admin/organizations', iconName: 'Building' },
-  { title: 'Usuarios', url: '/super-admin/users', iconName: 'UserCog' },
-  { title: 'Permissoes', url: '/super-admin/permissions', iconName: 'Shield' },
+  { title: 'Organizações', url: '/super-admin/organizations', iconName: 'Building' },
+  { title: 'Usuários', url: '/super-admin/users', iconName: 'UserCog' },
+  { title: 'Permissões', url: '/super-admin/permissions', iconName: 'Shield' },
   { title: 'Moedas', url: '/super-admin/currencies', iconName: 'Coins' },
   { title: 'Pools', url: '/super-admin/pools', iconName: 'Database' },
-  { title: 'Mineracao', url: '/super-admin/pool-stats', iconName: 'Activity' },
+  { title: 'Mineração', url: '/super-admin/pool-stats', iconName: 'Activity' },
   { title: 'Carteiras', url: '/super-admin/wallets', iconName: 'Wallet' },
   { title: 'Hardware', url: '/super-admin/hardware', iconName: 'BarChart3' },
   { title: 'Workers', url: '/super-admin/workers', iconName: 'Users' },

@@ -232,6 +232,14 @@
   --icon-size-md: 1rem;                   /* 16px */
   --icon-size-lg: 1.25rem;                /* 20px */
   --icon-size-xl: 1.5rem;                 /* 24px */
+
+  /* ==================== CHART COLORS ==================== */
+  /* Paleta de cores para graficos usando variacoes do tema Genesis Pool */
+  --chart-1: 142 71 219;  /* #8e47db - Purple */
+  --chart-2: 59 130 246;  /* #3b82f6 - Blue */
+  --chart-3: 34 197 94;   /* #22c55e - Green (Primary) */
+  --chart-4: 251 191 36;  /* #fbbf24 - Yellow */
+  --chart-5: 239 68 68;   /* #ef4444 - Red */
 }
 
 /* =============================================================================

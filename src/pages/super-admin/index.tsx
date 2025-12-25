@@ -228,12 +228,12 @@ export default function SuperAdminDashboard() {
           </CardContent>
         </Card>
 
-        {/* Hashrate Global */}
+        {/* Hashrate */}
         <Card>
           <CardHeader className="pb-1 sm:pb-2 px-3 sm:px-4 pt-3 sm:pt-4">
             <CardTitle className={`${typography.kpi.title} ${typography.weight.medium} text-text-secondary flex items-center gap-1`}>
               <BarChart3 className="h-3 w-3 sm:h-3.5 sm:w-3.5 shrink-0" />
-              <span className="truncate">Hashrate Global</span>
+              <span className="truncate">Hashrate</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="px-3 sm:px-4 pb-3 sm:pb-4">
@@ -283,12 +283,12 @@ export default function SuperAdminDashboard() {
           </CardContent>
         </Card>
 
-        {/* Workers Globais */}
+        {/* Workers */}
         <Card>
           <CardHeader className="pb-1 sm:pb-2 px-3 sm:px-4 pt-3 sm:pt-4">
             <CardTitle className={`${typography.kpi.title} ${typography.weight.medium} text-text-secondary flex items-center gap-1`}>
               <UserCheck className="h-3 w-3 sm:h-3.5 sm:w-3.5 shrink-0" />
-              <span className="truncate">Workers Globais</span>
+              <span className="truncate">Workers</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="px-3 sm:px-4 pb-3 sm:pb-4">
@@ -426,7 +426,7 @@ export default function SuperAdminDashboard() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <CardTitle className={`${typography.card.title} flex items-center gap-2`}>
               <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" />
-              <span className="truncate">Hashrate Global do Sistema</span>
+              <span className="truncate">Hashrates</span>
             </CardTitle>
             <Select
               value={period}
@@ -436,6 +436,10 @@ export default function SuperAdminDashboard() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="1m">Último minuto</SelectItem>
+                <SelectItem value="5m">Últimos 5 min</SelectItem>
+                <SelectItem value="15m">Últimos 15 min</SelectItem>
+                <SelectItem value="30m">Últimos 30 min</SelectItem>
                 <SelectItem value="1h">Última hora</SelectItem>
                 <SelectItem value="6h">Últimas 6 horas</SelectItem>
                 <SelectItem value="24h">Últimas 24 horas</SelectItem>

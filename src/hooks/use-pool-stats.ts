@@ -38,7 +38,7 @@ export interface HashrateChartPoint {
   workers: number
 }
 
-export type Period = '1h' | '6h' | '24h' | '7d'
+export type Period = '1m' | '5m' | '15m' | '30m' | '1h' | '6h' | '24h' | '7d'
 
 interface UsePoolStatsOptions {
   poolId?: number
@@ -51,6 +51,14 @@ interface UsePoolStatsOptions {
 function getStartDate(period: Period): Date {
   const now = new Date()
   switch (period) {
+    case '1m':
+      return new Date(now.getTime() - 1 * 60 * 1000) // 1 minuto
+    case '5m':
+      return new Date(now.getTime() - 5 * 60 * 1000) // 5 minutos
+    case '15m':
+      return new Date(now.getTime() - 15 * 60 * 1000) // 15 minutos
+    case '30m':
+      return new Date(now.getTime() - 30 * 60 * 1000) // 30 minutos
     case '1h':
       return new Date(now.getTime() - 60 * 60 * 1000) // 1 hora
     case '6h':
@@ -60,23 +68,31 @@ function getStartDate(period: Period): Date {
     case '7d':
       return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000) // 7 dias
     default:
-      return new Date(now.getTime() - 24 * 60 * 60 * 1000)
+      return new Date(now.getTime() - 60 * 60 * 1000)
   }
 }
 
 // Calcula quantos pontos mostrar baseado no período
 function getDataPoints(period: Period): number {
   switch (period) {
+    case '1m':
+      return 60 // todos os pontos disponíveis no último minuto
+    case '5m':
+      return 60 // todos os pontos disponíveis
+    case '15m':
+      return 60 // todos os pontos disponíveis
+    case '30m':
+      return 60 // todos os pontos disponíveis
     case '1h':
       return 60 // 1 ponto por minuto
     case '6h':
-      return 72 // 1 ponto a cada 5 minutos
+      return 180 // 1 ponto a cada 2 minutos
     case '24h':
-      return 96 // 1 ponto a cada 15 minutos
+      return 144 // 1 ponto a cada 10 minutos
     case '7d':
       return 168 // 1 ponto por hora
     default:
-      return 96
+      return 60
   }
 }
 

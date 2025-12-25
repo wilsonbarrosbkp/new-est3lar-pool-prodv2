@@ -8,9 +8,9 @@ import { typography } from '@/design-system/tokens'
 // Mapeamento de rotas para breadcrumb
 const routeLabels: Record<string, string> = {
   '/super-admin': 'Dashboard',
-  '/super-admin/organizations': 'Organizacoes',
-  '/super-admin/users': 'Usuarios',
-  '/super-admin/permissions': 'Permissoes',
+  '/super-admin/organizations': 'Organizações',
+  '/super-admin/users': 'Usuários',
+  '/super-admin/permissions': 'Permissões',
   '/super-admin/currencies': 'Moedas',
   '/super-admin/pools': 'Pools',
   '/super-admin/wallets': 'Carteiras',
