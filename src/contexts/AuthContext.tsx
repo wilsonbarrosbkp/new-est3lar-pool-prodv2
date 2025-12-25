@@ -1,7 +1,9 @@
-import { createContext, useContext, useEffect, useState, useRef, ReactNode } from 'react'
-import { supabase } from '@/lib/supabase/client'
-import type { User, Session } from '@supabase/supabase-js'
+import { createContext, ReactNode,useContext, useEffect, useRef, useState } from 'react'
+
 import { handleError, showErrorToast } from '@/lib/error-handler'
+import { supabase } from '@/lib/supabase/client'
+
+import type { Session,User } from '@supabase/supabase-js'
 
 /**
  * Dados do usuário para o contexto de autenticação

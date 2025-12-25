@@ -1,4 +1,5 @@
 import { Loader2 } from 'lucide-react'
+
 import { typography } from '@/design-system/tokens'
 
 interface LoadingFallbackProps {

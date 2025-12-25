@@ -2,13 +2,15 @@ import { FormEvent, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import { toast } from 'sonner'
-import { AuthHeader } from './AuthHeader'
-import { AuthForm } from './AuthForm'
+
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
-import { forgotPasswordAction } from '@/lib/auth/reset-password'
 import { typography } from '@/design-system/tokens'
+import { forgotPasswordAction } from '@/lib/auth/reset-password'
+
+import { AuthForm } from './AuthForm'
+import { AuthHeader } from './AuthHeader'
 
 export function ForgotPasswordForm() {
   const navigate = useNavigate()

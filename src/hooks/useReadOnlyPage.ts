@@ -1,6 +1,8 @@
-import { useState, useCallback, useRef, useEffect } from 'react'
+import { useCallback, useEffect,useRef, useState } from 'react'
+
 import { handleError } from '@/lib/error-handler'
-import { useDataPage, type SortConfig } from './useDataPage'
+
+import { type SortConfig,useDataPage } from './useDataPage'
 
 // Re-export SortConfig para manter compatibilidade
 export type { SortConfig }

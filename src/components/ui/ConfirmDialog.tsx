@@ -1,8 +1,9 @@
 import * as AlertDialogPrimitive from '@radix-ui/react-alert-dialog'
-import { cn } from '@/lib/utils'
+
 import { Button } from '@/components/ui/Button'
 import { typography } from '@/design-system/tokens'
 import { handleError } from '@/lib/error-handler'
+import { cn } from '@/lib/utils'
 
 /**
  * Props do ConfirmDialog

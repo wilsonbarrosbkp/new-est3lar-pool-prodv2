@@ -302,10 +302,11 @@ import { UserCog, Plus, Search, ArrowUpDown } from 'lucide-react'
 
 ### Checklist
 
-- [ ] **9.1** Configurar ESLint import/order
-- [ ] **9.2** Aplicar ordenacao automatica de imports
-- [ ] **9.3** `pnpm run build` + teste
-- [ ] **9.4** Commit: "style: organize imports with consistent ordering"
+- [x] **9.1** Instalar eslint-plugin-simple-import-sort
+- [x] **9.2** Criar eslint.config.js com regras de ordenacao
+- [x] **9.3** Aplicar ordenacao automatica de imports com `pnpm run lint:fix`
+- [x] **9.4** `pnpm run build` + teste - SUCESSO
+- [x] **9.5** Commit: "style: configure ESLint and organize imports" - CONCLUIDO
 
 ---
 

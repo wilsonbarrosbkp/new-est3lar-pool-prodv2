@@ -1,5 +1,5 @@
 /**
  * Exporta todos os componentes de gráficos
  */
-export { HashrateChart } from './HashrateChart'
 export { HashrateAreaChart } from './HashrateAreaChart'
+export { HashrateChart } from './HashrateChart'

@@ -1,4 +1,5 @@
 import { toast } from 'sonner'
+
 import type { AuthError } from '@supabase/supabase-js'
 
 /**

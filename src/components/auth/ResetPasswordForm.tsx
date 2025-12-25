@@ -1,13 +1,15 @@
 import { FormEvent, useState } from 'react'
-import { toast } from 'sonner'
 import { useNavigate } from 'react-router-dom'
-import { AuthHeader } from './AuthHeader'
-import { AuthForm } from './AuthForm'
+import { toast } from 'sonner'
+
 import { Button } from '@/components/ui/Button'
-import { PasswordInput } from '@/components/ui/PasswordInput'
 import { Label } from '@/components/ui/Label'
-import { resetPasswordAction } from '@/lib/auth/reset-password'
+import { PasswordInput } from '@/components/ui/PasswordInput'
 import { typography } from '@/design-system/tokens'
+import { resetPasswordAction } from '@/lib/auth/reset-password'
+
+import { AuthForm } from './AuthForm'
+import { AuthHeader } from './AuthHeader'
 
 export function ResetPasswordForm() {
   const [password, setPassword] = useState('')

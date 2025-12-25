@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from 'react'
-import { supabase } from '@/lib/supabase/client'
+import { useCallback,useEffect, useState } from 'react'
+
 import { POOL, REFRESH_INTERVALS } from '@/lib/constants'
+import { supabase } from '@/lib/supabase/client'
 
 export interface PoolStatsData {
   id: number

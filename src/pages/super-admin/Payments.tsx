@@ -1,21 +1,45 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useCallback, useMemo,useState } from 'react'
 import {
-  CreditCard,
-  Plus,
-  MoreHorizontal,
-  Search,
-  Clock,
-  CheckCircle,
-  XCircle,
-  ExternalLink,
-  Copy,
   Check,
+  CheckCircle,
+  Clock,
+  Copy,
+  CreditCard,
+  ExternalLink,
+  MoreHorizontal,
+  Plus,
+  Search,
+  XCircle,
 } from 'lucide-react'
+import { toast } from 'sonner'
+
+import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
+import { Card, CardContent } from '@/components/ui/Card'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/DropdownMenu'
 import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
-import { Badge } from '@/components/ui/Badge'
-import { Card, CardContent } from '@/components/ui/Card'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/Select'
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/Sheet'
 import { Skeleton } from '@/components/ui/Skeleton'
 import {
   Table,
@@ -25,40 +49,18 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/Table'
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/Sheet'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/DropdownMenu'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/Select'
 import { Textarea } from '@/components/ui/Textarea'
-import { toast } from 'sonner'
-import { supabase } from '@/lib/supabase/client'
-import { handleError, showErrorToast } from '@/lib/error-handler'
 import { typography } from '@/design-system/tokens'
-import { formatAmount, formatDateTime, formatTxHash } from '@/lib/formatters'
 import { useCRUDPage } from '@/hooks/useCRUDPage'
+import { handleError, showErrorToast } from '@/lib/error-handler'
+import { formatAmount, formatDateTime, formatTxHash } from '@/lib/formatters'
+import { supabase } from '@/lib/supabase/client'
+
 import type {
-  Payment,
   OrganizationOption,
-  PoolOption,
+  Payment,
   PaymentType,
+  PoolOption,
 } from '@/types/super-admin'
 
 /** Wallet parcial para uso em selects */

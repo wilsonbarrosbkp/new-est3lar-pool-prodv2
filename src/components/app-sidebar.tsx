@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 
-import { NavMain, type NavItem } from '@/components/nav-main'
+import { type NavItem,NavMain } from '@/components/nav-main'
 import { NavUser, type NavUserProps } from '@/components/nav-user'
 import {
   Sidebar,

@@ -1,6 +1,8 @@
 import * as React from 'react'
 import { Eye, EyeOff } from 'lucide-react'
+
 import { cn } from '@/lib/utils'
+
 import { Input, InputProps } from './Input'
 
 export interface PasswordInputProps extends Omit<InputProps, 'type'> {

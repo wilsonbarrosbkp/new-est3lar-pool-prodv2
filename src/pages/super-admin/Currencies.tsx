@@ -1,17 +1,40 @@
 import { useCallback, useMemo } from 'react'
 import {
-  Coins,
-  Plus,
-  MoreHorizontal,
-  Search,
   Bitcoin,
+  Coins,
   DollarSign,
+  MoreHorizontal,
+  Plus,
+  Search,
 } from 'lucide-react'
+
+import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
+import { Card, CardContent } from '@/components/ui/Card'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/DropdownMenu'
 import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
-import { Badge } from '@/components/ui/Badge'
-import { Card, CardContent } from '@/components/ui/Card'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/Select'
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/Sheet'
 import { Skeleton } from '@/components/ui/Skeleton'
 import {
   Table,
@@ -21,32 +44,10 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/Table'
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/Sheet'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/DropdownMenu'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/Select'
-import { supabase } from '@/lib/supabase/client'
-import { handleError, showErrorToast } from '@/lib/error-handler'
 import { typography } from '@/design-system/tokens'
 import { useCRUDPage } from '@/hooks/useCRUDPage'
+import { handleError, showErrorToast } from '@/lib/error-handler'
+import { supabase } from '@/lib/supabase/client'
 
 interface Currency {
   id: number

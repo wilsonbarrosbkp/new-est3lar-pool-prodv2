@@ -1,8 +1,9 @@
 import * as React from 'react'
 import { Slot } from '@radix-ui/react-slot'
 import { cva, type VariantProps } from 'class-variance-authority'
+
+import { borders, gradients, shadows, typography } from '@/design-system'
 import { cn } from '@/lib/utils'
-import { gradients, shadows, borders, typography } from '@/design-system'
 
 const buttonVariants = cva(
   `inline-flex items-center justify-center whitespace-nowrap rounded-md ${typography.button.default} ${typography.weight.medium} transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50`,

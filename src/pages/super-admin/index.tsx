@@ -1,26 +1,28 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useCallback,useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  Shield,
-  Clock,
-  RefreshCw,
-  Globe,
-  Users,
-  Network,
-  Database,
-  CheckCircle,
   AlertTriangle,
-  XCircle,
-  TrendingUp,
-  TrendingDown,
-  Minus,
-  UserCheck,
   BarChart3,
+  CheckCircle,
+  Clock,
+  Database,
+  Globe,
+  Minus,
+  Network,
+  RefreshCw,
+  Shield,
+  TrendingDown,
+  TrendingUp,
+  UserCheck,
+  Users,
+  XCircle,
 } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { toast } from 'sonner'
+
+import { HashrateChart } from '@/components/charts/HashrateChart'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
-import { Skeleton } from '@/components/ui/Skeleton'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import {
   Select,
   SelectContent,
@@ -28,15 +30,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/Select'
-import { HashrateChart } from '@/components/charts/HashrateChart'
-import { usePoolStats, type Period } from '@/hooks/use-pool-stats'
-import { cn } from '@/lib/utils'
+import { Skeleton } from '@/components/ui/Skeleton'
+import { typography } from '@/design-system/tokens'
+import { type Period,usePoolStats } from '@/hooks/use-pool-stats'
+import { POOL } from '@/lib/constants'
+import { handleError, showErrorToast } from '@/lib/error-handler'
 import { formatHashrate, formatNumber, formatRelativeTime } from '@/lib/formatters'
 import { supabase } from '@/lib/supabase/client'
-import { handleError, showErrorToast } from '@/lib/error-handler'
-import { toast } from 'sonner'
-import { typography } from '@/design-system/tokens'
-import { POOL } from '@/lib/constants'
+import { cn } from '@/lib/utils'
 
 interface SystemStats {
   totalOrganizations: number

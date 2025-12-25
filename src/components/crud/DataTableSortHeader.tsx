@@ -1,7 +1,9 @@
-import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react'
+import { ArrowDown,ArrowUp, ArrowUpDown } from 'lucide-react'
+
 import { Button } from '@/components/ui/Button'
 import { TableHead } from '@/components/ui/Table'
 import { typography } from '@/design-system/tokens'
+
 import type { SortConfig } from '@/hooks/useDataPage'
 
 interface DataTableSortHeaderProps<T> {

@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
-import { supabase } from '@/lib/supabase/client'
+import { useCallback, useEffect, useMemo, useRef,useState } from 'react'
+
 import { handleError, showErrorToast } from '@/lib/error-handler'
+import { supabase } from '@/lib/supabase/client'
 
 /**
  * Configuração de ordenação - compartilhado entre todos os hooks de página

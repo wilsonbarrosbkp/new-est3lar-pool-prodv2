@@ -1,5 +1,6 @@
 import { Navigate, useLocation } from 'react-router-dom'
-import { useAuth, getRedirectPathForRole, ROLES } from '@/contexts/AuthContext'
+
+import { getRedirectPathForRole, ROLES,useAuth } from '@/contexts/AuthContext'
 import { typography } from '@/design-system/tokens'
 
 interface ProtectedRouteProps {

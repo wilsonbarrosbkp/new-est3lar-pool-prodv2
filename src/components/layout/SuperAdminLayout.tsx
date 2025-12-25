@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react'
 import { Outlet, useNavigate } from 'react-router-dom'
+
 import { AppSidebar } from '@/components/app-sidebar'
 import { SidebarInset, SidebarProvider } from '@/components/ui/Sidebar'
+import { handleError } from '@/lib/error-handler'
+import { supabase } from '@/lib/supabase/client'
+
 import { Topbar } from './Topbar'
+
 import type { NavItem } from '@/components/nav-main'
 import type { NavUserProps } from '@/components/nav-user'
-import { supabase } from '@/lib/supabase/client'
-import { handleError } from '@/lib/error-handler'
 
 // Super Admin navigation items
 const superAdminNavItems: NavItem[] = [

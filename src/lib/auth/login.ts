@@ -1,4 +1,5 @@
 import { supabase } from '../supabase/client'
+
 import type { LoginCredentials, LoginResult } from '@/types/auth'
 
 export async function loginAction(credentials: LoginCredentials): Promise<LoginResult> {

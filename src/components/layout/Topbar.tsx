@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Search, Bell } from 'lucide-react'
+import { Bell,Search } from 'lucide-react'
+
 import { Button } from '@/components/ui/Button'
 import { SidebarTrigger } from '@/components/ui/Sidebar'
 import { typography } from '@/design-system/tokens'

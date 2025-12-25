@@ -1,10 +1,11 @@
 import { lazy, Suspense } from 'react'
-import { BrowserRouter, Routes, Route, Link, Navigate } from 'react-router-dom'
+import { BrowserRouter, Link, Navigate,Route, Routes } from 'react-router-dom'
 import { Toaster } from 'sonner'
-import { AuthProvider } from '@/contexts/AuthContext'
+
 import { SuperAdminRoute } from '@/components/auth/ProtectedRoute'
 import { PublicRoute } from '@/components/auth/PublicRoute'
 import { LoadingFallback } from '@/components/ui/LoadingFallback'
+import { AuthProvider } from '@/contexts/AuthContext'
 import { typography } from '@/design-system/tokens'
 
 // Lazy loaded pages - Auth

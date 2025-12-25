@@ -1,5 +1,5 @@
+import { useEffect, useState,useTransition } from 'react'
 import { ChevronsUpDown, LogOut } from 'lucide-react'
-import { useTransition, useEffect, useState } from 'react'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/Avatar'
 import {
@@ -16,8 +16,8 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/Sidebar'
-import { gradients, shadows, borders, typography } from '@/design-system'
 import { useAuth } from '@/contexts/AuthContext'
+import { borders, gradients, shadows, typography } from '@/design-system'
 
 export type NavUserProps = {
   name: string

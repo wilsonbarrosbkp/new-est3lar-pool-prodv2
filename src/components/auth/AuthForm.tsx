@@ -1,6 +1,7 @@
 import { ReactNode } from 'react'
-import { cn } from '@/lib/utils'
+
 import { typography } from '@/design-system/tokens'
+import { cn } from '@/lib/utils'
 
 interface AuthFormProps {
   children: ReactNode

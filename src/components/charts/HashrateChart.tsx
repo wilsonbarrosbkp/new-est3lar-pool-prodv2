@@ -1,18 +1,20 @@
 import { useMemo } from 'react'
 import {
-  AreaChart,
   Area,
-  XAxis,
-  YAxis,
+  AreaChart,
   CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
   Legend,
   ReferenceLine,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
 } from 'recharts'
+
+import { chartStyles,typography } from '@/design-system/tokens'
 import { formatHashrate } from '@/lib/formatters'
+
 import type { HashrateChartPoint, Period } from '@/hooks/use-pool-stats'
-import { typography, chartStyles } from '@/design-system/tokens'
 
 interface HashrateChartProps {
   data: HashrateChartPoint[]

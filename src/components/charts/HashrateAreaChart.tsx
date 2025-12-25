@@ -9,12 +9,12 @@ import {
   CardTitle,
 } from '@/components/ui/Card'
 import {
+  type ChartConfig,
   ChartContainer,
   ChartLegend,
   ChartLegendContent,
   ChartTooltip,
   ChartTooltipContent,
-  type ChartConfig,
 } from '@/components/ui/Chart'
 import {
   Select,
@@ -23,9 +23,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/Select'
-import { supabase } from '@/lib/supabase/client'
-import { handleError } from '@/lib/error-handler'
 import { POOL } from '@/lib/constants'
+import { handleError } from '@/lib/error-handler'
+import { supabase } from '@/lib/supabase/client'
 
 const chartConfig = {
   hashrate: {

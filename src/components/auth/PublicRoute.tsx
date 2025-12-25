@@ -1,5 +1,6 @@
 import { Navigate } from 'react-router-dom'
-import { useAuth, getRedirectPathForRole } from '@/contexts/AuthContext'
+
+import { getRedirectPathForRole,useAuth } from '@/contexts/AuthContext'
 import { typography } from '@/design-system/tokens'
 
 interface PublicRouteProps {

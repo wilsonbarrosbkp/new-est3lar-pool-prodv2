@@ -1,20 +1,21 @@
 import {
-  Server,
-  Cpu,
-  MemoryStick,
-  HardDrive,
-  Network,
   Activity,
+  ArrowUpDown,
+  Clock,
+  Cpu,
+  Gauge,
+  HardDrive,
+  MemoryStick,
+  Network,
+  Server,
   Wifi,
   WifiOff,
-  Clock,
-  ArrowUpDown,
-  Gauge,
 } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+
 import { Badge } from '@/components/ui/Badge'
-import { cn } from '@/lib/utils'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { typography } from '@/design-system/tokens'
+import { cn } from '@/lib/utils'
 
 export type ServerStatus = 'online' | 'offline' | 'warning' | 'maintenance'
 export type ServerRole = 'load-balancer' | 'proxy' | 'pool-stats' | 'mining-pool' | 'database' | 'monitor'

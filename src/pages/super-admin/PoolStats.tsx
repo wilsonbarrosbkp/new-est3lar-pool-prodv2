@@ -1,19 +1,30 @@
-import { useState, useEffect } from 'react'
+import { useEffect,useState } from 'react'
 import {
   Activity,
+  Award,
+  ChevronDown,
+  ChevronUp,
+  Clock,
+  Network,
+  RefreshCw,
+  Shield,
   TrendingUp,
   Users,
-  Network,
-  Clock,
-  RefreshCw,
-  ChevronUp,
-  ChevronDown,
   Zap,
-  Shield,
-  Award,
 } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import {
+  CartesianGrid,
+  Legend,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip as RechartsTooltip,
+  XAxis,
+  YAxis,
+} from 'recharts'
+
 import { Badge } from '@/components/ui/Badge'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Skeleton } from '@/components/ui/Skeleton'
 import {
   Table,
@@ -23,20 +34,10 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/Table'
+import { chartStyles,typography } from '@/design-system/tokens'
 import { useLatestPoolStats, usePoolStats } from '@/hooks/use-pool-stats'
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip as RechartsTooltip,
-  Legend,
-  ResponsiveContainer,
-} from 'recharts'
-import { typography, chartStyles } from '@/design-system/tokens'
-import { formatHashrate, formatShares, formatUptime } from '@/lib/formatters'
 import { POOL, REFRESH_INTERVALS } from '@/lib/constants'
+import { formatHashrate, formatShares, formatUptime } from '@/lib/formatters'
 
 export default function PoolStatsPage() {
   const { stats: latestStats, loading: loadingLatest } = useLatestPoolStats(POOL.DEFAULT_ID)
