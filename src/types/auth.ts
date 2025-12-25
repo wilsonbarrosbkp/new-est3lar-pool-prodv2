@@ -1,18 +1,12 @@
-export type RoleId = 'super_admin' | 'org_admin' | 'org_miner'
+/**
+ * Types para autenticação
+ *
+ * NOTA: O tipo User principal está em @/types/super-admin.ts
+ * O contexto de auth usa UserData definido localmente em AuthContext.tsx
+ * O Supabase Auth usa seu próprio tipo User de @supabase/supabase-js
+ */
 
-export interface User {
-  id: string
-  auth_user_id: string
-  email: string
-  name: string
-  phone?: string
-  avatar_url?: string
-  organization_id?: string
-  role_id: RoleId
-  timezone: string
-  created_at: string
-  updated_at: string
-}
+export type RoleId = 'super_admin' | 'org_admin' | 'org_miner'
 
 export interface LoginCredentials {
   email: string

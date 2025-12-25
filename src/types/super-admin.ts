@@ -68,6 +68,13 @@ export interface UpdateOrganizationInput extends Partial<CreateOrganizationInput
 // Usuários
 // ============================================
 
+/**
+ * Tipo User para o painel de administração
+ *
+ * Inclui dados de relacionamento (organization_name, role_name, etc.)
+ * Para o contexto de autenticação, veja UserData em AuthContext.tsx
+ * Para o User do Supabase Auth, veja @supabase/supabase-js
+ */
 export interface User {
   id: string // UUID
   auth_user_id: string // UUID - FK para auth.users

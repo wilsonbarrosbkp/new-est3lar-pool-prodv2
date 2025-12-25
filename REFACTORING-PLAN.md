@@ -254,13 +254,18 @@ Tipos User definidos em dois lugares:
 - `/src/types/auth.ts` - User com RoleId
 - `/src/types/super-admin.ts` - User com interface completa
 
+### Analise Realizada
+- `auth.ts User` - NAO ESTAVA SENDO USADO em nenhum lugar
+- `super-admin.ts User` - Usado em paginas admin (com dados de join)
+- `AuthContext.tsx UserData` - Interface local para contexto de auth
+
 ### Checklist
 
-- [ ] **8.1** Analisar diferenca entre tipos User
-- [ ] **8.2** Criar tipo base User e extender para casos especificos
-- [ ] **8.3** Atualizar imports em todos os arquivos afetados
-- [ ] **8.4** `pnpm run build` + teste
-- [ ] **8.5** Commit: "refactor: consolidate User types"
+- [x] **8.1** Analisar diferenca entre tipos User - User de auth.ts nao era usado
+- [x] **8.2** Remover tipo User nao utilizado de auth.ts
+- [x] **8.3** Adicionar documentacao aos tipos remanescentes (super-admin.ts, AuthContext.tsx)
+- [x] **8.4** `pnpm run build` + teste - SUCESSO
+- [x] **8.5** Commit: "refactor: consolidate User types" - CONCLUIDO
 
 ---
 

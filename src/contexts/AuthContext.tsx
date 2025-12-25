@@ -3,6 +3,12 @@ import { supabase } from '@/lib/supabase/client'
 import type { User, Session } from '@supabase/supabase-js'
 import { handleError, showErrorToast } from '@/lib/error-handler'
 
+/**
+ * Dados do usuário para o contexto de autenticação
+ *
+ * Tipo simplificado com apenas os campos necessários para auth/autorização.
+ * Para o tipo completo com dados de relacionamento, veja User em @/types/super-admin.ts
+ */
 interface UserData {
   id: string
   email: string
