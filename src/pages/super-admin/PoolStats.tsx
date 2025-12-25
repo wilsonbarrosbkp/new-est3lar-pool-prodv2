@@ -58,9 +58,9 @@ export default function PoolStatsPage() {
   const formatLastUpdate = (date: Date) => {
     const now = new Date()
     const diff = Math.floor((now.getTime() - date.getTime()) / 1000)
-    if (diff < 60) return 'Recently'
-    if (diff < 120) return '1 minute ago'
-    if (diff < 3600) return `${Math.floor(diff / 60)} minutes ago`
+    if (diff < 60) return 'Agora'
+    if (diff < 120) return 'Há 1 minuto'
+    if (diff < 3600) return `Há ${Math.floor(diff / 60)} minutos`
     return date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
   }
 
@@ -304,22 +304,22 @@ export default function PoolStatsPage() {
             ) : (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-text-secondary">Users</span>
+                  <span className="text-text-secondary">Usuários</span>
                   <span className={`${typography.kpi.value} ${typography.weight.bold}`}>
                     {latestStats?.users || 0}
                     <span className={`${typography.body.small} text-text-secondary ml-2`}>
-                      (Idle: {latestStats?.workers_idle || 0})
+                      (Ociosos: {latestStats?.workers_idle || 0})
                     </span>
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-text-secondary">Disconnected</span>
+                  <span className="text-text-secondary">Desconectados</span>
                   <span className={`${typography.kpi.value} ${typography.weight.bold} text-error`}>
                     {latestStats?.workers_disconnected || 0}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-text-secondary">Workers</span>
+                  <span className="text-text-secondary">Workers Ativos</span>
                   <span className={`${typography.kpi.value} ${typography.weight.bold} text-success`}>
                     {latestStats?.workers_active || 0}
                   </span>
@@ -343,25 +343,25 @@ export default function PoolStatsPage() {
             ) : (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-text-secondary">Accepted</span>
+                  <span className="text-text-secondary">Aceitas</span>
                   <span className={`${typography.kpi.value} ${typography.weight.bold} text-success`}>
                     {latestStats ? formatShares(latestStats.shares_accepted) : '0'}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-text-secondary">Rejected</span>
+                  <span className="text-text-secondary">Rejeitadas</span>
                   <span className={`${typography.kpi.value} ${typography.weight.bold} text-error`}>
                     {latestStats ? formatShares(latestStats.shares_rejected) : '0'}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-text-secondary">Best Diff</span>
+                  <span className="text-text-secondary">Melhor Diff</span>
                   <span className={`${typography.kpi.value} ${typography.weight.bold}`}>
                     {latestStats ? formatShares(latestStats.best_share) : '0'}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-text-secondary">% of Network Diff</span>
+                  <span className="text-text-secondary">% da Diff da Rede</span>
                   <span className={`${typography.kpi.value} ${typography.weight.bold}`}>0%</span>
                 </div>
               </div>
@@ -375,7 +375,7 @@ export default function PoolStatsPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Zap className="h-5 w-5 text-warning" />
-            Shares Per Second
+            Shares por Segundo
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -453,16 +453,16 @@ export default function PoolStatsPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Network className="h-5 w-5 text-primary" />
-            Top 10 User Difficulties
+            Top 10 Dificuldades de Usuários
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-20">Rank</TableHead>
-                <TableHead>Address</TableHead>
-                <TableHead className="text-right">Best Diff</TableHead>
+                <TableHead className="w-20">Posição</TableHead>
+                <TableHead>Endereço</TableHead>
+                <TableHead className="text-right">Melhor Diff</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

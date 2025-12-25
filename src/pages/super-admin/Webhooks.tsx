@@ -587,7 +587,7 @@ export default function WebhooksPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="retry_count">Retries</Label>
+                <Label htmlFor="retry_count">Tentativas</Label>
                 <Input
                   id="retry_count"
                   type="number"

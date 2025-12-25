@@ -235,10 +235,12 @@ Mix de portugues e ingles em labels e status:
 
 ### Checklist
 
-- [ ] **7.1** Definir idioma padrao para status (recomendado: portugues)
-- [ ] **7.2** Auditar e corrigir status inconsistentes
-- [ ] **7.3** `pnpm run build` + teste
-- [ ] **7.4** Commit: "refactor: standardize status labels to Portuguese"
+- [x] **7.1** Definir idioma padrao para status (recomendado: portugues) - JA ESTAVA PADRONIZADO
+- [x] **7.2** Auditar e corrigir labels em ingles:
+  - PoolStats.tsx: 'Recently' → 'Agora', 'minutes ago' → 'minutos', 'Users' → 'Usuarios', etc.
+  - Webhooks.tsx: 'Retries' → 'Tentativas'
+- [x] **7.3** `pnpm run build` + teste - SUCESSO
+- [x] **7.4** Commit: "refactor: standardize UI labels to Portuguese" - CONCLUIDO
 
 ---
 
