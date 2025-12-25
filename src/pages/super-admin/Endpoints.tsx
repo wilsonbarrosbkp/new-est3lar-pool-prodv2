@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import {
   Globe,
   Plus,
@@ -50,25 +50,11 @@ import { Switch } from '@/components/ui/Switch'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
 import { typography } from '@/design-system/tokens'
-
-interface Endpoint {
-  id: number
-  name: string
-  url: string
-  type: 'stratum' | 'api' | 'webhook'
-  organization_id: number | null
-  organization_name?: string
-  port: number | null
-  difficulty: number | null
-  is_ssl: boolean
-  status: 'ativo' | 'inativo'
-  created_at: string
-}
-
-interface Organization {
-  id: number
-  name: string
-}
+import { useCRUDPage } from '@/hooks/useCRUDPage'
+import type {
+  Endpoint,
+  OrganizationOption,
+} from '@/types/super-admin'
 
 type FormData = {
   name: string
@@ -99,21 +85,34 @@ const typeOptions = [
 ] as const
 
 export default function EndpointsPage() {
-  const [endpoints, setEndpoints] = useState<Endpoint[]>([])
-  const [organizations, setOrganizations] = useState<Organization[]>([])
-  const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState('')
+  // Estados locais para dados relacionados e filtros
+  const [organizations, setOrganizations] = useState<OrganizationOption[]>([])
   const [filterType, setFilterType] = useState<string>('all')
   const [filterStatus, setFilterStatus] = useState<string>('all')
-  const [sheetOpen, setSheetOpen] = useState(false)
-  const [editingEndpoint, setEditingEndpoint] = useState<Endpoint | null>(null)
-  const [formData, setFormData] = useState(initialFormData)
-  const [saving, setSaving] = useState(false)
   const [copiedId, setCopiedId] = useState<number | null>(null)
 
-  const loadData = useCallback(async () => {
-    setLoading(true)
-    try {
+  const {
+    data: endpoints,
+    loading,
+    search,
+    setSearch,
+    sheetOpen,
+    setSheetOpen,
+    editing,
+    formData,
+    setFormData,
+    saving,
+    loadData,
+    handleOpenCreate,
+    handleOpenEdit,
+    handleCloseSheet,
+    handleSubmit,
+    handleDelete,
+    filteredData: baseFilteredData,
+  } = useCRUDPage<Endpoint, FormData>({
+    tableName: 'endpoints',
+    initialFormData,
+    customLoadData: async () => {
       const [endpointsResult, orgsResult] = await Promise.all([
         supabase
           .from('endpoints')
@@ -129,36 +128,62 @@ export default function EndpointsPage() {
       if (endpointsResult.error) throw endpointsResult.error
       if (orgsResult.error) throw orgsResult.error
 
-      const endpointsWithDetails = (endpointsResult.data || []).map((endpoint: any) => ({
+      setOrganizations(orgsResult.data || [])
+
+      // Tipo para o resultado da query com join
+      type EndpointWithOrg = Endpoint & {
+        organizations: { name: string } | null
+      }
+
+      return (endpointsResult.data || []).map((endpoint: EndpointWithOrg) => ({
         ...endpoint,
         organization_name: endpoint.organizations?.name,
-      }))
-
-      setEndpoints(endpointsWithDetails)
-      setOrganizations(orgsResult.data || [])
-    } catch (error) {
-      console.error('Erro ao carregar dados:', error)
-      toast.error('Erro ao carregar dados')
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    loadData()
-  }, [loadData])
-
-  const filteredEndpoints = endpoints.filter(endpoint => {
-    const matchesSearch =
-      endpoint.name.toLowerCase().includes(search.toLowerCase()) ||
-      endpoint.url.toLowerCase().includes(search.toLowerCase()) ||
-      endpoint.organization_name?.toLowerCase().includes(search.toLowerCase())
-    const matchesType = filterType === 'all' || endpoint.type === filterType
-    const matchesStatus = filterStatus === 'all' || endpoint.status === filterStatus
-    return matchesSearch && matchesType && matchesStatus
+      })) as Endpoint[]
+    },
+    mapDataToForm: (endpoint) => ({
+      name: endpoint.name,
+      url: endpoint.url,
+      type: endpoint.type,
+      organization_id: endpoint.organization_id ?? null,
+      port: endpoint.port ?? null,
+      difficulty: endpoint.difficulty ?? null,
+      is_ssl: endpoint.is_ssl ?? false,
+      status: endpoint.status,
+    }),
+    mapFormToData: (data) => ({
+      name: data.name,
+      url: data.url,
+      type: data.type,
+      organization_id: data.organization_id,
+      port: data.port,
+      difficulty: data.difficulty,
+      is_ssl: data.is_ssl,
+      status: data.status,
+    }),
+    validateForm: (data) => {
+      if (!data.name.trim() || !data.url.trim()) {
+        return 'Nome e URL são obrigatórios'
+      }
+      return null
+    },
+    searchFields: ['name', 'url', 'organization_name'],
+    entityName: 'endpoint',
+    messages: {
+      deleteConfirm: (endpoint) => `Tem certeza que deseja excluir "${endpoint.name}"?`,
+    },
   })
 
-  const handleCopyUrl = async (endpoint: Endpoint) => {
+  // Filtros adicionais sobre os dados já filtrados pelo hook
+  const filteredEndpoints = useMemo(() => {
+    return baseFilteredData.filter((endpoint) => {
+      const matchesType = filterType === 'all' || endpoint.type === filterType
+      const matchesStatus = filterStatus === 'all' || endpoint.status === filterStatus
+      return matchesType && matchesStatus
+    })
+  }, [baseFilteredData, filterType, filterStatus])
+
+  // Funções auxiliares
+  const handleCopyUrl = useCallback(async (endpoint: Endpoint) => {
     const fullUrl = endpoint.port
       ? `${endpoint.is_ssl ? 'ssl://' : ''}${endpoint.url}:${endpoint.port}`
       : endpoint.url
@@ -170,106 +195,9 @@ export default function EndpointsPage() {
     } catch {
       toast.error('Erro ao copiar URL')
     }
-  }
+  }, [])
 
-  const handleOpenCreate = () => {
-    setEditingEndpoint(null)
-    setFormData(initialFormData)
-    setSheetOpen(true)
-  }
-
-  const handleOpenEdit = (endpoint: Endpoint) => {
-    setEditingEndpoint(endpoint)
-    setFormData({
-      name: endpoint.name,
-      url: endpoint.url,
-      type: endpoint.type,
-      organization_id: endpoint.organization_id,
-      port: endpoint.port,
-      difficulty: endpoint.difficulty,
-      is_ssl: endpoint.is_ssl,
-      status: endpoint.status,
-    })
-    setSheetOpen(true)
-  }
-
-  const handleCloseSheet = () => {
-    setSheetOpen(false)
-    setEditingEndpoint(null)
-    setFormData(initialFormData)
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    if (!formData.name.trim() || !formData.url.trim()) {
-      toast.error('Nome e URL são obrigatórios')
-      return
-    }
-
-    setSaving(true)
-
-    try {
-      const endpointData = {
-        name: formData.name,
-        url: formData.url,
-        type: formData.type,
-        organization_id: formData.organization_id,
-        port: formData.port,
-        difficulty: formData.difficulty,
-        is_ssl: formData.is_ssl,
-        status: formData.status,
-      }
-
-      if (editingEndpoint) {
-        const { error } = await supabase
-          .from('endpoints')
-          .update(endpointData)
-          .eq('id', editingEndpoint.id)
-
-        if (error) throw error
-        toast.success('Endpoint atualizado com sucesso!')
-      } else {
-        const { error } = await supabase
-          .from('endpoints')
-          .insert(endpointData)
-
-        if (error) throw error
-        toast.success('Endpoint criado com sucesso!')
-      }
-
-      handleCloseSheet()
-      loadData()
-    } catch (error) {
-      console.error('Erro ao salvar endpoint:', error)
-      toast.error('Erro ao salvar endpoint')
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  const handleDelete = async (endpoint: Endpoint) => {
-    if (!confirm(`Tem certeza que deseja excluir "${endpoint.name}"?`)) {
-      return
-    }
-
-    try {
-      const { error } = await supabase
-        .from('endpoints')
-        .delete()
-        .eq('id', endpoint.id)
-
-      if (error) throw error
-
-      toast.success('Endpoint excluído com sucesso!')
-      loadData()
-    } catch (error) {
-      console.error('Erro ao excluir endpoint:', error)
-      toast.error('Erro ao excluir endpoint')
-    }
-  }
-
-  const toggleStatus = async (endpoint: Endpoint) => {
+  const toggleStatus = useCallback(async (endpoint: Endpoint) => {
     try {
       const { error } = await supabase
         .from('endpoints')
@@ -282,17 +210,17 @@ export default function EndpointsPage() {
       console.error('Erro ao atualizar status:', error)
       toast.error('Erro ao atualizar status')
     }
-  }
+  }, [loadData])
 
-  const getTypeOption = (type: string) => {
+  const getTypeOption = useCallback((type: string) => {
     return typeOptions.find(t => t.value === type) || typeOptions[0]
-  }
+  }, [])
 
-  const formatUrl = (endpoint: Endpoint) => {
+  const formatUrl = useCallback((endpoint: Endpoint) => {
     const protocol = endpoint.is_ssl ? 'ssl://' : ''
     const port = endpoint.port ? `:${endpoint.port}` : ''
     return `${protocol}${endpoint.url}${port}`
-  }
+  }, [])
 
   return (
     <div className="space-y-6">
@@ -490,10 +418,10 @@ export default function EndpointsPage() {
         <SheetContent side="right" className="sm:max-w-md">
           <SheetHeader>
             <SheetTitle>
-              {editingEndpoint ? 'Editar Endpoint' : 'Novo Endpoint'}
+              {editing ? 'Editar Endpoint' : 'Novo Endpoint'}
             </SheetTitle>
             <SheetDescription>
-              {editingEndpoint
+              {editing
                 ? 'Altere as informações do endpoint abaixo.'
                 : 'Preencha as informações para criar um novo endpoint.'}
             </SheetDescription>
@@ -642,7 +570,7 @@ export default function EndpointsPage() {
                 Cancelar
               </Button>
               <Button type="submit" disabled={saving}>
-                {saving ? 'Salvando...' : editingEndpoint ? 'Atualizar' : 'Criar'}
+                {saving ? 'Salvando...' : editing ? 'Atualizar' : 'Criar'}
               </Button>
             </SheetFooter>
           </form>

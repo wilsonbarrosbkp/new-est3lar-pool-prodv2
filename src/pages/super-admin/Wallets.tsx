@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import {
-  Wallet,
+  Wallet as WalletIcon,
   Plus,
   MoreHorizontal,
   Search,
@@ -47,32 +47,12 @@ import {
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
 import { typography } from '@/design-system/tokens'
-
-interface WalletData {
-  id: number
-  address: string
-  label: string
-  organization_id: number
-  organization_name?: string
-  currency_id: number
-  currency_symbol?: string
-  currency_name?: string
-  is_primary: boolean
-  is_active: boolean
-  created_at: string
-}
-
-interface Organization {
-  id: number
-  name: string
-}
-
-interface Currency {
-  id: number
-  name: string
-  symbol: string
-  type: string
-}
+import { useCRUDPage } from '@/hooks/useCRUDPage'
+import type {
+  Wallet,
+  OrganizationOption,
+  Currency,
+} from '@/types/super-admin'
 
 type FormData = {
   address: string
@@ -93,22 +73,34 @@ const initialFormData: FormData = {
 }
 
 export default function WalletsPage() {
-  const [wallets, setWallets] = useState<WalletData[]>([])
-  const [organizations, setOrganizations] = useState<Organization[]>([])
+  // Estados locais para dados relacionados e filtros
+  const [organizations, setOrganizations] = useState<OrganizationOption[]>([])
   const [currencies, setCurrencies] = useState<Currency[]>([])
-  const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState('')
   const [filterOrg, setFilterOrg] = useState<string>('all')
   const [filterCurrency, setFilterCurrency] = useState<string>('all')
-  const [sheetOpen, setSheetOpen] = useState(false)
-  const [editingWallet, setEditingWallet] = useState<WalletData | null>(null)
-  const [formData, setFormData] = useState(initialFormData)
-  const [saving, setSaving] = useState(false)
   const [copiedId, setCopiedId] = useState<number | null>(null)
 
-  const loadData = useCallback(async () => {
-    setLoading(true)
-    try {
+  const {
+    loading,
+    search,
+    setSearch,
+    sheetOpen,
+    setSheetOpen,
+    editing,
+    formData,
+    setFormData,
+    saving,
+    loadData,
+    handleOpenCreate,
+    handleOpenEdit,
+    handleCloseSheet,
+    handleSubmit,
+    handleDelete,
+    filteredData: baseFilteredData,
+  } = useCRUDPage<Wallet, FormData>({
+    tableName: 'wallets',
+    initialFormData,
+    customLoadData: async () => {
       const [walletsResult, orgsResult, currenciesResult] = await Promise.all([
         supabase
           .from('wallets')
@@ -127,113 +119,48 @@ export default function WalletsPage() {
       if (orgsResult.error) throw orgsResult.error
       if (currenciesResult.error) throw currenciesResult.error
 
-      const walletsWithDetails = (walletsResult.data || []).map((wallet: any) => ({
-        ...wallet,
-        organization_name: wallet.organizations?.name,
-        currency_symbol: wallet.currencies?.symbol,
-        currency_name: wallet.currencies?.name,
-      }))
-
-      setWallets(walletsWithDetails)
       setOrganizations(orgsResult.data || [])
       setCurrencies(currenciesResult.data || [])
-    } catch (error) {
-      console.error('Erro ao carregar dados:', error)
-      toast.error('Erro ao carregar dados')
-    } finally {
-      setLoading(false)
-    }
-  }, [])
 
-  useEffect(() => {
-    loadData()
-  }, [loadData])
-
-  const filteredWallets = wallets.filter(wallet => {
-    const matchesSearch =
-      wallet.label.toLowerCase().includes(search.toLowerCase()) ||
-      wallet.address.toLowerCase().includes(search.toLowerCase()) ||
-      wallet.organization_name?.toLowerCase().includes(search.toLowerCase())
-    const matchesOrg = filterOrg === 'all' || wallet.organization_id.toString() === filterOrg
-    const matchesCurrency = filterCurrency === 'all' || wallet.currency_id.toString() === filterCurrency
-    return matchesSearch && matchesOrg && matchesCurrency
-  })
-
-  const handleCopyAddress = async (wallet: WalletData) => {
-    try {
-      await navigator.clipboard.writeText(wallet.address)
-      setCopiedId(wallet.id)
-      setTimeout(() => setCopiedId(null), 2000)
-      toast.success('Endereço copiado!')
-    } catch {
-      toast.error('Erro ao copiar endereço')
-    }
-  }
-
-  const handleOpenCreate = () => {
-    setEditingWallet(null)
-    setFormData(initialFormData)
-    setSheetOpen(true)
-  }
-
-  const handleOpenEdit = (wallet: WalletData) => {
-    setEditingWallet(wallet)
-    setFormData({
+      return (walletsResult.data || []).map((wallet: Record<string, unknown>) => ({
+        ...wallet,
+        organization_name: (wallet.organizations as { name?: string } | null)?.name,
+        currency_symbol: (wallet.currencies as { symbol?: string } | null)?.symbol,
+        currency_name: (wallet.currencies as { name?: string } | null)?.name,
+      })) as Wallet[]
+    },
+    mapDataToForm: (wallet) => ({
       address: wallet.address,
       label: wallet.label,
       organization_id: wallet.organization_id,
       currency_id: wallet.currency_id,
-      is_primary: wallet.is_primary,
-      is_active: wallet.is_active,
-    })
-    setSheetOpen(true)
-  }
-
-  const handleCloseSheet = () => {
-    setSheetOpen(false)
-    setEditingWallet(null)
-    setFormData(initialFormData)
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    if (!formData.address.trim() || !formData.label.trim()) {
-      toast.error('Endereço e label são obrigatórios')
-      return
-    }
-
-    if (!formData.organization_id || !formData.currency_id) {
-      toast.error('Organização e moeda são obrigatórios')
-      return
-    }
-
-    setSaving(true)
-
-    try {
+      is_primary: wallet.is_primary ?? false,
+      is_active: wallet.is_active ?? true,
+    }),
+    customSubmit: async (data, editingItem) => {
       // Se está marcando como principal, remover flag das outras carteiras
-      if (formData.is_primary) {
+      if (data.is_primary && data.organization_id && data.currency_id) {
         await supabase
           .from('wallets')
           .update({ is_primary: false })
-          .eq('organization_id', formData.organization_id)
-          .eq('currency_id', formData.currency_id)
+          .eq('organization_id', data.organization_id)
+          .eq('currency_id', data.currency_id)
       }
 
       const walletData = {
-        address: formData.address,
-        label: formData.label,
-        organization_id: formData.organization_id,
-        currency_id: formData.currency_id,
-        is_primary: formData.is_primary,
-        is_active: formData.is_active,
+        address: data.address,
+        label: data.label,
+        organization_id: data.organization_id,
+        currency_id: data.currency_id,
+        is_primary: data.is_primary,
+        is_active: data.is_active,
       }
 
-      if (editingWallet) {
+      if (editingItem) {
         const { error } = await supabase
           .from('wallets')
           .update(walletData)
-          .eq('id', editingWallet.id)
+          .eq('id', editingItem.id)
 
         if (error) throw error
         toast.success('Carteira atualizada com sucesso!')
@@ -245,39 +172,45 @@ export default function WalletsPage() {
         if (error) throw error
         toast.success('Carteira criada com sucesso!')
       }
+    },
+    validateForm: (data) => {
+      if (!data.address.trim() || !data.label.trim()) {
+        return 'Endereço e label são obrigatórios'
+      }
+      if (!data.organization_id || !data.currency_id) {
+        return 'Organização e moeda são obrigatórios'
+      }
+      return null
+    },
+    searchFields: ['label', 'address', 'organization_name'],
+    entityName: 'carteira',
+    messages: {
+      deleteConfirm: (wallet) => `Tem certeza que deseja excluir "${wallet.label}"?`,
+    },
+  })
 
-      handleCloseSheet()
-      loadData()
-    } catch (error) {
-      console.error('Erro ao salvar carteira:', error)
-      toast.error('Erro ao salvar carteira')
-    } finally {
-      setSaving(false)
-    }
-  }
+  // Filtros adicionais sobre os dados já filtrados pelo hook
+  const filteredWallets = useMemo(() => {
+    return baseFilteredData.filter((wallet) => {
+      const matchesOrg = filterOrg === 'all' || wallet.organization_id.toString() === filterOrg
+      const matchesCurrency = filterCurrency === 'all' || wallet.currency_id.toString() === filterCurrency
+      return matchesOrg && matchesCurrency
+    })
+  }, [baseFilteredData, filterOrg, filterCurrency])
 
-  const handleDelete = async (wallet: WalletData) => {
-    if (!confirm(`Tem certeza que deseja excluir "${wallet.label}"?`)) {
-      return
-    }
-
+  // Funções auxiliares
+  const handleCopyAddress = useCallback(async (wallet: Wallet) => {
     try {
-      const { error } = await supabase
-        .from('wallets')
-        .delete()
-        .eq('id', wallet.id)
-
-      if (error) throw error
-
-      toast.success('Carteira excluída com sucesso!')
-      loadData()
-    } catch (error) {
-      console.error('Erro ao excluir carteira:', error)
-      toast.error('Erro ao excluir carteira')
+      await navigator.clipboard.writeText(wallet.address)
+      setCopiedId(wallet.id)
+      setTimeout(() => setCopiedId(null), 2000)
+      toast.success('Endereço copiado!')
+    } catch {
+      toast.error('Erro ao copiar endereço')
     }
-  }
+  }, [])
 
-  const toggleActive = async (wallet: WalletData) => {
+  const toggleActive = useCallback(async (wallet: Wallet) => {
     try {
       const { error } = await supabase
         .from('wallets')
@@ -290,9 +223,9 @@ export default function WalletsPage() {
       console.error('Erro ao atualizar carteira:', error)
       toast.error('Erro ao atualizar carteira')
     }
-  }
+  }, [loadData])
 
-  const setPrimary = async (wallet: WalletData) => {
+  const setPrimary = useCallback(async (wallet: Wallet) => {
     try {
       // Remover flag das outras
       await supabase
@@ -314,12 +247,12 @@ export default function WalletsPage() {
       console.error('Erro ao definir carteira principal:', error)
       toast.error('Erro ao definir carteira principal')
     }
-  }
+  }, [loadData])
 
-  const formatAddress = (address: string) => {
+  const formatAddress = useCallback((address: string) => {
     if (address.length <= 20) return address
     return `${address.slice(0, 10)}...${address.slice(-8)}`
-  }
+  }, [])
 
   return (
     <div className="space-y-6">
@@ -379,7 +312,7 @@ export default function WalletsPage() {
             </div>
           ) : filteredWallets.length === 0 ? (
             <div className="text-center py-12">
-              <Wallet className="mx-auto h-12 w-12 text-text-secondary mb-4" />
+              <WalletIcon className="mx-auto h-12 w-12 text-text-secondary mb-4" />
               <p className="text-text-secondary">
                 {search || filterOrg !== 'all' || filterCurrency !== 'all'
                   ? 'Nenhuma carteira encontrada'
@@ -407,7 +340,7 @@ export default function WalletsPage() {
                           {wallet.is_primary ? (
                             <Star className="h-5 w-5 fill-current" />
                           ) : (
-                            <Wallet className="h-5 w-5" />
+                            <WalletIcon className="h-5 w-5" />
                           )}
                         </div>
                         <div>
@@ -499,10 +432,10 @@ export default function WalletsPage() {
         <SheetContent side="right" className="sm:max-w-md">
           <SheetHeader>
             <SheetTitle>
-              {editingWallet ? 'Editar Carteira' : 'Nova Carteira'}
+              {editing ? 'Editar Carteira' : 'Nova Carteira'}
             </SheetTitle>
             <SheetDescription>
-              {editingWallet
+              {editing
                 ? 'Altere as informações da carteira abaixo.'
                 : 'Preencha as informações para criar uma nova carteira.'}
             </SheetDescription>
@@ -625,7 +558,7 @@ export default function WalletsPage() {
                 Cancelar
               </Button>
               <Button type="submit" disabled={saving}>
-                {saving ? 'Salvando...' : editingWallet ? 'Atualizar' : 'Criar'}
+                {saving ? 'Salvando...' : editing ? 'Atualizar' : 'Criar'}
               </Button>
             </SheetFooter>
           </form>

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import {
   Shield,
   Plus,
@@ -32,8 +32,13 @@ import {
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
 import { typography } from '@/design-system/tokens'
+import { useCRUDPage } from '@/hooks/useCRUDPage'
+import type { Permission } from '@/types/super-admin'
 
-interface Role {
+/**
+ * Role estendido com contagem de permissões
+ */
+interface RoleWithPermissions {
   id: number
   name: string
   description: string | null
@@ -44,28 +49,25 @@ interface Role {
   permissions_count?: number
 }
 
-interface Permission {
-  id: number
-  name: string
-  description: string | null
-  module: string
-  action: string
-  created_at: string
-}
-
+/**
+ * Relação many-to-many entre roles e permissões
+ */
 interface RolePermission {
   role_id: number
   permission_id: number
 }
 
-type FormData = {
+/**
+ * Dados do formulário de role
+ */
+type RoleFormData = {
   name: string
   description: string
   level: number
   badge_color: string
 }
 
-const initialFormData: FormData = {
+const initialFormData: RoleFormData = {
   name: '',
   description: '',
   level: 10,
@@ -73,20 +75,35 @@ const initialFormData: FormData = {
 }
 
 export default function PermissionsPage() {
-  const [roles, setRoles] = useState<Role[]>([])
+  // Estados customizados para a matriz de permissões (não gerenciados pelo hook)
   const [permissions, setPermissions] = useState<Permission[]>([])
   const [rolePermissions, setRolePermissions] = useState<RolePermission[]>([])
-  const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState('')
-  const [sheetOpen, setSheetOpen] = useState(false)
-  const [editingRole, setEditingRole] = useState<Role | null>(null)
-  const [formData, setFormData] = useState(initialFormData)
-  const [saving, setSaving] = useState(false)
   const [selectedRoleId, setSelectedRoleId] = useState<number | null>(null)
+  const [loadingPermissions, setLoadingPermissions] = useState(true)
 
-  const loadData = useCallback(async () => {
-    setLoading(true)
-    try {
+  // Hook CRUD para roles (gerencia CRUD de roles)
+  const {
+    loading,
+    search,
+    setSearch,
+    sheetOpen,
+    setSheetOpen,
+    editing,
+    formData,
+    setFormData,
+    saving,
+    handleOpenCreate,
+    handleOpenEdit,
+    handleCloseSheet,
+    handleSubmit,
+    handleDelete: handleDeleteBase,
+    filteredData: filteredRoles,
+    loadData,
+  } = useCRUDPage<RoleWithPermissions, RoleFormData>({
+    tableName: 'roles',
+    initialFormData,
+    customLoadData: async () => {
+      // Carregar roles, permissions e role_permissions em paralelo
       const [rolesResult, permissionsResult, rolePermissionsResult] = await Promise.all([
         supabase.from('roles').select('*').order('level', { ascending: false }),
         supabase.from('permissions').select('*').order('module, action'),
@@ -96,6 +113,11 @@ export default function PermissionsPage() {
       if (rolesResult.error) throw rolesResult.error
       if (permissionsResult.error) throw permissionsResult.error
       if (rolePermissionsResult.error) throw rolePermissionsResult.error
+
+      // Atualizar estados de permissões (fora do hook)
+      setPermissions(permissionsResult.data || [])
+      setRolePermissions(rolePermissionsResult.data || [])
+      setLoadingPermissions(false)
 
       // Contar permissões por role
       const rpMap = rolePermissionsResult.data?.reduce((acc, rp) => {
@@ -108,136 +130,64 @@ export default function PermissionsPage() {
         permissions_count: rpMap[role.id] || 0
       })) || []
 
-      setRoles(rolesWithCount)
-      setPermissions(permissionsResult.data || [])
-      setRolePermissions(rolePermissionsResult.data || [])
-    } catch (error) {
-      console.error('Erro ao carregar dados:', error)
-      toast.error('Erro ao carregar dados')
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    loadData()
-  }, [loadData])
-
-  const filteredRoles = roles.filter(role =>
-    role.name.toLowerCase().includes(search.toLowerCase()) ||
-    role.description?.toLowerCase().includes(search.toLowerCase())
-  )
-
-  const handleOpenCreate = () => {
-    setEditingRole(null)
-    setFormData(initialFormData)
-    setSheetOpen(true)
-  }
-
-  const handleOpenEdit = (role: Role) => {
-    setEditingRole(role)
-    setFormData({
+      return rolesWithCount
+    },
+    mapDataToForm: (role) => ({
       name: role.name,
       description: role.description || '',
       level: role.level,
       badge_color: role.badge_color || '#6366f1',
-    })
-    setSheetOpen(true)
-  }
-
-  const handleCloseSheet = () => {
-    setSheetOpen(false)
-    setEditingRole(null)
-    setFormData(initialFormData)
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    if (!formData.name.trim()) {
-      toast.error('Nome da role é obrigatório')
-      return
-    }
-
-    setSaving(true)
-
-    try {
-      if (editingRole) {
-        if (editingRole.is_system) {
-          toast.error('Roles do sistema não podem ser editadas')
-          return
-        }
-
-        const { error } = await supabase
-          .from('roles')
-          .update({
-            name: formData.name,
-            description: formData.description || null,
-            level: formData.level,
-            badge_color: formData.badge_color,
-          })
-          .eq('id', editingRole.id)
-
-        if (error) throw error
-        toast.success('Role atualizada com sucesso!')
-      } else {
-        const { error } = await supabase
-          .from('roles')
-          .insert({
-            name: formData.name,
-            description: formData.description || null,
-            level: formData.level,
-            badge_color: formData.badge_color,
-            is_system: false,
-          })
-
-        if (error) throw error
-        toast.success('Role criada com sucesso!')
+    }),
+    mapFormToData: (data) => ({
+      name: data.name,
+      description: data.description || null,
+      level: data.level,
+      badge_color: data.badge_color,
+      is_system: false,
+    }),
+    validateForm: (data) => {
+      if (!data.name.trim()) return 'Nome da role é obrigatório'
+      return null
+    },
+    searchFields: ['name', 'description'],
+    entityName: 'role',
+    messages: {
+      deleteConfirm: (role) => `Tem certeza que deseja excluir a role "${role.name}"?`,
+    },
+    onBeforeUpdate: async (data, id) => {
+      // Verificar se é role do sistema antes de atualizar
+      const role = filteredRoles.find(r => r.id === id)
+      if (role?.is_system) {
+        throw new Error('Roles do sistema não podem ser editadas')
       }
+      return data
+    },
+  })
 
-      handleCloseSheet()
-      loadData()
-    } catch (error) {
-      console.error('Erro ao salvar role:', error)
-      toast.error('Erro ao salvar role')
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  const handleDelete = async (role: Role) => {
+  // Handler de delete com proteção para roles do sistema
+  const handleDeleteRole = useCallback(async (role: RoleWithPermissions) => {
     if (role.is_system) {
       toast.error('Roles do sistema não podem ser excluídas')
       return
     }
+    await handleDeleteBase(role)
+  }, [handleDeleteBase])
 
-    if (!confirm(`Tem certeza que deseja excluir a role "${role.name}"?`)) {
-      return
-    }
+  // ============================================
+  // Lógica customizada da matriz de permissões
+  // ============================================
 
-    try {
-      const { error } = await supabase
-        .from('roles')
-        .delete()
-        .eq('id', role.id)
-
-      if (error) throw error
-
-      toast.success('Role excluída com sucesso!')
-      loadData()
-    } catch (error) {
-      console.error('Erro ao excluir role:', error)
-      toast.error('Erro ao excluir role')
-    }
-  }
-
-  const togglePermission = async (roleId: number, permissionId: number) => {
+  /**
+   * Toggle de permissão na matriz many-to-many
+   */
+  const togglePermission = useCallback(async (roleId: number, permissionId: number) => {
     const exists = rolePermissions.some(
       rp => rp.role_id === roleId && rp.permission_id === permissionId
     )
 
     try {
       if (exists) {
+        // Remover permissão
         const { error } = await supabase
           .from('role_permissions')
           .delete()
@@ -246,6 +196,7 @@ export default function PermissionsPage() {
 
         if (error) throw error
       } else {
+        // Adicionar permissão
         const { error } = await supabase
           .from('role_permissions')
           .insert({ role_id: roleId, permission_id: permissionId })
@@ -253,20 +204,26 @@ export default function PermissionsPage() {
         if (error) throw error
       }
 
+      // Recarregar dados após mudança
       loadData()
     } catch (error) {
       console.error('Erro ao atualizar permissão:', error)
       toast.error('Erro ao atualizar permissão')
     }
-  }
+  }, [rolePermissions, loadData])
 
-  const hasPermission = (roleId: number, permissionId: number) => {
+  /**
+   * Verifica se uma role tem determinada permissão
+   */
+  const hasPermission = useCallback((roleId: number, permissionId: number) => {
     return rolePermissions.some(
       rp => rp.role_id === roleId && rp.permission_id === permissionId
     )
-  }
+  }, [rolePermissions])
 
-  // Agrupar permissões por módulo
+  /**
+   * Agrupar permissões por módulo para exibição organizada
+   */
   const permissionsByModule = permissions.reduce((acc, perm) => {
     if (!acc[perm.module]) {
       acc[perm.module] = []
@@ -300,7 +257,7 @@ export default function PermissionsPage() {
           <CardHeader>
             <CardTitle className={`${typography.card.title} flex items-center gap-2`}>
               <Shield className="h-5 w-5" />
-              Roles ({roles.length})
+              Roles ({filteredRoles.length})
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
@@ -353,7 +310,7 @@ export default function PermissionsPage() {
                               <DropdownMenuSeparator />
                               <DropdownMenuItem
                                 className="text-error"
-                                onClick={() => handleDelete(role)}
+                                onClick={() => handleDeleteRole(role)}
                               >
                                 Excluir
                               </DropdownMenuItem>
@@ -382,7 +339,7 @@ export default function PermissionsPage() {
               Permissões
               {selectedRoleId && (
                 <Badge variant="outline" className="ml-2">
-                  {roles.find(r => r.id === selectedRoleId)?.name}
+                  {filteredRoles.find(r => r.id === selectedRoleId)?.name}
                 </Badge>
               )}
             </CardTitle>
@@ -395,7 +352,7 @@ export default function PermissionsPage() {
                   Selecione uma role para gerenciar permissões
                 </p>
               </div>
-            ) : loading ? (
+            ) : loadingPermissions ? (
               <div className="space-y-3">
                 {Array.from({ length: 5 }).map((_, i) => (
                   <Skeleton key={i} className="h-10 w-full" />
@@ -451,10 +408,10 @@ export default function PermissionsPage() {
         <SheetContent side="right" className="sm:max-w-md">
           <SheetHeader>
             <SheetTitle>
-              {editingRole ? 'Editar Role' : 'Nova Role'}
+              {editing ? 'Editar Role' : 'Nova Role'}
             </SheetTitle>
             <SheetDescription>
-              {editingRole
+              {editing
                 ? 'Altere as informações da role abaixo.'
                 : 'Preencha as informações para criar uma nova role.'}
             </SheetDescription>
@@ -535,7 +492,7 @@ export default function PermissionsPage() {
                 Cancelar
               </Button>
               <Button type="submit" disabled={saving}>
-                {saving ? 'Salvando...' : editingRole ? 'Atualizar' : 'Criar'}
+                {saving ? 'Salvando...' : editing ? 'Atualizar' : 'Criar'}
               </Button>
             </SheetFooter>
           </form>

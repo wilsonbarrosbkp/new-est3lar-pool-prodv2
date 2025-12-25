@@ -1,22 +1,21 @@
 import { useState, FormEvent } from 'react'
-import { Eye, EyeOff } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
+import { PasswordInput } from '@/components/ui/password-input'
 import { AuthForm } from './AuthForm'
 import { AuthHeader } from './AuthHeader'
 import { loginAction } from '@/lib/auth/login'
 import { typography } from '@/design-system/tokens'
 
 export function LoginForm() {
-  const [showPassword, setShowPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    setIsLoading(true)
+    setLoading(true)
 
     const formData = new FormData(event.currentTarget)
     const email = formData.get('email') as string
@@ -43,7 +42,7 @@ export function LoginForm() {
     } catch {
       toast.error('Erro inesperado ao fazer login')
     } finally {
-      setIsLoading(false)
+      setLoading(false)
     }
   }
 
@@ -62,7 +61,7 @@ export function LoginForm() {
             placeholder="seu@email.com"
             required
             autoComplete="email"
-            disabled={isLoading}
+            disabled={loading}
           />
         </div>
 
@@ -77,29 +76,14 @@ export function LoginForm() {
               Esqueci a senha
             </Link>
           </div>
-          <div className="relative">
-            <Input
-              id="password"
-              name="password"
-              type={showPassword ? 'text' : 'password'}
-              placeholder="••••••••"
-              required
-              autoComplete="current-password"
-              className="pr-10"
-              disabled={isLoading}
-            />
-            {showPassword ? (
-              <EyeOff
-                className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-secondary cursor-pointer hover:text-text-primary"
-                onClick={() => setShowPassword(false)}
-              />
-            ) : (
-              <Eye
-                className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-secondary cursor-pointer hover:text-text-primary"
-                onClick={() => setShowPassword(true)}
-              />
-            )}
-          </div>
+          <PasswordInput
+            id="password"
+            name="password"
+            placeholder="••••••••"
+            required
+            autoComplete="current-password"
+            disabled={loading}
+          />
         </div>
 
         {/* Submit Button */}
@@ -107,9 +91,9 @@ export function LoginForm() {
           type="submit"
           variant="gradient"
           className="w-full"
-          disabled={isLoading}
+          disabled={loading}
         >
-          {isLoading ? 'Entrando...' : 'Entrar'}
+          {loading ? 'Entrando...' : 'Entrar'}
         </Button>
       </form>
     </AuthForm>

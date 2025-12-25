@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useMemo } from 'react'
 import {
   Database,
   Plus,
@@ -46,41 +46,13 @@ import {
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
 import { typography } from '@/design-system/tokens'
-
-interface Pool {
-  id: number
-  name: string
-  organization_id: number
-  organization_name?: string
-  currency_id: number
-  currency_symbol?: string
-  payout_model_id: number
-  payout_model_name?: string
-  pool_fee_percent: number
-  min_payout: number
-  stratum_url: string | null
-  stratum_port: number | null
-  stratum_difficulty: number | null
-  is_active: boolean
-  created_at: string
-}
-
-interface Organization {
-  id: number
-  name: string
-}
-
-interface Currency {
-  id: number
-  name: string
-  symbol: string
-}
-
-interface PayoutModel {
-  id: number
-  name: string
-  description: string
-}
+import { useCRUDPage } from '@/hooks/useCRUDPage'
+import type {
+  Pool,
+  OrganizationOption,
+  CurrencyOption,
+  PayoutModel,
+} from '@/types/super-admin'
 
 type FormData = {
   name: string
@@ -109,21 +81,37 @@ const initialFormData: FormData = {
 }
 
 export default function PoolsPage() {
-  const [pools, setPools] = useState<Pool[]>([])
-  const [organizations, setOrganizations] = useState<Organization[]>([])
-  const [currencies, setCurrencies] = useState<Currency[]>([])
+  // Estados adicionais para dados relacionados e filtros
+  const [organizations, setOrganizations] = useState<OrganizationOption[]>([])
+  const [currencies, setCurrencies] = useState<CurrencyOption[]>([])
   const [payoutModels, setPayoutModels] = useState<PayoutModel[]>([])
-  const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState('')
   const [filterOrg, setFilterOrg] = useState<string>('all')
-  const [sheetOpen, setSheetOpen] = useState(false)
-  const [editingPool, setEditingPool] = useState<Pool | null>(null)
-  const [formData, setFormData] = useState(initialFormData)
-  const [saving, setSaving] = useState(false)
 
-  const loadData = useCallback(async () => {
-    setLoading(true)
-    try {
+  const {
+    data: pools,
+    loading,
+    search,
+    setSearch,
+    sheetOpen,
+    setSheetOpen,
+    editing,
+    formData,
+    setFormData,
+    saving,
+    loadData,
+    handleOpenCreate,
+    handleOpenEdit,
+    handleCloseSheet,
+    handleSubmit,
+    handleDelete,
+  } = useCRUDPage<Pool, FormData>({
+    tableName: 'pools',
+    initialFormData,
+    entityName: 'pool',
+    searchFields: ['name', 'organization_name', 'currency_symbol'],
+
+    // Carregamento customizado para incluir joins e dados relacionados
+    customLoadData: async () => {
       const [poolsResult, orgsResult, currenciesResult, payoutModelsResult] = await Promise.all([
         supabase
           .from('pools')
@@ -144,144 +132,94 @@ export default function PoolsPage() {
       if (currenciesResult.error) throw currenciesResult.error
       if (payoutModelsResult.error) throw payoutModelsResult.error
 
-      const poolsWithDetails = (poolsResult.data || []).map((pool: any) => ({
+      // Tipo para o resultado da query com joins
+      type PoolWithRelations = Pool & {
+        organizations: { name: string } | null
+        currencies: { symbol: string } | null
+        payout_models: { name: string } | null
+      }
+
+      const poolsWithDetails = (poolsResult.data || []).map((pool: PoolWithRelations) => ({
         ...pool,
         organization_name: pool.organizations?.name,
         currency_symbol: pool.currencies?.symbol,
         payout_model_name: pool.payout_models?.name,
       }))
 
-      setPools(poolsWithDetails)
       setOrganizations(orgsResult.data || [])
       setCurrencies(currenciesResult.data || [])
       setPayoutModels(payoutModelsResult.data || [])
-    } catch (error) {
-      console.error('Erro ao carregar dados:', error)
-      toast.error('Erro ao carregar dados')
-    } finally {
-      setLoading(false)
-    }
-  }, [])
 
-  useEffect(() => {
-    loadData()
-  }, [loadData])
+      return poolsWithDetails
+    },
 
-  const filteredPools = pools.filter(pool => {
-    const matchesSearch =
-      pool.name.toLowerCase().includes(search.toLowerCase()) ||
-      pool.organization_name?.toLowerCase().includes(search.toLowerCase()) ||
-      pool.currency_symbol?.toLowerCase().includes(search.toLowerCase())
-    const matchesOrg = filterOrg === 'all' || pool.organization_id.toString() === filterOrg
-    return matchesSearch && matchesOrg
-  })
-
-  const handleOpenCreate = () => {
-    setEditingPool(null)
-    setFormData(initialFormData)
-    setSheetOpen(true)
-  }
-
-  const handleOpenEdit = (pool: Pool) => {
-    setEditingPool(pool)
-    setFormData({
+    mapDataToForm: (pool) => ({
       name: pool.name,
       organization_id: pool.organization_id,
-      currency_id: pool.currency_id,
+      currency_id: pool.currency_id ?? null,
       payout_model_id: pool.payout_model_id,
       pool_fee_percent: pool.pool_fee_percent,
-      min_payout: pool.min_payout,
+      min_payout: pool.min_payout ?? 0.001,
       stratum_url: pool.stratum_url || '',
-      stratum_port: pool.stratum_port,
-      stratum_difficulty: pool.stratum_difficulty,
-      is_active: pool.is_active,
-    })
-    setSheetOpen(true)
-  }
+      stratum_port: pool.stratum_port ?? null,
+      stratum_difficulty: pool.stratum_difficulty ?? null,
+      is_active: pool.is_active ?? true,
+    }),
 
-  const handleCloseSheet = () => {
-    setSheetOpen(false)
-    setEditingPool(null)
-    setFormData(initialFormData)
-  }
+    mapFormToData: (data) => ({
+      name: data.name,
+      organization_id: data.organization_id,
+      currency_id: data.currency_id,
+      payout_model_id: data.payout_model_id,
+      pool_fee_percent: data.pool_fee_percent,
+      min_payout: data.min_payout,
+      stratum_url: data.stratum_url || null,
+      stratum_port: data.stratum_port,
+      stratum_difficulty: data.stratum_difficulty,
+      is_active: data.is_active,
+    }),
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    if (!formData.name.trim()) {
-      toast.error('Nome é obrigatório')
-      return
-    }
-
-    if (!formData.organization_id || !formData.currency_id || !formData.payout_model_id) {
-      toast.error('Organização, moeda e modelo de pagamento são obrigatórios')
-      return
-    }
-
-    setSaving(true)
-
-    try {
-      const poolData = {
-        name: formData.name,
-        organization_id: formData.organization_id,
-        currency_id: formData.currency_id,
-        payout_model_id: formData.payout_model_id,
-        pool_fee_percent: formData.pool_fee_percent,
-        min_payout: formData.min_payout,
-        stratum_url: formData.stratum_url || null,
-        stratum_port: formData.stratum_port,
-        stratum_difficulty: formData.stratum_difficulty,
-        is_active: formData.is_active,
+    validateForm: (data) => {
+      if (!data.name.trim()) return 'Nome é obrigatório'
+      if (!data.organization_id || !data.currency_id || !data.payout_model_id) {
+        return 'Organização, moeda e modelo de pagamento são obrigatórios'
       }
+      return null
+    },
 
-      if (editingPool) {
-        const { error } = await supabase
-          .from('pools')
-          .update(poolData)
-          .eq('id', editingPool.id)
+    messages: {
+      deleteConfirm: (pool) => `Tem certeza que deseja excluir "${pool.name}"?`,
+    },
+  })
 
-        if (error) throw error
-        toast.success('Pool atualizado com sucesso!')
-      } else {
-        const { error } = await supabase
-          .from('pools')
-          .insert(poolData)
+  // Filtrar pools localmente
+  const filteredPools = useMemo(() => {
+    let result = [...pools]
 
-        if (error) throw error
-        toast.success('Pool criado com sucesso!')
-      }
-
-      handleCloseSheet()
-      loadData()
-    } catch (error) {
-      console.error('Erro ao salvar pool:', error)
-      toast.error('Erro ao salvar pool')
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  const handleDelete = async (pool: Pool) => {
-    if (!confirm(`Tem certeza que deseja excluir "${pool.name}"?`)) {
-      return
+    // Busca textual
+    if (search) {
+      const searchLower = search.toLowerCase()
+      result = result.filter(
+        (pool) =>
+          pool.name.toLowerCase().includes(searchLower) ||
+          pool.organization_name?.toLowerCase().includes(searchLower) ||
+          pool.currency_symbol?.toLowerCase().includes(searchLower)
+      )
     }
 
-    try {
-      const { error } = await supabase
-        .from('pools')
-        .delete()
-        .eq('id', pool.id)
-
-      if (error) throw error
-
-      toast.success('Pool excluído com sucesso!')
-      loadData()
-    } catch (error) {
-      console.error('Erro ao excluir pool:', error)
-      toast.error('Erro ao excluir pool')
+    // Filtro por organização
+    if (filterOrg !== 'all') {
+      result = result.filter((pool) => pool.organization_id.toString() === filterOrg)
     }
-  }
 
+    return result
+  }, [pools, search, filterOrg])
+
+  // Separar ativos e inativos
+  const activePools = filteredPools.filter(p => p.is_active)
+  const inactivePools = filteredPools.filter(p => !p.is_active)
+
+  // Toggle ativo/inativo
   const toggleActive = async (pool: Pool) => {
     try {
       const { error } = await supabase
@@ -296,9 +234,6 @@ export default function PoolsPage() {
       toast.error('Erro ao atualizar pool')
     }
   }
-
-  const activePools = filteredPools.filter(p => p.is_active)
-  const inactivePools = filteredPools.filter(p => !p.is_active)
 
   return (
     <div className="space-y-6">
@@ -513,10 +448,10 @@ export default function PoolsPage() {
         <SheetContent side="right" className="sm:max-w-lg overflow-y-auto">
           <SheetHeader>
             <SheetTitle>
-              {editingPool ? 'Editar Pool' : 'Novo Pool'}
+              {editing ? 'Editar Pool' : 'Novo Pool'}
             </SheetTitle>
             <SheetDescription>
-              {editingPool
+              {editing
                 ? 'Altere as informações do pool abaixo.'
                 : 'Preencha as informações para criar um novo pool.'}
             </SheetDescription>
@@ -701,7 +636,7 @@ export default function PoolsPage() {
                 Cancelar
               </Button>
               <Button type="submit" disabled={saving}>
-                {saving ? 'Salvando...' : editingPool ? 'Atualizar' : 'Criar'}
+                {saving ? 'Salvando...' : editing ? 'Atualizar' : 'Criar'}
               </Button>
             </SheetFooter>
           </form>

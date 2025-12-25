@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import {
   CreditCard,
   Plus,
@@ -51,43 +51,16 @@ import { Textarea } from '@/components/ui/Textarea'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
 import { typography } from '@/design-system/tokens'
+import { useCRUDPage } from '@/hooks/useCRUDPage'
+import type {
+  Payment,
+  OrganizationOption,
+  PoolOption,
+  PaymentType,
+} from '@/types/super-admin'
 
-interface Payment {
-  id: number
-  organization_id: number
-  organization_name?: string
-  pool_id: number | null
-  pool_name?: string
-  wallet_id: number
-  wallet_address?: string
-  wallet_label?: string
-  amount: number
-  currency_id: number
-  currency_symbol?: string
-  type: 'block_reward' | 'transaction_fee' | 'withdrawal' | 'manual' | 'adjustment'
-  fee: number
-  tx_hash: string | null
-  block_height: number | null
-  confirmations: number
-  status: 'pendente' | 'processando' | 'concluido' | 'falhou' | 'cancelado'
-  notes: string | null
-  created_at: string
-  processed_at: string | null
-  confirmed_at: string | null
-}
-
-interface Organization {
-  id: number
-  name: string
-}
-
-interface Pool {
-  id: number
-  name: string
-  organization_id: number
-}
-
-interface Wallet {
+/** Wallet parcial para uso em selects */
+type WalletOption = {
   id: number
   label: string
   address: string
@@ -95,7 +68,8 @@ interface Wallet {
   currency_id: number
 }
 
-interface Currency {
+/** Currency parcial para uso em selects */
+type CurrencyOption = {
   id: number
   name: string
   symbol: string
@@ -108,7 +82,7 @@ type FormData = {
   wallet_id: number | null
   amount: number
   currency_id: number | null
-  type: Payment['type']
+  type: PaymentType
   fee: number
   tx_hash: string
   block_height: number | null
@@ -132,9 +106,9 @@ const initialFormData: FormData = {
 
 const statusOptions = [
   { value: 'pendente', label: 'Pendente', color: 'warning', icon: Clock },
-  { value: 'processando', label: 'Processando', color: 'primary', icon: Clock },
+  { value: 'processando', label: 'Processando', color: 'default', icon: Clock },
   { value: 'concluido', label: 'Concluído', color: 'success', icon: CheckCircle },
-  { value: 'falhou', label: 'Falhou', color: 'error', icon: XCircle },
+  { value: 'falhou', label: 'Falhou', color: 'destructive', icon: XCircle },
   { value: 'cancelado', label: 'Cancelado', color: 'secondary', icon: XCircle },
 ] as const
 
@@ -147,25 +121,37 @@ const typeOptions = [
 ] as const
 
 export default function PaymentsPage() {
-  const [payments, setPayments] = useState<Payment[]>([])
-  const [organizations, setOrganizations] = useState<Organization[]>([])
-  const [pools, setPools] = useState<Pool[]>([])
-  const [wallets, setWallets] = useState<Wallet[]>([])
-  const [currencies, setCurrencies] = useState<Currency[]>([])
-  const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState('')
+  // Estados locais para dados relacionados e filtros
+  const [organizations, setOrganizations] = useState<OrganizationOption[]>([])
+  const [pools, setPools] = useState<PoolOption[]>([])
+  const [wallets, setWallets] = useState<WalletOption[]>([])
+  const [currencies, setCurrencies] = useState<CurrencyOption[]>([])
   const [filterOrg, setFilterOrg] = useState<string>('all')
   const [filterStatus, setFilterStatus] = useState<string>('all')
   const [filterType, setFilterType] = useState<string>('all')
-  const [sheetOpen, setSheetOpen] = useState(false)
-  const [editingPayment, setEditingPayment] = useState<Payment | null>(null)
-  const [formData, setFormData] = useState(initialFormData)
-  const [saving, setSaving] = useState(false)
   const [copiedId, setCopiedId] = useState<number | null>(null)
 
-  const loadData = useCallback(async () => {
-    setLoading(true)
-    try {
+  const {
+    loading,
+    search,
+    setSearch,
+    sheetOpen,
+    setSheetOpen,
+    editing,
+    formData,
+    setFormData,
+    saving,
+    loadData,
+    handleOpenCreate,
+    handleOpenEdit,
+    handleCloseSheet,
+    handleSubmit,
+    handleDelete,
+    filteredData: baseFilteredData,
+  } = useCRUDPage<Payment, FormData>({
+    tableName: 'payments',
+    initialFormData,
+    customLoadData: async () => {
       const [paymentsResult, orgsResult, poolsResult, walletsResult, currenciesResult] = await Promise.all([
         supabase
           .from('payments')
@@ -190,53 +176,109 @@ export default function PaymentsPage() {
       if (walletsResult.error) throw walletsResult.error
       if (currenciesResult.error) throw currenciesResult.error
 
-      const paymentsWithDetails = (paymentsResult.data || []).map((payment: any) => ({
-        ...payment,
-        organization_name: payment.organizations?.name,
-        pool_name: payment.pools?.name,
-        wallet_address: payment.wallets?.address,
-        wallet_label: payment.wallets?.label,
-        currency_symbol: payment.currencies?.symbol,
-      }))
-
-      setPayments(paymentsWithDetails)
       setOrganizations(orgsResult.data || [])
       setPools(poolsResult.data || [])
       setWallets(walletsResult.data || [])
       setCurrencies(currenciesResult.data || [])
-    } catch (error) {
-      console.error('Erro ao carregar dados:', error)
-      toast.error('Erro ao carregar dados')
-    } finally {
-      setLoading(false)
-    }
-  }, [])
 
-  useEffect(() => {
-    loadData()
-  }, [loadData])
-
-  const filteredPayments = payments.filter(payment => {
-    const matchesSearch =
-      payment.organization_name?.toLowerCase().includes(search.toLowerCase()) ||
-      payment.wallet_address?.toLowerCase().includes(search.toLowerCase()) ||
-      payment.tx_hash?.toLowerCase().includes(search.toLowerCase())
-    const matchesOrg = filterOrg === 'all' || payment.organization_id.toString() === filterOrg
-    const matchesStatus = filterStatus === 'all' || payment.status === filterStatus
-    const matchesType = filterType === 'all' || payment.type === filterType
-    return matchesSearch && matchesOrg && matchesStatus && matchesType
+      return (paymentsResult.data || []).map((payment: Record<string, unknown>) => ({
+        ...payment,
+        organization_name: (payment.organizations as { name?: string } | null)?.name,
+        pool_name: (payment.pools as { name?: string } | null)?.name,
+        wallet_address: (payment.wallets as { address?: string } | null)?.address,
+        wallet_label: (payment.wallets as { label?: string } | null)?.label,
+        currency_symbol: (payment.currencies as { symbol?: string } | null)?.symbol,
+      })) as Payment[]
+    },
+    mapDataToForm: (payment) => ({
+      organization_id: payment.organization_id,
+      pool_id: payment.pool_id ?? null,
+      wallet_id: payment.wallet_id,
+      amount: payment.amount,
+      currency_id: payment.currency_id,
+      type: payment.type ?? 'manual',
+      fee: payment.fee ?? 0,
+      tx_hash: payment.tx_hash || '',
+      block_height: payment.block_height ?? null,
+      status: payment.status,
+      notes: payment.notes || '',
+    }),
+    mapFormToData: (data) => ({
+      organization_id: data.organization_id,
+      pool_id: data.pool_id,
+      wallet_id: data.wallet_id,
+      amount: data.amount,
+      currency_id: data.currency_id,
+      type: data.type,
+      fee: data.fee,
+      tx_hash: data.tx_hash || null,
+      block_height: data.block_height,
+      status: data.status,
+      notes: data.notes || null,
+    }),
+    onBeforeCreate: async (data) => {
+      // Adicionar timestamps automáticos
+      if (data.status === 'concluido') {
+        return { ...data, confirmed_at: new Date().toISOString() }
+      }
+      if (data.status === 'processando') {
+        return { ...data, processed_at: new Date().toISOString() }
+      }
+      return data
+    },
+    onBeforeUpdate: async (data) => {
+      // Adicionar timestamps automáticos se status mudou
+      if (data.status === 'concluido') {
+        return { ...data, confirmed_at: new Date().toISOString() }
+      }
+      if (data.status === 'processando') {
+        return { ...data, processed_at: new Date().toISOString() }
+      }
+      return data
+    },
+    validateForm: (data) => {
+      if (!data.organization_id || !data.wallet_id || !data.currency_id) {
+        return 'Organização, carteira e moeda são obrigatórios'
+      }
+      if (data.amount <= 0) {
+        return 'Valor deve ser maior que zero'
+      }
+      return null
+    },
+    searchFields: ['organization_name', 'wallet_address', 'tx_hash'],
+    entityName: 'pagamento',
+    messages: {
+      deleteConfirm: (payment) => `Tem certeza que deseja excluir o pagamento #${payment.id}?`,
+    },
   })
 
+  // Filtros adicionais sobre os dados já filtrados pelo hook
+  const filteredPayments = useMemo(() => {
+    return baseFilteredData.filter((payment) => {
+      const matchesOrg = filterOrg === 'all' || payment.organization_id.toString() === filterOrg
+      const matchesStatus = filterStatus === 'all' || payment.status === filterStatus
+      const matchesType = filterType === 'all' || payment.type === filterType
+      return matchesOrg && matchesStatus && matchesType
+    })
+  }, [baseFilteredData, filterOrg, filterStatus, filterType])
+
   // Filter wallets and pools by selected organization
-  const filteredWallets = formData.organization_id
-    ? wallets.filter(w => w.organization_id === formData.organization_id)
-    : wallets
+  const filteredWallets = useMemo(
+    () => formData.organization_id
+      ? wallets.filter(w => w.organization_id === formData.organization_id)
+      : wallets,
+    [wallets, formData.organization_id]
+  )
 
-  const filteredPools = formData.organization_id
-    ? pools.filter(p => p.organization_id === formData.organization_id)
-    : pools
+  const filteredPools = useMemo(
+    () => formData.organization_id
+      ? pools.filter(p => p.organization_id === formData.organization_id)
+      : pools,
+    [pools, formData.organization_id]
+  )
 
-  const handleCopyTxHash = async (payment: Payment) => {
+  // Funções auxiliares
+  const handleCopyTxHash = useCallback(async (payment: Payment) => {
     if (!payment.tx_hash) return
     try {
       await navigator.clipboard.writeText(payment.tx_hash)
@@ -246,121 +288,11 @@ export default function PaymentsPage() {
     } catch {
       toast.error('Erro ao copiar TX Hash')
     }
-  }
+  }, [])
 
-  const handleOpenCreate = () => {
-    setEditingPayment(null)
-    setFormData(initialFormData)
-    setSheetOpen(true)
-  }
-
-  const handleOpenEdit = (payment: Payment) => {
-    setEditingPayment(payment)
-    setFormData({
-      organization_id: payment.organization_id,
-      pool_id: payment.pool_id,
-      wallet_id: payment.wallet_id,
-      amount: payment.amount,
-      currency_id: payment.currency_id,
-      type: payment.type,
-      fee: payment.fee,
-      tx_hash: payment.tx_hash || '',
-      block_height: payment.block_height,
-      status: payment.status,
-      notes: payment.notes || '',
-    })
-    setSheetOpen(true)
-  }
-
-  const handleCloseSheet = () => {
-    setSheetOpen(false)
-    setEditingPayment(null)
-    setFormData(initialFormData)
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    if (!formData.organization_id || !formData.wallet_id || !formData.currency_id) {
-      toast.error('Organização, carteira e moeda são obrigatórios')
-      return
-    }
-
-    if (formData.amount <= 0) {
-      toast.error('Valor deve ser maior que zero')
-      return
-    }
-
-    setSaving(true)
-
+  const updateStatus = useCallback(async (payment: Payment, newStatus: Payment['status']) => {
     try {
-      const paymentData = {
-        organization_id: formData.organization_id,
-        pool_id: formData.pool_id,
-        wallet_id: formData.wallet_id,
-        amount: formData.amount,
-        currency_id: formData.currency_id,
-        type: formData.type,
-        fee: formData.fee,
-        tx_hash: formData.tx_hash || null,
-        block_height: formData.block_height,
-        status: formData.status,
-        notes: formData.notes || null,
-        ...(formData.status === 'concluido' && !editingPayment?.confirmed_at ? { confirmed_at: new Date().toISOString() } : {}),
-        ...(formData.status === 'processando' && !editingPayment?.processed_at ? { processed_at: new Date().toISOString() } : {}),
-      }
-
-      if (editingPayment) {
-        const { error } = await supabase
-          .from('payments')
-          .update(paymentData)
-          .eq('id', editingPayment.id)
-
-        if (error) throw error
-        toast.success('Pagamento atualizado com sucesso!')
-      } else {
-        const { error } = await supabase
-          .from('payments')
-          .insert(paymentData)
-
-        if (error) throw error
-        toast.success('Pagamento criado com sucesso!')
-      }
-
-      handleCloseSheet()
-      loadData()
-    } catch (error) {
-      console.error('Erro ao salvar pagamento:', error)
-      toast.error('Erro ao salvar pagamento')
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  const handleDelete = async (payment: Payment) => {
-    if (!confirm('Tem certeza que deseja excluir este pagamento?')) {
-      return
-    }
-
-    try {
-      const { error } = await supabase
-        .from('payments')
-        .delete()
-        .eq('id', payment.id)
-
-      if (error) throw error
-
-      toast.success('Pagamento excluído com sucesso!')
-      loadData()
-    } catch (error) {
-      console.error('Erro ao excluir pagamento:', error)
-      toast.error('Erro ao excluir pagamento')
-    }
-  }
-
-  const updateStatus = async (payment: Payment, newStatus: Payment['status']) => {
-    try {
-      const updateData: any = { status: newStatus }
+      const updateData: Record<string, unknown> = { status: newStatus }
       if (newStatus === 'processando' && !payment.processed_at) {
         updateData.processed_at = new Date().toISOString()
       }
@@ -379,34 +311,40 @@ export default function PaymentsPage() {
       console.error('Erro ao atualizar status:', error)
       toast.error('Erro ao atualizar status')
     }
-  }
+  }, [loadData])
 
-  const formatAmount = (amount: number, symbol: string) => {
+  const formatAmount = useCallback((amount: number, symbol: string) => {
     return `${amount.toFixed(8)} ${symbol}`
-  }
+  }, [])
 
-  const formatDate = (date: string | null) => {
+  const formatDate = useCallback((date: string | null) => {
     if (!date) return '-'
     return new Date(date).toLocaleString('pt-BR')
-  }
+  }, [])
 
-  const formatTxHash = (hash: string | null) => {
+  const formatTxHash = useCallback((hash: string | null) => {
     if (!hash) return '-'
     return `${hash.slice(0, 8)}...${hash.slice(-6)}`
-  }
+  }, [])
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = useCallback((status: string) => {
     const option = statusOptions.find(s => s.value === status)
     return option || { label: status, color: 'secondary' }
-  }
+  }, [])
 
-  const getTypeLabel = (type: string) => {
+  const getTypeLabel = useCallback((type: string) => {
     const option = typeOptions.find(t => t.value === type)
     return option?.label || type
-  }
+  }, [])
 
-  const totalPending = filteredPayments.filter(p => p.status === 'pendente').reduce((acc, p) => acc + p.amount, 0)
-  const totalCompleted = filteredPayments.filter(p => p.status === 'concluido').reduce((acc, p) => acc + p.amount, 0)
+  const totalPending = useMemo(
+    () => filteredPayments.filter(p => p.status === 'pendente').reduce((acc, p) => acc + p.amount, 0),
+    [filteredPayments]
+  )
+  const totalCompleted = useMemo(
+    () => filteredPayments.filter(p => p.status === 'concluido').reduce((acc, p) => acc + p.amount, 0),
+    [filteredPayments]
+  )
 
   return (
     <div className="space-y-6">
@@ -570,15 +508,15 @@ export default function PaymentsPage() {
                         <span className={`font-mono ${typography.weight.medium}`}>
                           {formatAmount(payment.amount, payment.currency_symbol || '')}
                         </span>
-                        {payment.fee > 0 && (
+                        {(payment.fee ?? 0) > 0 && (
                           <p className={`${typography.body.tiny} text-text-secondary`}>
-                            Fee: {payment.fee.toFixed(8)}
+                            Fee: {(payment.fee ?? 0).toFixed(8)}
                           </p>
                         )}
                       </TableCell>
                       <TableCell>
                         <Badge variant="secondary" className={typography.body.tiny}>
-                          {getTypeLabel(payment.type)}
+                          {getTypeLabel(payment.type ?? 'manual')}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -614,7 +552,7 @@ export default function PaymentsPage() {
                         <span className={typography.body.small}>{formatDate(payment.created_at)}</span>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={statusBadge.color as any}>
+                        <Badge variant={statusBadge.color as 'warning' | 'default' | 'success' | 'destructive' | 'secondary'}>
                           {statusBadge.label}
                         </Badge>
                       </TableCell>
@@ -669,10 +607,10 @@ export default function PaymentsPage() {
         <SheetContent side="right" className="sm:max-w-lg overflow-y-auto">
           <SheetHeader>
             <SheetTitle>
-              {editingPayment ? 'Editar Pagamento' : 'Novo Pagamento'}
+              {editing ? 'Editar Pagamento' : 'Novo Pagamento'}
             </SheetTitle>
             <SheetDescription>
-              {editingPayment
+              {editing
                 ? 'Altere as informações do pagamento abaixo.'
                 : 'Preencha as informações para criar um novo pagamento.'}
             </SheetDescription>
@@ -800,8 +738,8 @@ export default function PaymentsPage() {
                 <Label htmlFor="type">Tipo</Label>
                 <Select
                   value={formData.type}
-                  onValueChange={(value: Payment['type']) =>
-                    setFormData((prev) => ({ ...prev, type: value }))
+                  onValueChange={(value: string) =>
+                    setFormData((prev) => ({ ...prev, type: value as PaymentType }))
                   }
                 >
                   <SelectTrigger>
@@ -903,7 +841,7 @@ export default function PaymentsPage() {
                 Cancelar
               </Button>
               <Button type="submit" disabled={saving}>
-                {saving ? 'Salvando...' : editingPayment ? 'Atualizar' : 'Criar'}
+                {saving ? 'Salvando...' : editing ? 'Atualizar' : 'Criar'}
               </Button>
             </SheetFooter>
           </form>

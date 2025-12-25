@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, useRef, ReactNode } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import type { User, Session } from '@supabase/supabase-js'
+import { handleError, showErrorToast } from '@/lib/error-handler'
 
 interface UserData {
   id: string
@@ -14,7 +15,7 @@ interface AuthContextType {
   user: User | null
   userData: UserData | null
   session: Session | null
-  isLoading: boolean
+  loading: boolean
   signOut: () => Promise<void>
 }
 
@@ -24,7 +25,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [userData, setUserData] = useState<UserData | null>(null)
   const [session, setSession] = useState<Session | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [loading, setLoading] = useState(true)
   const initialized = useRef(false)
   const loadingResolved = useRef(false)
 
@@ -38,7 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!loadingResolved.current) {
         console.warn('Auth timeout - finalizando loading')
         loadingResolved.current = true
-        setIsLoading(false)
+        setLoading(false)
       }
     }, 5000)
 
@@ -72,7 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Sem sessão no localStorage, finalizar loading (mostrar tela de login)
     clearTimeout(timeoutId)
     loadingResolved.current = true
-    setIsLoading(false)
+    setLoading(false)
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -86,7 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           await fetchUserData(session.user.id)
         } else {
           setUserData(null)
-          setIsLoading(false)
+          setLoading(false)
         }
       }
     )
@@ -105,35 +106,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .eq('auth_user_id', authUserId)
         .single()
 
-      if (error) {
-        console.error('Erro ao buscar userData:', error)
-        setUserData(null)
-      } else {
-        setUserData(data)
-      }
+      if (error) throw error
+
+      setUserData(data)
     } catch (err) {
-      console.error('Erro em fetchUserData:', err)
+      handleError(err, 'fetchUserData')
+      // Não exibir toast aqui pois é silencioso (background)
+      // Apenas log para debug
       setUserData(null)
     } finally {
-      setIsLoading(false)
+      setLoading(false)
     }
   }
 
   async function signOut() {
-    // Limpar localStorage manualmente para garantir
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-    const storageKey = `sb-${new URL(supabaseUrl).hostname.split('.')[0]}-auth-token`
-    localStorage.removeItem(storageKey)
+    try {
+      // Limpar localStorage manualmente para garantir
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+      const storageKey = `sb-${new URL(supabaseUrl).hostname.split('.')[0]}-auth-token`
+      localStorage.removeItem(storageKey)
 
-    await supabase.auth.signOut()
-    setUser(null)
-    setUserData(null)
-    setSession(null)
-    window.location.href = '/login'
+      await supabase.auth.signOut()
+      setUser(null)
+      setUserData(null)
+      setSession(null)
+      window.location.href = '/login'
+    } catch (err) {
+      // Mesmo com erro, tentar limpar estado local
+      const appError = handleError(err, 'signOut')
+      showErrorToast(appError)
+      setUser(null)
+      setUserData(null)
+      setSession(null)
+      window.location.href = '/login'
+    }
   }
 
   return (
-    <AuthContext.Provider value={{ user, userData, session, isLoading, signOut }}>
+    <AuthContext.Provider value={{ user, userData, session, loading, signOut }}>
       {children}
     </AuthContext.Provider>
   )

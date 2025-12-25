@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState } from 'react'
 import {
   RotateCcw,
   Search,
@@ -33,6 +33,7 @@ import {
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
 import { typography } from '@/design-system/tokens'
+import { useReadOnlyPage } from '@/hooks/useReadOnlyPage'
 
 interface Round {
   id: number
@@ -64,60 +65,95 @@ const statusOptions = [
 ] as const
 
 export default function RoundsPage() {
-  const [rounds, setRounds] = useState<Round[]>([])
   const [pools, setPools] = useState<Pool[]>([])
-  const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState('')
-  const [filterPool, setFilterPool] = useState<string>('all')
-  const [filterStatus, setFilterStatus] = useState<string>('all')
   const [copiedId, setCopiedId] = useState<number | null>(null)
 
-  const loadData = useCallback(async () => {
-    setLoading(true)
-    try {
-      const [roundsResult, poolsResult] = await Promise.all([
-        supabase
-          .from('rounds')
-          .select(`
-            *,
-            pools(name)
-          `)
-          .order('found_at', { ascending: false })
-          .limit(100),
-        supabase.from('pools').select('id, name').order('name'),
-      ])
+  // Hook useReadOnlyPage com ação customizada de updateStatus
+  const {
+    loading,
+    search,
+    setSearch,
+    filters,
+    setFilter,
+    loadData,
+    executeAction,
+    filteredData: baseFilteredData,
+  } = useReadOnlyPage<Round>({
+    tableName: 'rounds',
+    selectFields: `
+      *,
+      pools(name)
+    `,
+    searchFields: ['hash', 'found_by', 'height', 'pool_name'],
+    defaultOrderBy: { column: 'found_at', ascending: false },
+    limit: 100,
+    entityName: 'round',
+    onDataLoaded: async () => {
+      // Carregar pools quando os dados forem carregados
+      try {
+        const { data: poolsData, error } = await supabase
+          .from('pools')
+          .select('id, name')
+          .order('name')
+        if (error) throw error
+        setPools(poolsData || [])
+      } catch (error) {
+        console.error('Erro ao carregar pools:', error)
+      }
+    },
+    customLoadData: async () => {
+      const { data, error } = await supabase
+        .from('rounds')
+        .select(`
+          *,
+          pools(name)
+        `)
+        .order('found_at', { ascending: false })
+        .limit(100)
 
-      if (roundsResult.error) throw roundsResult.error
-      if (poolsResult.error) throw poolsResult.error
+      if (error) throw error
 
-      const roundsWithDetails = (roundsResult.data || []).map((round: any) => ({
+      // Tipo para o resultado da query com join
+      type RoundWithPool = Round & {
+        pools: { name: string } | null
+      }
+
+      return (data || []).map((round: RoundWithPool) => ({
         ...round,
         pool_name: round.pools?.name,
       }))
+    },
+    customActions: {
+      updateStatus: async (round: Round, ...args: unknown[]) => {
+        const newStatus = args[0] as Round['status']
+        const updateData: Partial<Round> = { status: newStatus }
+        if (newStatus === 'confirmado' && !round.confirmed_at) {
+          updateData.confirmed_at = new Date().toISOString()
+        }
+        if (newStatus === 'maturo' && !round.mature_at) {
+          updateData.mature_at = new Date().toISOString()
+        }
 
-      setRounds(roundsWithDetails)
-      setPools(poolsResult.data || [])
-    } catch (error) {
-      console.error('Erro ao carregar dados:', error)
-      toast.error('Erro ao carregar rounds')
-    } finally {
-      setLoading(false)
-    }
-  }, [])
+        const { error } = await supabase
+          .from('rounds')
+          .update(updateData)
+          .eq('id', round.id)
 
-  useEffect(() => {
-    loadData()
-  }, [loadData])
+        if (error) throw error
+        toast.success('Status atualizado!')
+      },
+    },
+  })
 
-  const filteredRounds = rounds.filter(round => {
-    const matchesSearch =
-      round.hash.toLowerCase().includes(search.toLowerCase()) ||
-      round.found_by?.toLowerCase().includes(search.toLowerCase()) ||
-      round.height.toString().includes(search) ||
-      round.pool_name?.toLowerCase().includes(search.toLowerCase())
-    const matchesPool = filterPool === 'all' || round.pool_id.toString() === filterPool
-    const matchesStatus = filterStatus === 'all' || round.status === filterStatus
-    return matchesSearch && matchesPool && matchesStatus
+  // Inicializar filtros com 'all'
+  if (!filters.pool) setFilter('pool', 'all')
+  if (!filters.status) setFilter('status', 'all')
+
+  // Aplicar filtros customizados (pool e status)
+  const filteredRounds = baseFilteredData.filter(round => {
+    const matchesPool = filters.pool === 'all' || !filters.pool || round.pool_id.toString() === filters.pool
+    const matchesStatus = filters.status === 'all' || !filters.status || round.status === filters.status
+    return matchesPool && matchesStatus
   })
 
   const handleCopyHash = async (round: Round) => {
@@ -157,30 +193,6 @@ export default function RoundsPage() {
     return option || { label: status, color: 'secondary', icon: Clock }
   }
 
-  const updateStatus = async (round: Round, newStatus: Round['status']) => {
-    try {
-      const updateData: any = { status: newStatus }
-      if (newStatus === 'confirmado' && !round.confirmed_at) {
-        updateData.confirmed_at = new Date().toISOString()
-      }
-      if (newStatus === 'maturo' && !round.mature_at) {
-        updateData.mature_at = new Date().toISOString()
-      }
-
-      const { error } = await supabase
-        .from('rounds')
-        .update(updateData)
-        .eq('id', round.id)
-
-      if (error) throw error
-      toast.success('Status atualizado!')
-      loadData()
-    } catch (error) {
-      console.error('Erro ao atualizar status:', error)
-      toast.error('Erro ao atualizar status')
-    }
-  }
-
   const totalReward = filteredRounds.filter(r => r.status !== 'orfao').reduce((acc, r) => acc + r.reward, 0)
   const pendingRounds = filteredRounds.filter(r => r.status === 'pendente').length
   const orphanRounds = filteredRounds.filter(r => r.status === 'orfao').length
@@ -199,7 +211,7 @@ export default function RoundsPage() {
               className="pl-10"
             />
           </div>
-          <Select value={filterPool} onValueChange={setFilterPool}>
+          <Select value={filters.pool || 'all'} onValueChange={(value) => setFilter('pool', value)}>
             <SelectTrigger className="w-[160px]">
               <SelectValue placeholder="Pool" />
             </SelectTrigger>
@@ -212,7 +224,7 @@ export default function RoundsPage() {
               ))}
             </SelectContent>
           </Select>
-          <Select value={filterStatus} onValueChange={setFilterStatus}>
+          <Select value={filters.status || 'all'} onValueChange={(value) => setFilter('status', value)}>
             <SelectTrigger className="w-[140px]">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
@@ -301,7 +313,7 @@ export default function RoundsPage() {
             <div className="text-center py-12">
               <RotateCcw className="mx-auto h-12 w-12 text-text-secondary mb-4" />
               <p className="text-text-secondary">
-                {search || filterPool !== 'all' || filterStatus !== 'all'
+                {search || filters.pool !== 'all' || filters.status !== 'all'
                   ? 'Nenhum round encontrado'
                   : 'Nenhum round registrado'}
               </p>
@@ -390,7 +402,7 @@ export default function RoundsPage() {
                               const statuses: Round['status'][] = ['pendente', 'confirmado', 'maturo', 'orfao']
                               const currentIndex = statuses.indexOf(round.status)
                               const nextStatus = statuses[(currentIndex + 1) % statuses.length]
-                              updateStatus(round, nextStatus)
+                              executeAction('updateStatus', round, nextStatus)
                             }}
                           >
                             <StatusIcon className="h-3 w-3" />

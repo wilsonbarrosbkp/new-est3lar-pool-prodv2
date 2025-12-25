@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
 import {
   Coins,
   Plus,
@@ -46,6 +46,7 @@ import {
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
 import { typography } from '@/design-system/tokens'
+import { useCRUDPage } from '@/hooks/useCRUDPage'
 
 interface Currency {
   id: number
@@ -74,137 +75,56 @@ const initialFormData: FormData = {
 }
 
 export default function CurrenciesPage() {
-  const [currencies, setCurrencies] = useState<Currency[]>([])
-  const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState('')
-  const [sheetOpen, setSheetOpen] = useState(false)
-  const [editingCurrency, setEditingCurrency] = useState<Currency | null>(null)
-  const [formData, setFormData] = useState(initialFormData)
-  const [saving, setSaving] = useState(false)
-
-  const loadData = useCallback(async () => {
-    setLoading(true)
-    try {
-      const { data, error } = await supabase
-        .from('currencies')
-        .select('*')
-        .order('type, name')
-
-      if (error) throw error
-      setCurrencies(data || [])
-    } catch (error) {
-      console.error('Erro ao carregar moedas:', error)
-      toast.error('Erro ao carregar moedas')
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    loadData()
-  }, [loadData])
-
-  const filteredCurrencies = currencies.filter(currency =>
-    currency.name.toLowerCase().includes(search.toLowerCase()) ||
-    currency.symbol.toLowerCase().includes(search.toLowerCase())
-  )
-
-  const handleOpenCreate = () => {
-    setEditingCurrency(null)
-    setFormData(initialFormData)
-    setSheetOpen(true)
-  }
-
-  const handleOpenEdit = (currency: Currency) => {
-    setEditingCurrency(currency)
-    setFormData({
+  const {
+    loading,
+    search,
+    setSearch,
+    sheetOpen,
+    setSheetOpen,
+    editing,
+    formData,
+    setFormData,
+    saving,
+    loadData,
+    handleOpenCreate,
+    handleOpenEdit,
+    handleCloseSheet,
+    handleSubmit,
+    handleDelete,
+    filteredData,
+  } = useCRUDPage<Currency, FormData>({
+    tableName: 'currencies',
+    initialFormData,
+    mapDataToForm: (currency) => ({
       name: currency.name,
       symbol: currency.symbol,
       type: currency.type,
       decimals: currency.decimals,
       is_active: currency.is_active,
-    })
-    setSheetOpen(true)
-  }
-
-  const handleCloseSheet = () => {
-    setSheetOpen(false)
-    setEditingCurrency(null)
-    setFormData(initialFormData)
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    if (!formData.name.trim() || !formData.symbol.trim()) {
-      toast.error('Nome e símbolo são obrigatórios')
-      return
-    }
-
-    setSaving(true)
-
-    try {
-      if (editingCurrency) {
-        const { error } = await supabase
-          .from('currencies')
-          .update({
-            name: formData.name,
-            symbol: formData.symbol.toUpperCase(),
-            type: formData.type,
-            decimals: formData.decimals,
-            is_active: formData.is_active,
-          })
-          .eq('id', editingCurrency.id)
-
-        if (error) throw error
-        toast.success('Moeda atualizada com sucesso!')
-      } else {
-        const { error } = await supabase
-          .from('currencies')
-          .insert({
-            name: formData.name,
-            symbol: formData.symbol.toUpperCase(),
-            type: formData.type,
-            decimals: formData.decimals,
-            is_active: formData.is_active,
-          })
-
-        if (error) throw error
-        toast.success('Moeda criada com sucesso!')
+    }),
+    mapFormToData: (data) => ({
+      name: data.name,
+      symbol: data.symbol.toUpperCase(),
+      type: data.type,
+      decimals: data.decimals,
+      is_active: data.is_active,
+    }),
+    validateForm: (data) => {
+      if (!data.name.trim() || !data.symbol.trim()) {
+        return 'Nome e símbolo são obrigatórios'
       }
+      return null
+    },
+    searchFields: ['name', 'symbol'],
+    defaultOrderBy: { column: 'type, name', ascending: true },
+    entityName: 'moeda',
+    messages: {
+      deleteConfirm: (currency) => `Tem certeza que deseja excluir "${currency.name}"?`,
+    },
+  })
 
-      handleCloseSheet()
-      loadData()
-    } catch (error) {
-      console.error('Erro ao salvar moeda:', error)
-      toast.error('Erro ao salvar moeda')
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  const handleDelete = async (currency: Currency) => {
-    if (!confirm(`Tem certeza que deseja excluir "${currency.name}"?`)) {
-      return
-    }
-
-    try {
-      const { error } = await supabase
-        .from('currencies')
-        .delete()
-        .eq('id', currency.id)
-
-      if (error) throw error
-
-      toast.success('Moeda excluída com sucesso!')
-      loadData()
-    } catch (error) {
-      console.error('Erro ao excluir moeda:', error)
-      toast.error('Erro ao excluir moeda')
-    }
-  }
-
-  const toggleActive = async (currency: Currency) => {
+  // Toggle active status - função auxiliar fora do CRUD padrão
+  const toggleActive = useCallback(async (currency: Currency) => {
     try {
       const { error } = await supabase
         .from('currencies')
@@ -217,10 +137,17 @@ export default function CurrenciesPage() {
       console.error('Erro ao atualizar moeda:', error)
       toast.error('Erro ao atualizar moeda')
     }
-  }
+  }, [loadData])
 
-  const cryptoCurrencies = filteredCurrencies.filter(c => c.type === 'crypto')
-  const fiatCurrencies = filteredCurrencies.filter(c => c.type === 'fiat')
+  // Separar moedas por tipo
+  const cryptoCurrencies = useMemo(
+    () => filteredData.filter(c => c.type === 'crypto'),
+    [filteredData]
+  )
+  const fiatCurrencies = useMemo(
+    () => filteredData.filter(c => c.type === 'fiat'),
+    [filteredData]
+  )
 
   return (
     <div className="space-y-6">
@@ -250,7 +177,7 @@ export default function CurrenciesPage() {
                 <Skeleton key={i} className="h-12 w-full" />
               ))}
             </div>
-          ) : filteredCurrencies.length === 0 ? (
+          ) : filteredData.length === 0 ? (
             <div className="text-center py-12">
               <Coins className="mx-auto h-12 w-12 text-text-secondary mb-4" />
               <p className="text-text-secondary">
@@ -402,7 +329,7 @@ export default function CurrenciesPage() {
 
       {/* Resumo */}
       <div className={`${typography.body.small} text-text-secondary`}>
-        {filteredCurrencies.length} moeda(s) | {cryptoCurrencies.length} crypto | {fiatCurrencies.length} fiat
+        {filteredData.length} moeda(s) | {cryptoCurrencies.length} crypto | {fiatCurrencies.length} fiat
       </div>
 
       {/* Sheet de criação/edição */}
@@ -410,10 +337,10 @@ export default function CurrenciesPage() {
         <SheetContent side="right" className="sm:max-w-md">
           <SheetHeader>
             <SheetTitle>
-              {editingCurrency ? 'Editar Moeda' : 'Nova Moeda'}
+              {editing ? 'Editar Moeda' : 'Nova Moeda'}
             </SheetTitle>
             <SheetDescription>
-              {editingCurrency
+              {editing
                 ? 'Altere as informações da moeda abaixo.'
                 : 'Preencha as informações para criar uma nova moeda.'}
             </SheetDescription>
@@ -509,7 +436,7 @@ export default function CurrenciesPage() {
                 Cancelar
               </Button>
               <Button type="submit" disabled={saving}>
-                {saving ? 'Salvando...' : editingCurrency ? 'Atualizar' : 'Criar'}
+                {saving ? 'Salvando...' : editing ? 'Atualizar' : 'Criar'}
               </Button>
             </SheetFooter>
           </form>

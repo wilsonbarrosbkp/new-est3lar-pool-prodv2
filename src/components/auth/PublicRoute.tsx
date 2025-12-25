@@ -11,10 +11,10 @@ interface PublicRouteProps {
  * Used for login, forgot-password, etc.
  */
 export function PublicRoute({ children }: PublicRouteProps) {
-  const { user, userData, isLoading } = useAuth()
+  const { user, userData, loading } = useAuth()
 
   // Show loading state while checking authentication
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
