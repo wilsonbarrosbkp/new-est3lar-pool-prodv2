@@ -38,7 +38,7 @@ import {
 import { typography } from '@/design-system/tokens'
 import { useCRUDPage } from '@/hooks/useCRUDPage'
 import { handleError, showErrorToast } from '@/lib/error-handler'
-import { formatUptime } from '@/lib/formatters'
+import { formatHashrateWithUnit, formatUptime } from '@/lib/formatters'
 import { supabase } from '@/lib/supabase/client'
 
 import type {
@@ -279,9 +279,6 @@ export default function HardwarePage() {
     }
   }, [loadData])
 
-  const formatHashrate = useCallback((hashrate: number, unit: string) => {
-    return `${hashrate.toLocaleString()} ${unit}`
-  }, [])
 
   const getStatusBadge = useCallback((status: string) => {
     const option = statusOptions.find(s => s.value === status)
@@ -489,7 +486,7 @@ export default function HardwarePage() {
                       </TableCell>
                       <TableCell>{item.organization_name}</TableCell>
                       <TableCell>
-                        <span className="font-mono">{formatHashrate(item.hashrate, item.hashrate_unit ?? 'TH/s')}</span>
+                        <span className="font-mono">{formatHashrateWithUnit(item.hashrate, item.hashrate_unit ?? 'TH/s')}</span>
                       </TableCell>
                       <TableCell>{item.power_consumption}W</TableCell>
                       <TableCell>

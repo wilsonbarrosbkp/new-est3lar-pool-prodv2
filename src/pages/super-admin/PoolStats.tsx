@@ -37,7 +37,7 @@ import {
 import { chartStyles,typography } from '@/design-system/tokens'
 import { useLatestPoolStats, usePoolStats } from '@/hooks/use-pool-stats'
 import { POOL, REFRESH_INTERVALS } from '@/lib/constants'
-import { formatHashrate, formatShares, formatUptime } from '@/lib/formatters'
+import { formatHashrate, formatRelativeTime, formatShares, formatUptime } from '@/lib/formatters'
 
 export default function PoolStatsPage() {
   const { stats: latestStats, loading: loadingLatest } = useLatestPoolStats(POOL.DEFAULT_ID)
@@ -56,14 +56,6 @@ export default function PoolStatsPage() {
     return () => clearInterval(interval)
   }, [])
 
-  const formatLastUpdate = (date: Date) => {
-    const now = new Date()
-    const diff = Math.floor((now.getTime() - date.getTime()) / 1000)
-    if (diff < 60) return 'Agora'
-    if (diff < 120) return 'Há 1 minuto'
-    if (diff < 3600) return `Há ${Math.floor(diff / 60)} minutos`
-    return date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-  }
 
   // Calcular variações baseado na média de 1h como referência
   const calcVariation = (current: number, reference: number): number => {
@@ -96,7 +88,7 @@ export default function PoolStatsPage() {
           <RefreshCw className="h-4 w-4 animate-spin" />
           <span>Auto-refresh ativo</span>
           <Badge variant="secondary" className="ml-2">
-            {formatLastUpdate(lastRefresh)}
+            {formatRelativeTime(lastRefresh)}
           </Badge>
         </div>
       </div>
@@ -133,9 +125,9 @@ export default function PoolStatsPage() {
                   <RefreshCw className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className={`${typography.kpi.title} text-text-secondary`}>Last Update</p>
+                  <p className={`${typography.kpi.title} text-text-secondary`}>Última Atualização</p>
                   <p className={`${typography.kpi.value} ${typography.weight.bold}`}>
-                    {latestStats ? formatLastUpdate(new Date(latestStats.collected_at)) : 'N/A'}
+                    {latestStats ? formatRelativeTime(new Date(latestStats.collected_at)) : 'N/A'}
                   </p>
                 </div>
               </div>
@@ -153,7 +145,7 @@ export default function PoolStatsPage() {
                   <Activity className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className={`${typography.kpi.title} text-text-secondary`}>Avg Time to Find Block</p>
+                  <p className={`${typography.kpi.title} text-text-secondary`}>Tempo Médio p/ Bloco</p>
                   <p className={`${typography.kpi.value} ${typography.weight.bold}`}>N/A</p>
                 </div>
               </div>
@@ -171,7 +163,7 @@ export default function PoolStatsPage() {
                   <Award className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className={`${typography.kpi.title} text-text-secondary`}>Found Blocks</p>
+                  <p className={`${typography.kpi.title} text-text-secondary`}>Blocos Encontrados</p>
                   <p className={`${typography.kpi.value} ${typography.weight.bold}`}>0</p>
                 </div>
               </div>
@@ -194,13 +186,13 @@ export default function PoolStatsPage() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {[
-                { label: '1 Minute', value: latestStats?.hashrate_1m || 0, variation: hashrateVariations['1m'] },
-                { label: '5 Minutes', value: latestStats?.hashrate_5m || 0, variation: hashrateVariations['5m'] },
-                { label: '15 Minutes', value: latestStats?.hashrate_15m || 0, variation: hashrateVariations['15m'] },
-                { label: '1 Hour', value: latestStats?.hashrate_1h || 0, variation: hashrateVariations['1h'] },
-                { label: '6 Hours', value: latestStats?.hashrate_6h || 0, variation: hashrateVariations['6h'] },
-                { label: '1 Day', value: latestStats?.hashrate_1d || 0, variation: hashrateVariations['1d'] },
-                { label: '7 Days', value: latestStats?.hashrate_7d || 0, variation: hashrateVariations['7d'] },
+                { label: '1 Minuto', value: latestStats?.hashrate_1m || 0, variation: hashrateVariations['1m'] },
+                { label: '5 Minutos', value: latestStats?.hashrate_5m || 0, variation: hashrateVariations['5m'] },
+                { label: '15 Minutos', value: latestStats?.hashrate_15m || 0, variation: hashrateVariations['15m'] },
+                { label: '1 Hora', value: latestStats?.hashrate_1h || 0, variation: hashrateVariations['1h'] },
+                { label: '6 Horas', value: latestStats?.hashrate_6h || 0, variation: hashrateVariations['6h'] },
+                { label: '1 Dia', value: latestStats?.hashrate_1d || 0, variation: hashrateVariations['1d'] },
+                { label: '7 Dias', value: latestStats?.hashrate_7d || 0, variation: hashrateVariations['7d'] },
               ].map((item, index) => (
                 <Card key={index}>
                   <CardContent className="p-4">
@@ -235,7 +227,7 @@ export default function PoolStatsPage() {
       {/* Hashrate Chart */}
       <Card>
         <CardHeader>
-          <CardTitle>Hashrate Over Time</CardTitle>
+          <CardTitle>Hashrate ao Longo do Tempo</CardTitle>
         </CardHeader>
         <CardContent>
           {loadingChart ? (
@@ -272,7 +264,7 @@ export default function PoolStatsPage() {
                   dataKey="hashrate1h"
                   stroke={chartStyles.lines.secondary}
                   strokeWidth={2}
-                  name="1 Hour"
+                  name="1 Hora"
                   dot={false}
                 />
                 <Line
@@ -280,7 +272,7 @@ export default function PoolStatsPage() {
                   dataKey="hashrate1d"
                   stroke={chartStyles.lines.tertiary}
                   strokeWidth={2}
-                  name="1 Day"
+                  name="1 Dia"
                   dot={false}
                 />
               </LineChart>
@@ -296,7 +288,7 @@ export default function PoolStatsPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Users className="h-5 w-5 text-primary" />
-              Users & Workers
+              Usuários e Workers
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -385,25 +377,25 @@ export default function PoolStatsPage() {
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <div className="text-center">
-                <p className={`${typography.kpi.title} text-text-secondary mb-1`}>1 Minute</p>
+                <p className={`${typography.kpi.title} text-text-secondary mb-1`}>1 Minuto</p>
                 <p className={`${typography.kpi.value} ${typography.weight.bold}`}>
                   {latestStats ? (latestStats.shares_per_second_1m / 1000).toFixed(3) : '0.000'}
                 </p>
               </div>
               <div className="text-center">
-                <p className={`${typography.kpi.title} text-text-secondary mb-1`}>5 Minutes</p>
+                <p className={`${typography.kpi.title} text-text-secondary mb-1`}>5 Minutos</p>
                 <p className={`${typography.kpi.value} ${typography.weight.bold}`}>
                   {latestStats ? (latestStats.shares_per_second_5m / 1000).toFixed(3) : '0.000'}
                 </p>
               </div>
               <div className="text-center">
-                <p className={`${typography.kpi.title} text-text-secondary mb-1`}>15 Minutes</p>
+                <p className={`${typography.kpi.title} text-text-secondary mb-1`}>15 Minutos</p>
                 <p className={`${typography.kpi.value} ${typography.weight.bold}`}>
                   {latestStats ? (latestStats.shares_per_second_15m / 1000).toFixed(3) : '0.000'}
                 </p>
               </div>
               <div className="text-center">
-                <p className={`${typography.kpi.title} text-text-secondary mb-1`}>1 Hour</p>
+                <p className={`${typography.kpi.title} text-text-secondary mb-1`}>1 Hora</p>
                 <p className={`${typography.kpi.value} ${typography.weight.bold}`}>
                   {latestStats ? (latestStats.shares_per_second_1h / 1000).toFixed(3) : '0.000'}
                 </p>
@@ -416,7 +408,7 @@ export default function PoolStatsPage() {
       {/* Users and Workers Chart */}
       <Card>
         <CardHeader>
-          <CardTitle>Users and Workers Over Time</CardTitle>
+          <CardTitle>Usuários e Workers ao Longo do Tempo</CardTitle>
         </CardHeader>
         <CardContent>
           {loadingChart ? (

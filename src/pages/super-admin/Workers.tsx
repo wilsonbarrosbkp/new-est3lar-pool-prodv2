@@ -2,7 +2,6 @@ import { useCallback, useMemo,useState } from 'react'
 import {
   Activity,
   Clock,
-  MoreHorizontal,
   Plus,
   Search,
   Users,
@@ -10,16 +9,11 @@ import {
   WifiOff,
 } from 'lucide-react'
 
+import { CRUDFormSheet } from '@/components/crud/CRUDFormSheet'
+import { TableActionMenu } from '@/components/crud/TableActionMenu'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent } from '@/components/ui/Card'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/DropdownMenu'
 import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
 import {
@@ -29,14 +23,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/Select'
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/Sheet'
 import { Skeleton } from '@/components/ui/Skeleton'
 import {
   Table,
@@ -48,7 +34,7 @@ import {
 } from '@/components/ui/Table'
 import { typography } from '@/design-system/tokens'
 import { useCRUDPage } from '@/hooks/useCRUDPage'
-import { formatHashrate } from '@/lib/formatters'
+import { formatHashrate, formatRelativeTimeShort } from '@/lib/formatters'
 import { supabase } from '@/lib/supabase/client'
 
 import type {
@@ -205,18 +191,6 @@ export default function WorkersPage() {
   )
 
   // Funções auxiliares
-  const formatTimeAgo = useCallback((date: string | null) => {
-    if (!date) return 'Nunca'
-    const now = new Date()
-    const then = new Date(date)
-    const diff = Math.floor((now.getTime() - then.getTime()) / 1000)
-
-    if (diff < 60) return `${diff}s atrás`
-    if (diff < 3600) return `${Math.floor(diff / 60)}m atrás`
-    if (diff < 86400) return `${Math.floor(diff / 3600)}h atrás`
-    return `${Math.floor(diff / 86400)}d atrás`
-  }, [])
-
   const getStatusBadge = useCallback((status: string) => {
     const option = statusOptions.find(s => s.value === status)
     return option || { label: status, color: 'secondary', icon: WifiOff }
@@ -310,7 +284,7 @@ export default function WorkersPage() {
                 <Users className="h-5 w-5" />
               </div>
               <div>
-                <p className={`${typography.kpi.title} text-text-secondary`}>Total Workers</p>
+                <p className={`${typography.kpi.title} text-text-secondary`}>Total de Workers</p>
                 <p className={`${typography.kpi.value} ${typography.weight.bold}`}>{filteredWorkers.length}</p>
               </div>
             </div>
@@ -450,7 +424,7 @@ export default function WorkersPage() {
                       </TableCell>
                       <TableCell>
                         <span className={`${typography.table.cell} text-text-secondary`}>
-                          {formatTimeAgo(worker.last_seen ?? null)}
+                          {formatRelativeTimeShort(worker.last_seen ?? null)}
                         </span>
                       </TableCell>
                       <TableCell>
@@ -459,25 +433,12 @@ export default function WorkersPage() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleOpenEdit(worker)}>
-                              Editar
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              className="text-error"
-                              onClick={() => handleDelete(worker)}
-                            >
-                              Excluir
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                        <TableActionMenu
+                          actions={[
+                            { label: 'Editar', onClick: () => handleOpenEdit(worker) },
+                            { label: 'Excluir', onClick: () => handleDelete(worker), variant: 'destructive' },
+                          ]}
+                        />
                       </TableCell>
                     </TableRow>
                   )
@@ -489,141 +450,126 @@ export default function WorkersPage() {
       </Card>
 
       {/* Sheet de criação/edição */}
-      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent side="right" className="sm:max-w-md">
-          <SheetHeader>
-            <SheetTitle>
-              {editing ? 'Editar Worker' : 'Novo Worker'}
-            </SheetTitle>
-            <SheetDescription>
-              {editing
-                ? 'Altere as informações do worker abaixo.'
-                : 'Preencha as informações para criar um novo worker.'}
-            </SheetDescription>
-          </SheetHeader>
+      <CRUDFormSheet
+        open={sheetOpen}
+        onOpenChange={setSheetOpen}
+        title={editing ? 'Editar Worker' : 'Novo Worker'}
+        description={
+          editing
+            ? 'Altere as informações do worker abaixo.'
+            : 'Preencha as informações para criar um novo worker.'
+        }
+        onSubmit={handleSubmit}
+        onCancel={handleCloseSheet}
+        saving={saving}
+        isEditing={!!editing}
+        maxWidth="md"
+      >
+        <div className="space-y-2">
+          <Label htmlFor="name">Nome *</Label>
+          <Input
+            id="name"
+            value={formData.name}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, name: e.target.value }))
+            }
+            placeholder="Ex: worker-01"
+            required
+          />
+        </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4 mt-6">
-            <div className="space-y-2">
-              <Label htmlFor="name">Nome *</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, name: e.target.value }))
-                }
-                placeholder="Ex: worker-01"
-                required
-              />
-            </div>
+        <div className="space-y-2">
+          <Label htmlFor="organization_id">Organização *</Label>
+          <Select
+            value={formData.organization_id?.toString() || ''}
+            onValueChange={(value) =>
+              setFormData((prev) => ({
+                ...prev,
+                organization_id: Number(value),
+                pool_id: null,
+                hardware_id: null,
+              }))
+            }
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione uma organização" />
+            </SelectTrigger>
+            <SelectContent>
+              {organizations.map((org) => (
+                <SelectItem key={org.id} value={org.id.toString()}>
+                  {org.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="organization_id">Organização *</Label>
-              <Select
-                value={formData.organization_id?.toString() || ''}
-                onValueChange={(value) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    organization_id: Number(value),
-                    pool_id: null,
-                    hardware_id: null,
-                  }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione uma organização" />
-                </SelectTrigger>
-                <SelectContent>
-                  {organizations.map((org) => (
-                    <SelectItem key={org.id} value={org.id.toString()}>
-                      {org.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+        <div className="space-y-2">
+          <Label htmlFor="pool_id">Pool *</Label>
+          <Select
+            value={formData.pool_id?.toString() || ''}
+            onValueChange={(value) =>
+              setFormData((prev) => ({ ...prev, pool_id: Number(value) }))
+            }
+            disabled={!formData.organization_id}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder={formData.organization_id ? "Selecione um pool" : "Selecione a organização primeiro"} />
+            </SelectTrigger>
+            <SelectContent>
+              {filteredPools.map((pool) => (
+                <SelectItem key={pool.id} value={pool.id.toString()}>
+                  {pool.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="pool_id">Pool *</Label>
-              <Select
-                value={formData.pool_id?.toString() || ''}
-                onValueChange={(value) =>
-                  setFormData((prev) => ({ ...prev, pool_id: Number(value) }))
-                }
-                disabled={!formData.organization_id}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder={formData.organization_id ? "Selecione um pool" : "Selecione a organização primeiro"} />
-                </SelectTrigger>
-                <SelectContent>
-                  {filteredPools.map((pool) => (
-                    <SelectItem key={pool.id} value={pool.id.toString()}>
-                      {pool.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+        <div className="space-y-2">
+          <Label htmlFor="hardware_id">Hardware (opcional)</Label>
+          <Select
+            value={formData.hardware_id?.toString() || 'none'}
+            onValueChange={(value) =>
+              setFormData((prev) => ({ ...prev, hardware_id: value === 'none' ? null : Number(value) }))
+            }
+            disabled={!formData.organization_id}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione um hardware" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">Nenhum</SelectItem>
+              {filteredHardware.map((hw) => (
+                <SelectItem key={hw.id} value={hw.id.toString()}>
+                  {hw.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="hardware_id">Hardware (opcional)</Label>
-              <Select
-                value={formData.hardware_id?.toString() || 'none'}
-                onValueChange={(value) =>
-                  setFormData((prev) => ({ ...prev, hardware_id: value === 'none' ? null : Number(value) }))
-                }
-                disabled={!formData.organization_id}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione um hardware" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Nenhum</SelectItem>
-                  {filteredHardware.map((hw) => (
-                    <SelectItem key={hw.id} value={hw.id.toString()}>
-                      {hw.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="status">Status</Label>
-              <Select
-                value={formData.status}
-                onValueChange={(value: 'online' | 'offline' | 'idle') =>
-                  setFormData((prev) => ({ ...prev, status: value }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {statusOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <SheetFooter className="gap-2 sm:gap-0 mt-6">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleCloseSheet}
-                disabled={saving}
-              >
-                Cancelar
-              </Button>
-              <Button type="submit" disabled={saving}>
-                {saving ? 'Salvando...' : editing ? 'Atualizar' : 'Criar'}
-              </Button>
-            </SheetFooter>
-          </form>
-        </SheetContent>
-      </Sheet>
+        <div className="space-y-2">
+          <Label htmlFor="status">Status</Label>
+          <Select
+            value={formData.status}
+            onValueChange={(value: 'online' | 'offline' | 'idle') =>
+              setFormData((prev) => ({ ...prev, status: value }))
+            }
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {statusOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </CRUDFormSheet>
     </div>
   )
 }

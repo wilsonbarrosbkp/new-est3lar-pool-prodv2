@@ -209,3 +209,32 @@ export function formatDateTime(date: string | Date | null): string {
   if (isNaN(d.getTime())) return '-'
   return d.toLocaleString('pt-BR')
 }
+
+/**
+ * Formata tempo relativo de forma compacta
+ * @param date - Data (string ISO ou Date ou null)
+ * @returns String formatada compacta (ex: "5s", "3m", "2h", "1d")
+ */
+export function formatRelativeTimeShort(date: string | Date | null): string {
+  if (!date) return 'Nunca'
+  const d = typeof date === 'string' ? new Date(date) : date
+  if (isNaN(d.getTime())) return '-'
+
+  const now = new Date()
+  const diffSec = Math.floor((now.getTime() - d.getTime()) / 1000)
+
+  if (diffSec < 60) return `${diffSec}s atrás`
+  if (diffSec < 3600) return `${Math.floor(diffSec / 60)}m atrás`
+  if (diffSec < 86400) return `${Math.floor(diffSec / 3600)}h atrás`
+  return `${Math.floor(diffSec / 86400)}d atrás`
+}
+
+/**
+ * Formata hashrate com unidade especifica (para hardware com unidade definida)
+ * @param hashrate - Valor numérico
+ * @param unit - Unidade (ex: "TH/s", "PH/s")
+ * @returns String formatada (ex: "110 TH/s")
+ */
+export function formatHashrateWithUnit(hashrate: number, unit: string): string {
+  return `${hashrate.toLocaleString()} ${unit}`
+}
