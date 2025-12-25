@@ -136,7 +136,7 @@ export function HashrateAreaChart({ poolId = 1 }: HashrateAreaChartProps) {
         </div>
         <Select value={timeRange} onValueChange={setTimeRange}>
           <SelectTrigger
-            className="hidden w-[160px] rounded-lg sm:ml-auto sm:flex"
+            className="hidden w-auto min-w-[140px] rounded-lg sm:ml-auto sm:flex"
             aria-label="Selecione o período"
           >
             <SelectValue placeholder="1 minuto" />

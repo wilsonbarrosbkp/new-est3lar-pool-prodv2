@@ -432,7 +432,7 @@ export default function SuperAdminDashboard() {
               value={period}
               onValueChange={(value) => setPeriod(value as Period)}
             >
-              <SelectTrigger className="w-full sm:w-[140px]">
+              <SelectTrigger className="w-full sm:w-auto sm:min-w-[160px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
