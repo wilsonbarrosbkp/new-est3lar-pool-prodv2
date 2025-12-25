@@ -1,23 +1,16 @@
 import { useMemo,useState } from 'react'
 import {
   Database,
-  MoreHorizontal,
   Plus,
   Search,
   Server,
   Zap,
 } from 'lucide-react'
 
+import { CRUDFormSheet, TableActionMenu } from '@/components/crud'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent } from '@/components/ui/Card'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/DropdownMenu'
 import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
 import {
@@ -27,14 +20,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/Select'
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/Sheet'
 import { Skeleton } from '@/components/ui/Skeleton'
 import {
   Table,
@@ -343,25 +328,12 @@ export default function PoolsPage() {
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => handleOpenEdit(pool)}>
-                                Editar
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                className="text-error"
-                                onClick={() => handleDelete(pool)}
-                              >
-                                Excluir
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                          <TableActionMenu
+                            actions={[
+                              { label: 'Editar', onClick: () => handleOpenEdit(pool) },
+                              { label: 'Excluir', onClick: () => handleDelete(pool), variant: 'destructive' },
+                            ]}
+                          />
                         </TableCell>
                       </TableRow>
                     ))}
@@ -410,25 +382,12 @@ export default function PoolsPage() {
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => handleOpenEdit(pool)}>
-                                Editar
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                className="text-error"
-                                onClick={() => handleDelete(pool)}
-                              >
-                                Excluir
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                          <TableActionMenu
+                            actions={[
+                              { label: 'Editar', onClick: () => handleOpenEdit(pool) },
+                              { label: 'Excluir', onClick: () => handleDelete(pool), variant: 'destructive' },
+                            ]}
+                          />
                         </TableCell>
                       </TableRow>
                     ))}
@@ -446,204 +405,186 @@ export default function PoolsPage() {
       </div>
 
       {/* Sheet de criação/edição */}
-      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent side="right" className="sm:max-w-lg overflow-y-auto">
-          <SheetHeader>
-            <SheetTitle>
-              {editing ? 'Editar Pool' : 'Novo Pool'}
-            </SheetTitle>
-            <SheetDescription>
-              {editing
-                ? 'Altere as informações do pool abaixo.'
-                : 'Preencha as informações para criar um novo pool.'}
-            </SheetDescription>
-          </SheetHeader>
+      <CRUDFormSheet
+        open={sheetOpen}
+        onOpenChange={setSheetOpen}
+        title={editing ? 'Editar Pool' : 'Novo Pool'}
+        description={editing
+          ? 'Altere as informações do pool abaixo.'
+          : 'Preencha as informações para criar um novo pool.'}
+        onSubmit={handleSubmit}
+        onCancel={handleCloseSheet}
+        saving={saving}
+        isEditing={!!editing}
+      >
+        <div className="space-y-2">
+          <Label htmlFor="name">Nome *</Label>
+          <Input
+            id="name"
+            value={formData.name}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, name: e.target.value }))
+            }
+            placeholder="Ex: Pool Bitcoin Principal"
+            required
+          />
+        </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4 mt-6">
-            <div className="space-y-2">
-              <Label htmlFor="name">Nome *</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, name: e.target.value }))
-                }
-                placeholder="Ex: Pool Bitcoin Principal"
-                required
-              />
-            </div>
+        <div className="space-y-2">
+          <Label htmlFor="organization_id">Organização *</Label>
+          <Select
+            value={formData.organization_id?.toString() || ''}
+            onValueChange={(value) =>
+              setFormData((prev) => ({ ...prev, organization_id: Number(value) }))
+            }
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione uma organização" />
+            </SelectTrigger>
+            <SelectContent>
+              {organizations.map((org) => (
+                <SelectItem key={org.id} value={org.id.toString()}>
+                  {org.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="organization_id">Organização *</Label>
-              <Select
-                value={formData.organization_id?.toString() || ''}
-                onValueChange={(value) =>
-                  setFormData((prev) => ({ ...prev, organization_id: Number(value) }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione uma organização" />
-                </SelectTrigger>
-                <SelectContent>
-                  {organizations.map((org) => (
-                    <SelectItem key={org.id} value={org.id.toString()}>
-                      {org.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="currency_id">Moeda *</Label>
+            <Select
+              value={formData.currency_id?.toString() || ''}
+              onValueChange={(value) =>
+                setFormData((prev) => ({ ...prev, currency_id: Number(value) }))
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione" />
+              </SelectTrigger>
+              <SelectContent>
+                {currencies.map((currency) => (
+                  <SelectItem key={currency.id} value={currency.id.toString()}>
+                    {currency.symbol} - {currency.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="currency_id">Moeda *</Label>
-                <Select
-                  value={formData.currency_id?.toString() || ''}
-                  onValueChange={(value) =>
-                    setFormData((prev) => ({ ...prev, currency_id: Number(value) }))
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {currencies.map((currency) => (
-                      <SelectItem key={currency.id} value={currency.id.toString()}>
-                        {currency.symbol} - {currency.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+          <div className="space-y-2">
+            <Label htmlFor="payout_model_id">Modelo Pagamento *</Label>
+            <Select
+              value={formData.payout_model_id?.toString() || ''}
+              onValueChange={(value) =>
+                setFormData((prev) => ({ ...prev, payout_model_id: Number(value) }))
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione" />
+              </SelectTrigger>
+              <SelectContent>
+                {payoutModels.map((model) => (
+                  <SelectItem key={model.id} value={model.id.toString()}>
+                    {model.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="payout_model_id">Modelo Pagamento *</Label>
-                <Select
-                  value={formData.payout_model_id?.toString() || ''}
-                  onValueChange={(value) =>
-                    setFormData((prev) => ({ ...prev, payout_model_id: Number(value) }))
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {payoutModels.map((model) => (
-                      <SelectItem key={model.id} value={model.id.toString()}>
-                        {model.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="pool_fee_percent">Taxa (%)</Label>
+            <Input
+              id="pool_fee_percent"
+              type="number"
+              step="0.01"
+              min={0}
+              max={100}
+              value={formData.pool_fee_percent}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, pool_fee_percent: Number(e.target.value) }))
+              }
+            />
+          </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="pool_fee_percent">Taxa (%)</Label>
-                <Input
-                  id="pool_fee_percent"
-                  type="number"
-                  step="0.01"
-                  min={0}
-                  max={100}
-                  value={formData.pool_fee_percent}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, pool_fee_percent: Number(e.target.value) }))
-                  }
-                />
-              </div>
+          <div className="space-y-2">
+            <Label htmlFor="min_payout">Pagamento Mínimo</Label>
+            <Input
+              id="min_payout"
+              type="number"
+              step="0.00000001"
+              min={0}
+              value={formData.min_payout}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, min_payout: Number(e.target.value) }))
+              }
+            />
+          </div>
+        </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="min_payout">Pagamento Mínimo</Label>
-                <Input
-                  id="min_payout"
-                  type="number"
-                  step="0.00000001"
-                  min={0}
-                  value={formData.min_payout}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, min_payout: Number(e.target.value) }))
-                  }
-                />
-              </div>
-            </div>
+        <div className="space-y-2">
+          <Label htmlFor="stratum_url">URL Stratum</Label>
+          <Input
+            id="stratum_url"
+            value={formData.stratum_url}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, stratum_url: e.target.value }))
+            }
+            placeholder="Ex: stratum.exemplo.com"
+          />
+        </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="stratum_url">URL Stratum</Label>
-              <Input
-                id="stratum_url"
-                value={formData.stratum_url}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, stratum_url: e.target.value }))
-                }
-                placeholder="Ex: stratum.exemplo.com"
-              />
-            </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="stratum_port">Porta</Label>
+            <Input
+              id="stratum_port"
+              type="number"
+              value={formData.stratum_port || ''}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, stratum_port: e.target.value ? Number(e.target.value) : null }))
+              }
+              placeholder="3333"
+            />
+          </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="stratum_port">Porta</Label>
-                <Input
-                  id="stratum_port"
-                  type="number"
-                  value={formData.stratum_port || ''}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, stratum_port: e.target.value ? Number(e.target.value) : null }))
-                  }
-                  placeholder="3333"
-                />
-              </div>
+          <div className="space-y-2">
+            <Label htmlFor="stratum_difficulty">Dificuldade</Label>
+            <Input
+              id="stratum_difficulty"
+              type="number"
+              step="0.00000001"
+              value={formData.stratum_difficulty || ''}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, stratum_difficulty: e.target.value ? Number(e.target.value) : null }))
+              }
+              placeholder="Auto"
+            />
+          </div>
+        </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="stratum_difficulty">Dificuldade</Label>
-                <Input
-                  id="stratum_difficulty"
-                  type="number"
-                  step="0.00000001"
-                  value={formData.stratum_difficulty || ''}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, stratum_difficulty: e.target.value ? Number(e.target.value) : null }))
-                  }
-                  placeholder="Auto"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="is_active">Status</Label>
-              <Select
-                value={formData.is_active ? 'true' : 'false'}
-                onValueChange={(value) =>
-                  setFormData((prev) => ({ ...prev, is_active: value === 'true' }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="true">Ativo</SelectItem>
-                  <SelectItem value="false">Inativo</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <SheetFooter className="gap-2 sm:gap-0 mt-6">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleCloseSheet}
-                disabled={saving}
-              >
-                Cancelar
-              </Button>
-              <Button type="submit" disabled={saving}>
-                {saving ? 'Salvando...' : editing ? 'Atualizar' : 'Criar'}
-              </Button>
-            </SheetFooter>
-          </form>
-        </SheetContent>
-      </Sheet>
+        <div className="space-y-2">
+          <Label htmlFor="is_active">Status</Label>
+          <Select
+            value={formData.is_active ? 'true' : 'false'}
+            onValueChange={(value) =>
+              setFormData((prev) => ({ ...prev, is_active: value === 'true' }))
+            }
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="true">Ativo</SelectItem>
+              <SelectItem value="false">Inativo</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </CRUDFormSheet>
     </div>
   )
 }

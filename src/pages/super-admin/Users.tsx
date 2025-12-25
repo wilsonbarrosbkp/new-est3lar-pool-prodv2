@@ -1,13 +1,9 @@
 import { useMemo,useState } from 'react'
 import {
-  ArrowDown,
-  ArrowUp,
-  ArrowUpDown,
   Building2,
   Calendar,
   Download,
   Mail,
-  MoreHorizontal,
   Plus,
   Search,
   Shield,
@@ -15,17 +11,13 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 
+import { CRUDFormSheet } from '@/components/crud/CRUDFormSheet'
+import { DataTableSortHeader } from '@/components/crud/DataTableSortHeader'
+import { TableActionMenu } from '@/components/crud/TableActionMenu'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/Avatar'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent } from '@/components/ui/Card'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/DropdownMenu'
 import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
 import {
@@ -35,14 +27,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/Select'
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/Sheet'
 import { Skeleton } from '@/components/ui/Skeleton'
 import {
   Table,
@@ -276,17 +260,6 @@ export default function UsersPage() {
     return result
   }, [users, search, filterStatus, filterRole, filterOrg, sortConfig])
 
-  const SortIcon = ({ columnKey }: { columnKey: keyof User }) => {
-    if (sortConfig?.key !== columnKey) {
-      return <ArrowUpDown className="ml-2 h-4 w-4" />
-    }
-    return sortConfig.direction === 'asc' ? (
-      <ArrowUp className="ml-2 h-4 w-4" />
-    ) : (
-      <ArrowDown className="ml-2 h-4 w-4" />
-    )
-  }
-
   const handleExport = () => {
     toast.info('Exportação em desenvolvimento')
   }
@@ -406,61 +379,39 @@ export default function UsersPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className={`h-auto p-0 ${typography.weight.semibold} hover:bg-transparent ${typography.table.header}`}
-                      onClick={() => handleSort('name')}
-                    >
-                      Usuário
-                      <SortIcon columnKey="name" />
-                    </Button>
-                  </TableHead>
-                  <TableHead className="hidden sm:table-cell">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className={`h-auto p-0 ${typography.weight.semibold} hover:bg-transparent ${typography.table.header}`}
-                      onClick={() => handleSort('role_name')}
-                    >
-                      Role
-                      <SortIcon columnKey="role_name" />
-                    </Button>
-                  </TableHead>
-                  <TableHead className="hidden lg:table-cell">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className={`h-auto p-0 ${typography.weight.semibold} hover:bg-transparent ${typography.table.header}`}
-                      onClick={() => handleSort('organization_name')}
-                    >
-                      Organização
-                      <SortIcon columnKey="organization_name" />
-                    </Button>
-                  </TableHead>
-                  <TableHead>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className={`h-auto p-0 ${typography.weight.semibold} hover:bg-transparent ${typography.table.header}`}
-                      onClick={() => handleSort('status')}
-                    >
-                      Status
-                      <SortIcon columnKey="status" />
-                    </Button>
-                  </TableHead>
-                  <TableHead className="hidden xl:table-cell">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className={`h-auto p-0 ${typography.weight.semibold} hover:bg-transparent ${typography.table.header}`}
-                      onClick={() => handleSort('created_at')}
-                    >
-                      Criado em
-                      <SortIcon columnKey="created_at" />
-                    </Button>
-                  </TableHead>
+                  <DataTableSortHeader<User>
+                    label="Usuário"
+                    columnKey="name"
+                    sortConfig={sortConfig}
+                    onSort={handleSort}
+                  />
+                  <DataTableSortHeader<User>
+                    label="Role"
+                    columnKey="role_name"
+                    sortConfig={sortConfig}
+                    onSort={handleSort}
+                    className="hidden sm:table-cell"
+                  />
+                  <DataTableSortHeader<User>
+                    label="Organização"
+                    columnKey="organization_name"
+                    sortConfig={sortConfig}
+                    onSort={handleSort}
+                    className="hidden lg:table-cell"
+                  />
+                  <DataTableSortHeader<User>
+                    label="Status"
+                    columnKey="status"
+                    sortConfig={sortConfig}
+                    onSort={handleSort}
+                  />
+                  <DataTableSortHeader<User>
+                    label="Criado em"
+                    columnKey="created_at"
+                    sortConfig={sortConfig}
+                    onSort={handleSort}
+                    className="hidden xl:table-cell"
+                  />
                   <TableHead className="w-10 sm:w-12">Ações</TableHead>
                 </TableRow>
               </TableHeader>
@@ -540,25 +491,12 @@ export default function UsersPage() {
                       </div>
                     </TableCell>
                     <TableCell className="py-2 sm:py-4">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-7 w-7 sm:h-8 sm:w-8 p-0">
-                            <MoreHorizontal className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleOpenEdit(user)}>
-                            Editar
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            className="text-error"
-                            onClick={() => handleDelete(user)}
-                          >
-                            Excluir
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <TableActionMenu
+                        actions={[
+                          { label: 'Editar', onClick: () => handleOpenEdit(user) },
+                          { label: 'Excluir', onClick: () => handleDelete(user), variant: 'destructive' },
+                        ]}
+                      />
                     </TableCell>
                   </TableRow>
                 ))}
@@ -574,173 +512,152 @@ export default function UsersPage() {
       </div>
 
       {/* Sheet de criação/edição */}
-      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto p-4 sm:p-6">
-          <SheetHeader>
-            <SheetTitle className={typography.modal.title}>
-              {editing ? 'Editar Usuário' : 'Novo Usuário'}
-            </SheetTitle>
-            <SheetDescription className={typography.modal.description}>
-              {editing
-                ? 'Altere as informações do usuário abaixo.'
-                : 'Preencha as informações para criar um novo usuário.'}
-            </SheetDescription>
-          </SheetHeader>
+      <CRUDFormSheet
+        open={sheetOpen}
+        onOpenChange={setSheetOpen}
+        title={editing ? 'Editar Usuário' : 'Novo Usuário'}
+        description={
+          editing
+            ? 'Altere as informações do usuário abaixo.'
+            : 'Preencha as informações para criar um novo usuário.'
+        }
+        onSubmit={handleSubmit}
+        onCancel={handleCloseSheet}
+        saving={saving}
+        isEditing={!!editing}
+      >
+        {/* Dados Pessoais */}
+        <div className="space-y-3 sm:space-y-4">
+          <h3 className={`${typography.body.small} ${typography.weight.medium} text-text-secondary`}>
+            Dados Pessoais
+          </h3>
 
-          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 mt-4 sm:mt-6">
-            {/* Dados Pessoais */}
-            <div className="space-y-3 sm:space-y-4">
-              <h3 className={`${typography.body.small} ${typography.weight.medium} text-text-secondary`}>
-                Dados Pessoais
-              </h3>
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label htmlFor="name" className={typography.form.label}>Nome Completo *</Label>
+            <Input
+              id="name"
+              value={formData.name}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, name: e.target.value }))
+              }
+              placeholder="Nome completo"
+              required
+              className={typography.form.input}
+            />
+          </div>
 
-              <div className="space-y-1.5 sm:space-y-2">
-                <Label htmlFor="name" className={typography.form.label}>Nome Completo *</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, name: e.target.value }))
-                  }
-                  placeholder="Nome completo"
-                  required
-                  className={typography.form.input}
-                />
-              </div>
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label htmlFor="email" className={typography.form.label}>E-mail *</Label>
+            <Input
+              id="email"
+              type="email"
+              value={formData.email}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, email: e.target.value }))
+              }
+              placeholder="email@exemplo.com"
+              required
+              className={typography.form.input}
+            />
+          </div>
 
-              <div className="space-y-1.5 sm:space-y-2">
-                <Label htmlFor="email" className={typography.form.label}>E-mail *</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, email: e.target.value }))
-                  }
-                  placeholder="email@exemplo.com"
-                  required
-                  className={typography.form.input}
-                />
-              </div>
+          {!editing && (
+            <p className={`${typography.form.helper} text-text-secondary bg-surface-secondary p-2 rounded-md`}>
+              O usuário receberá um e-mail para definir sua própria senha.
+            </p>
+          )}
 
-              {!editing && (
-                <p className={`${typography.form.helper} text-text-secondary bg-surface-secondary p-2 rounded-md`}>
-                  O usuário receberá um e-mail para definir sua própria senha.
-                </p>
-              )}
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label htmlFor="phone" className={typography.form.label}>Telefone</Label>
+            <Input
+              id="phone"
+              value={formData.phone}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, phone: e.target.value }))
+              }
+              placeholder="(00) 00000-0000"
+              className={typography.form.input}
+            />
+          </div>
+        </div>
 
-              <div className="space-y-1.5 sm:space-y-2">
-                <Label htmlFor="phone" className={typography.form.label}>Telefone</Label>
-                <Input
-                  id="phone"
-                  value={formData.phone}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, phone: e.target.value }))
-                  }
-                  placeholder="(00) 00000-0000"
-                  className={typography.form.input}
-                />
-              </div>
-            </div>
+        {/* Vinculação */}
+        <div className="space-y-3 sm:space-y-4">
+          <h3 className={`${typography.body.small} ${typography.weight.medium} text-text-secondary`}>
+            Vinculação
+          </h3>
 
-            {/* Vinculação */}
-            <div className="space-y-3 sm:space-y-4">
-              <h3 className={`${typography.body.small} ${typography.weight.medium} text-text-secondary`}>
-                Vinculação
-              </h3>
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label htmlFor="organization_id" className={typography.form.label}>Organização</Label>
+            <Select
+              value={formData.organization_id}
+              onValueChange={(value) =>
+                setFormData((prev) => ({ ...prev, organization_id: value }))
+              }
+            >
+              <SelectTrigger className={typography.form.input}>
+                <SelectValue placeholder="Selecione uma organização" />
+              </SelectTrigger>
+              <SelectContent>
+                {organizations.map((org) => (
+                  <SelectItem key={org.id} value={org.id.toString()}>
+                    {org.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className={`${typography.form.helper} text-text-secondary`}>
+              Super Admins podem não ter organização vinculada
+            </p>
+          </div>
 
-              <div className="space-y-1.5 sm:space-y-2">
-                <Label htmlFor="organization_id" className={typography.form.label}>Organização</Label>
-                <Select
-                  value={formData.organization_id}
-                  onValueChange={(value) =>
-                    setFormData((prev) => ({ ...prev, organization_id: value }))
-                  }
-                >
-                  <SelectTrigger className={typography.form.input}>
-                    <SelectValue placeholder="Selecione uma organização" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {organizations.map((org) => (
-                      <SelectItem key={org.id} value={org.id.toString()}>
-                        {org.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p className={`${typography.form.helper} text-text-secondary`}>
-                  Super Admins podem não ter organização vinculada
-                </p>
-              </div>
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label htmlFor="role_id" className={typography.form.label}>Role *</Label>
+            <Select
+              value={formData.role_id}
+              onValueChange={(value) =>
+                setFormData((prev) => ({ ...prev, role_id: value }))
+              }
+            >
+              <SelectTrigger className={typography.form.input}>
+                <SelectValue placeholder="Selecione uma role" />
+              </SelectTrigger>
+              <SelectContent>
+                {roles.map((role) => (
+                  <SelectItem key={role.id} value={role.id.toString()}>
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="h-2 w-2 rounded-full"
+                        style={{ backgroundColor: role.badge_color }}
+                      />
+                      {role.name}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
 
-              <div className="space-y-1.5 sm:space-y-2">
-                <Label htmlFor="role_id" className={typography.form.label}>Role *</Label>
-                <Select
-                  value={formData.role_id}
-                  onValueChange={(value) =>
-                    setFormData((prev) => ({ ...prev, role_id: value }))
-                  }
-                >
-                  <SelectTrigger className={typography.form.input}>
-                    <SelectValue placeholder="Selecione uma role" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {roles.map((role) => (
-                      <SelectItem key={role.id} value={role.id.toString()}>
-                        <div className="flex items-center gap-2">
-                          <div
-                            className="h-2 w-2 rounded-full"
-                            style={{ backgroundColor: role.badge_color }}
-                          />
-                          {role.name}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {/* Status */}
-            <div className="space-y-1.5 sm:space-y-2">
-              <Label htmlFor="status" className={typography.form.label}>Status</Label>
-              <Select
-                value={formData.status}
-                onValueChange={(value: 'ativo' | 'inativo') =>
-                  setFormData((prev) => ({ ...prev, status: value }))
-                }
-              >
-                <SelectTrigger className={typography.form.input}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ativo">Ativo</SelectItem>
-                  <SelectItem value="inativo">Inativo</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <SheetFooter className="gap-2 sm:gap-0 pt-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleCloseSheet}
-                disabled={saving}
-                className={typography.button.default}
-              >
-                Cancelar
-              </Button>
-              <Button type="submit" disabled={saving} className={typography.button.default}>
-                {saving
-                  ? 'Salvando...'
-                  : editing
-                    ? 'Atualizar'
-                    : 'Criar'}
-              </Button>
-            </SheetFooter>
-          </form>
-        </SheetContent>
-      </Sheet>
+        {/* Status */}
+        <div className="space-y-1.5 sm:space-y-2">
+          <Label htmlFor="status" className={typography.form.label}>Status</Label>
+          <Select
+            value={formData.status}
+            onValueChange={(value: 'ativo' | 'inativo') =>
+              setFormData((prev) => ({ ...prev, status: value }))
+            }
+          >
+            <SelectTrigger className={typography.form.input}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ativo">Ativo</SelectItem>
+              <SelectItem value="inativo">Inativo</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </CRUDFormSheet>
     </div>
   )
 }

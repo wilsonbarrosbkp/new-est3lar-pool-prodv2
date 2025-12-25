@@ -170,7 +170,7 @@ src/components/crud/
 - [x] **4.5** Criar `/src/components/crud/index.ts` com exports
 - [x] **4.6** Refatorar Organizations.tsx usando novos componentes
 - [x] **4.7** `pnpm run build` + teste completo da pagina
-- [ ] **4.8** Aplicar em demais paginas CRUD (Users, Pools, etc.) - PENDENTE
+- [x] **4.8** Aplicar em demais paginas CRUD (Users, Pools, Hardware, Payments, Revenue) - CONCLUIDO
 - [x] **4.9** Commit: "refactor: create reusable CRUD page components" - CONCLUIDO
 
 ---

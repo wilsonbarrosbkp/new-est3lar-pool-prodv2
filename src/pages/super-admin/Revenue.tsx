@@ -3,7 +3,6 @@ import {
   Calendar,
   DollarSign,
   Minus,
-  MoreHorizontal,
   Plus,
   Search,
   TrendingUp,
@@ -11,16 +10,11 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 
+import { CRUDFormSheet } from '@/components/crud/CRUDFormSheet'
+import { TableActionMenu } from '@/components/crud/TableActionMenu'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent } from '@/components/ui/Card'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/DropdownMenu'
 import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
 import {
@@ -30,14 +24,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/Select'
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/Sheet'
 import { Skeleton } from '@/components/ui/Skeleton'
 import {
   Table,
@@ -447,25 +433,12 @@ export default function RevenuePage() {
                       </span>
                     </TableCell>
                     <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleOpenEdit(report)}>
-                            Editar
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            className="text-error"
-                            onClick={() => handleDelete(report)}
-                          >
-                            Excluir
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <TableActionMenu
+                        actions={[
+                          { label: 'Editar', onClick: () => handleOpenEdit(report) },
+                          { label: 'Excluir', onClick: () => handleDelete(report), variant: 'destructive' },
+                        ]}
+                      />
                     </TableCell>
                   </TableRow>
                 ))}
@@ -476,226 +449,210 @@ export default function RevenuePage() {
       </Card>
 
       {/* Sheet de criação/edição */}
-      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent side="right" className="sm:max-w-lg overflow-y-auto">
-          <SheetHeader>
-            <SheetTitle>
-              {editingReport ? 'Editar Relatório' : 'Novo Relatório de Revenue'}
-            </SheetTitle>
-            <SheetDescription>
-              {editingReport
-                ? 'Altere as informações do relatório abaixo.'
-                : 'Preencha as informações para criar um novo relatório.'}
-            </SheetDescription>
-          </SheetHeader>
+      <CRUDFormSheet
+        open={sheetOpen}
+        onOpenChange={setSheetOpen}
+        title={editingReport ? 'Editar Relatório' : 'Novo Relatório de Revenue'}
+        description={
+          editingReport
+            ? 'Altere as informações do relatório abaixo.'
+            : 'Preencha as informações para criar um novo relatório.'
+        }
+        onSubmit={handleSubmit}
+        onCancel={handleCloseSheet}
+        saving={saving}
+        isEditing={!!editingReport}
+      >
+        <div className="space-y-2">
+          <Label htmlFor="organization_id">Organização *</Label>
+          <Select
+            value={formData.organization_id?.toString() || ''}
+            onValueChange={(value) =>
+              setFormData((prev) => ({
+                ...prev,
+                organization_id: Number(value),
+                pool_id: null,
+              }))
+            }
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione uma organização" />
+            </SelectTrigger>
+            <SelectContent>
+              {organizations.map((org) => (
+                <SelectItem key={org.id} value={org.id.toString()}>
+                  {org.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4 mt-6">
-            <div className="space-y-2">
-              <Label htmlFor="organization_id">Organização *</Label>
-              <Select
-                value={formData.organization_id?.toString() || ''}
-                onValueChange={(value) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    organization_id: Number(value),
-                    pool_id: null,
-                  }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione uma organização" />
-                </SelectTrigger>
-                <SelectContent>
-                  {organizations.map((org) => (
-                    <SelectItem key={org.id} value={org.id.toString()}>
-                      {org.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+        <div className="space-y-2">
+          <Label htmlFor="pool_id">Pool (opcional)</Label>
+          <Select
+            value={formData.pool_id?.toString() || 'none'}
+            onValueChange={(value) =>
+              setFormData((prev) => ({ ...prev, pool_id: value === 'none' ? null : Number(value) }))
+            }
+            disabled={!formData.organization_id}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">Todos os pools</SelectItem>
+              {filteredPools.map((pool) => (
+                <SelectItem key={pool.id} value={pool.id.toString()}>
+                  {pool.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="period_start">Início do Período *</Label>
+            <Input
+              id="period_start"
+              type="date"
+              value={formData.period_start}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, period_start: e.target.value }))
+              }
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="period_end">Fim do Período *</Label>
+            <Input
+              id="period_end"
+              type="date"
+              value={formData.period_end}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, period_end: e.target.value }))
+              }
+              required
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="total_hashrate">Hashrate Médio (H/s)</Label>
+            <Input
+              id="total_hashrate"
+              type="number"
+              min={0}
+              value={formData.total_hashrate}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, total_hashrate: Number(e.target.value) }))
+              }
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="blocks_found">Blocos Encontrados</Label>
+            <Input
+              id="blocks_found"
+              type="number"
+              min={0}
+              value={formData.blocks_found}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, blocks_found: Number(e.target.value) }))
+              }
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="gross_revenue">Receita Bruta (BTC)</Label>
+          <Input
+            id="gross_revenue"
+            type="number"
+            step="0.00000001"
+            min={0}
+            value={formData.gross_revenue}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, gross_revenue: Number(e.target.value) }))
+            }
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="pool_fees">Taxas do Pool (BTC)</Label>
+            <Input
+              id="pool_fees"
+              type="number"
+              step="0.00000001"
+              min={0}
+              value={formData.pool_fees}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, pool_fees: Number(e.target.value) }))
+              }
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="energy_cost">Custo de Energia (BTC)</Label>
+            <Input
+              id="energy_cost"
+              type="number"
+              step="0.00000001"
+              min={0}
+              value={formData.energy_cost}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, energy_cost: Number(e.target.value) }))
+              }
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="currency_id">Moeda</Label>
+          <Select
+            value={formData.currency_id?.toString() || 'none'}
+            onValueChange={(value) =>
+              setFormData((prev) => ({ ...prev, currency_id: value === 'none' ? null : Number(value) }))
+            }
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">Nenhuma</SelectItem>
+              {currencies.map((currency) => (
+                <SelectItem key={currency.id} value={currency.id.toString()}>
+                  {currency.symbol} - {currency.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="p-4 bg-surface rounded-lg space-y-2">
+          <p className={`${typography.body.small} ${typography.weight.medium}`}>Valores Calculados:</p>
+          <div className={`grid grid-cols-2 gap-4 ${typography.body.small}`}>
+            <div>
+              <span className="text-text-secondary">Receita Líquida: </span>
+              <span className="font-mono">{(formData.gross_revenue - formData.pool_fees).toFixed(8)} BTC</span>
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="pool_id">Pool (opcional)</Label>
-              <Select
-                value={formData.pool_id?.toString() || 'none'}
-                onValueChange={(value) =>
-                  setFormData((prev) => ({ ...prev, pool_id: value === 'none' ? null : Number(value) }))
-                }
-                disabled={!formData.organization_id}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Todos os pools</SelectItem>
-                  {filteredPools.map((pool) => (
-                    <SelectItem key={pool.id} value={pool.id.toString()}>
-                      {pool.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div>
+              <span className="text-text-secondary">Lucro: </span>
+              <span className={`font-mono ${
+                (formData.gross_revenue - formData.pool_fees - formData.energy_cost) >= 0
+                  ? 'text-success'
+                  : 'text-error'
+              }`}>
+                {(formData.gross_revenue - formData.pool_fees - formData.energy_cost).toFixed(8)} BTC
+              </span>
             </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="period_start">Início do Período *</Label>
-                <Input
-                  id="period_start"
-                  type="date"
-                  value={formData.period_start}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, period_start: e.target.value }))
-                  }
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="period_end">Fim do Período *</Label>
-                <Input
-                  id="period_end"
-                  type="date"
-                  value={formData.period_end}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, period_end: e.target.value }))
-                  }
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="total_hashrate">Hashrate Médio (H/s)</Label>
-                <Input
-                  id="total_hashrate"
-                  type="number"
-                  min={0}
-                  value={formData.total_hashrate}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, total_hashrate: Number(e.target.value) }))
-                  }
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="blocks_found">Blocos Encontrados</Label>
-                <Input
-                  id="blocks_found"
-                  type="number"
-                  min={0}
-                  value={formData.blocks_found}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, blocks_found: Number(e.target.value) }))
-                  }
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="gross_revenue">Receita Bruta (BTC)</Label>
-              <Input
-                id="gross_revenue"
-                type="number"
-                step="0.00000001"
-                min={0}
-                value={formData.gross_revenue}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, gross_revenue: Number(e.target.value) }))
-                }
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="pool_fees">Taxas do Pool (BTC)</Label>
-                <Input
-                  id="pool_fees"
-                  type="number"
-                  step="0.00000001"
-                  min={0}
-                  value={formData.pool_fees}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, pool_fees: Number(e.target.value) }))
-                  }
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="energy_cost">Custo de Energia (BTC)</Label>
-                <Input
-                  id="energy_cost"
-                  type="number"
-                  step="0.00000001"
-                  min={0}
-                  value={formData.energy_cost}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, energy_cost: Number(e.target.value) }))
-                  }
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="currency_id">Moeda</Label>
-              <Select
-                value={formData.currency_id?.toString() || 'none'}
-                onValueChange={(value) =>
-                  setFormData((prev) => ({ ...prev, currency_id: value === 'none' ? null : Number(value) }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Nenhuma</SelectItem>
-                  {currencies.map((currency) => (
-                    <SelectItem key={currency.id} value={currency.id.toString()}>
-                      {currency.symbol} - {currency.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="p-4 bg-surface rounded-lg space-y-2">
-              <p className={`${typography.body.small} ${typography.weight.medium}`}>Valores Calculados:</p>
-              <div className={`grid grid-cols-2 gap-4 ${typography.body.small}`}>
-                <div>
-                  <span className="text-text-secondary">Receita Líquida: </span>
-                  <span className="font-mono">{(formData.gross_revenue - formData.pool_fees).toFixed(8)} BTC</span>
-                </div>
-                <div>
-                  <span className="text-text-secondary">Lucro: </span>
-                  <span className={`font-mono ${
-                    (formData.gross_revenue - formData.pool_fees - formData.energy_cost) >= 0
-                      ? 'text-success'
-                      : 'text-error'
-                  }`}>
-                    {(formData.gross_revenue - formData.pool_fees - formData.energy_cost).toFixed(8)} BTC
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <SheetFooter className="gap-2 sm:gap-0 mt-6">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleCloseSheet}
-                disabled={saving}
-              >
-                Cancelar
-              </Button>
-              <Button type="submit" disabled={saving}>
-                {saving ? 'Salvando...' : editingReport ? 'Atualizar' : 'Criar'}
-              </Button>
-            </SheetFooter>
-          </form>
-        </SheetContent>
-      </Sheet>
+          </div>
+        </div>
+      </CRUDFormSheet>
     </div>
   )
 }

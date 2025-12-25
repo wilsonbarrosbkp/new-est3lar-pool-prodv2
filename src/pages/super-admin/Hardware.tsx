@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo,useState } from 'react'
 import {
   Calendar,
   Cpu,
-  MoreHorizontal,
   Plus,
   RefreshCw,
   Search,
@@ -12,17 +11,12 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 
+import { CRUDFormSheet } from '@/components/crud/CRUDFormSheet'
+import { TableActionMenu } from '@/components/crud/TableActionMenu'
 import { ServerCard, type ServerData } from '@/components/infrastructure/ServerCard'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/DropdownMenu'
 import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
 import {
@@ -32,14 +26,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/Select'
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/Sheet'
 import { Skeleton } from '@/components/ui/Skeleton'
 import {
   Table,
@@ -515,41 +501,21 @@ export default function HardwarePage() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleOpenEdit(item)}>
-                              Editar
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            {item.status !== 'ativo' && (
-                              <DropdownMenuItem onClick={() => updateStatus(item, 'ativo')}>
-                                Marcar como Ativo
-                              </DropdownMenuItem>
-                            )}
-                            {item.status !== 'manutencao' && (
-                              <DropdownMenuItem onClick={() => updateStatus(item, 'manutencao')}>
-                                Enviar para Manutenção
-                              </DropdownMenuItem>
-                            )}
-                            {item.status !== 'inativo' && (
-                              <DropdownMenuItem onClick={() => updateStatus(item, 'inativo')}>
-                                Desativar
-                              </DropdownMenuItem>
-                            )}
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              className="text-error"
-                              onClick={() => handleDelete(item)}
-                            >
-                              Excluir
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                        <TableActionMenu
+                          actions={[
+                            { label: 'Editar', onClick: () => handleOpenEdit(item) },
+                            ...(item.status !== 'ativo'
+                              ? [{ label: 'Marcar como Ativo', onClick: () => updateStatus(item, 'ativo') }]
+                              : []),
+                            ...(item.status !== 'manutencao'
+                              ? [{ label: 'Enviar para Manutenção', onClick: () => updateStatus(item, 'manutencao') }]
+                              : []),
+                            ...(item.status !== 'inativo'
+                              ? [{ label: 'Desativar', onClick: () => updateStatus(item, 'inativo') }]
+                              : []),
+                            { label: 'Excluir', onClick: () => handleDelete(item), variant: 'destructive' as const },
+                          ]}
+                        />
                       </TableCell>
                     </TableRow>
                   )
@@ -561,230 +527,214 @@ export default function HardwarePage() {
       </Card>
 
       {/* Sheet de criação/edição */}
-      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent side="right" className="sm:max-w-lg overflow-y-auto">
-          <SheetHeader>
-            <SheetTitle>
-              {editing ? 'Editar Hardware' : 'Novo Hardware'}
-            </SheetTitle>
-            <SheetDescription>
-              {editing
-                ? 'Altere as informações do hardware abaixo.'
-                : 'Preencha as informações para cadastrar um novo hardware.'}
-            </SheetDescription>
-          </SheetHeader>
+      <CRUDFormSheet
+        open={sheetOpen}
+        onOpenChange={setSheetOpen}
+        title={editing ? 'Editar Hardware' : 'Novo Hardware'}
+        description={
+          editing
+            ? 'Altere as informações do hardware abaixo.'
+            : 'Preencha as informações para cadastrar um novo hardware.'
+        }
+        onSubmit={handleSubmit}
+        onCancel={handleCloseSheet}
+        saving={saving}
+        isEditing={!!editing}
+      >
+        <div className="space-y-2">
+          <Label htmlFor="name">Nome *</Label>
+          <Input
+            id="name"
+            value={formData.name}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, name: e.target.value }))
+            }
+            placeholder="Ex: ASIC Miner 01"
+            required
+          />
+        </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4 mt-6">
-            <div className="space-y-2">
-              <Label htmlFor="name">Nome *</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, name: e.target.value }))
-                }
-                placeholder="Ex: ASIC Miner 01"
-                required
-              />
-            </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="manufacturer">Fabricante *</Label>
+            <Input
+              id="manufacturer"
+              value={formData.manufacturer}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, manufacturer: e.target.value }))
+              }
+              placeholder="Ex: Bitmain"
+              required
+            />
+          </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="manufacturer">Fabricante *</Label>
-                <Input
-                  id="manufacturer"
-                  value={formData.manufacturer}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, manufacturer: e.target.value }))
-                  }
-                  placeholder="Ex: Bitmain"
-                  required
-                />
-              </div>
+          <div className="space-y-2">
+            <Label htmlFor="model">Modelo *</Label>
+            <Input
+              id="model"
+              value={formData.model}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, model: e.target.value }))
+              }
+              placeholder="Ex: S19 Pro"
+              required
+            />
+          </div>
+        </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="model">Modelo *</Label>
-                <Input
-                  id="model"
-                  value={formData.model}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, model: e.target.value }))
-                  }
-                  placeholder="Ex: S19 Pro"
-                  required
-                />
-              </div>
-            </div>
+        <div className="space-y-2">
+          <Label htmlFor="organization_id">Organização *</Label>
+          <Select
+            value={formData.organization_id?.toString() || ''}
+            onValueChange={(value) =>
+              setFormData((prev) => ({ ...prev, organization_id: Number(value) }))
+            }
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione uma organização" />
+            </SelectTrigger>
+            <SelectContent>
+              {organizations.map((org) => (
+                <SelectItem key={org.id} value={org.id.toString()}>
+                  {org.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="organization_id">Organização *</Label>
-              <Select
-                value={formData.organization_id?.toString() || ''}
-                onValueChange={(value) =>
-                  setFormData((prev) => ({ ...prev, organization_id: Number(value) }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione uma organização" />
-                </SelectTrigger>
-                <SelectContent>
-                  {organizations.map((org) => (
-                    <SelectItem key={org.id} value={org.id.toString()}>
-                      {org.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="hashrate">Hashrate *</Label>
+            <Input
+              id="hashrate"
+              type="number"
+              min={0}
+              value={formData.hashrate}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, hashrate: Number(e.target.value) }))
+              }
+              required
+            />
+          </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="hashrate">Hashrate *</Label>
-                <Input
-                  id="hashrate"
-                  type="number"
-                  min={0}
-                  value={formData.hashrate}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, hashrate: Number(e.target.value) }))
-                  }
-                  required
-                />
-              </div>
+          <div className="space-y-2">
+            <Label htmlFor="hashrate_unit">Unidade</Label>
+            <Select
+              value={formData.hashrate_unit}
+              onValueChange={(value) =>
+                setFormData((prev) => ({ ...prev, hashrate_unit: value }))
+              }
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="H/s">H/s</SelectItem>
+                <SelectItem value="KH/s">KH/s</SelectItem>
+                <SelectItem value="MH/s">MH/s</SelectItem>
+                <SelectItem value="GH/s">GH/s</SelectItem>
+                <SelectItem value="TH/s">TH/s</SelectItem>
+                <SelectItem value="PH/s">PH/s</SelectItem>
+                <SelectItem value="EH/s">EH/s</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="hashrate_unit">Unidade</Label>
-                <Select
-                  value={formData.hashrate_unit}
-                  onValueChange={(value) =>
-                    setFormData((prev) => ({ ...prev, hashrate_unit: value }))
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="H/s">H/s</SelectItem>
-                    <SelectItem value="KH/s">KH/s</SelectItem>
-                    <SelectItem value="MH/s">MH/s</SelectItem>
-                    <SelectItem value="GH/s">GH/s</SelectItem>
-                    <SelectItem value="TH/s">TH/s</SelectItem>
-                    <SelectItem value="PH/s">PH/s</SelectItem>
-                    <SelectItem value="EH/s">EH/s</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="power_consumption">Consumo (Watts) *</Label>
+            <Input
+              id="power_consumption"
+              type="number"
+              min={0}
+              value={formData.power_consumption}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, power_consumption: Number(e.target.value) }))
+              }
+              required
+            />
+          </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="power_consumption">Consumo (Watts) *</Label>
-                <Input
-                  id="power_consumption"
-                  type="number"
-                  min={0}
-                  value={formData.power_consumption}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, power_consumption: Number(e.target.value) }))
-                  }
-                  required
-                />
-              </div>
+          <div className="space-y-2">
+            <Label htmlFor="efficiency">Eficiência (J/TH)</Label>
+            <Input
+              id="efficiency"
+              type="number"
+              step="0.01"
+              min={0}
+              value={formData.efficiency || ''}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, efficiency: e.target.value ? Number(e.target.value) : null }))
+              }
+              placeholder="Auto-calculado"
+            />
+          </div>
+        </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="efficiency">Eficiência (J/TH)</Label>
-                <Input
-                  id="efficiency"
-                  type="number"
-                  step="0.01"
-                  min={0}
-                  value={formData.efficiency || ''}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, efficiency: e.target.value ? Number(e.target.value) : null }))
-                  }
-                  placeholder="Auto-calculado"
-                />
-              </div>
-            </div>
+        <div className="space-y-2">
+          <Label htmlFor="serial_number">Número de Série</Label>
+          <Input
+            id="serial_number"
+            value={formData.serial_number}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, serial_number: e.target.value }))
+            }
+            placeholder="Ex: SN123456789"
+          />
+        </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="serial_number">Número de Série</Label>
-              <Input
-                id="serial_number"
-                value={formData.serial_number}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, serial_number: e.target.value }))
-                }
-                placeholder="Ex: SN123456789"
-              />
-            </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="purchase_date">
+              <Calendar className="h-4 w-4 inline mr-1" />
+              Data de Compra
+            </Label>
+            <Input
+              id="purchase_date"
+              type="date"
+              value={formData.purchase_date}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, purchase_date: e.target.value }))
+              }
+            />
+          </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="purchase_date">
-                  <Calendar className="h-4 w-4 inline mr-1" />
-                  Data de Compra
-                </Label>
-                <Input
-                  id="purchase_date"
-                  type="date"
-                  value={formData.purchase_date}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, purchase_date: e.target.value }))
-                  }
-                />
-              </div>
+          <div className="space-y-2">
+            <Label htmlFor="warranty_until">Garantia Até</Label>
+            <Input
+              id="warranty_until"
+              type="date"
+              value={formData.warranty_until}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, warranty_until: e.target.value }))
+              }
+            />
+          </div>
+        </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="warranty_until">Garantia Até</Label>
-                <Input
-                  id="warranty_until"
-                  type="date"
-                  value={formData.warranty_until}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, warranty_until: e.target.value }))
-                  }
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="status">Status</Label>
-              <Select
-                value={formData.status}
-                onValueChange={(value: 'ativo' | 'inativo' | 'manutencao') =>
-                  setFormData((prev) => ({ ...prev, status: value }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {statusOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <SheetFooter className="gap-2 sm:gap-0 mt-6">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleCloseSheet}
-                disabled={saving}
-              >
-                Cancelar
-              </Button>
-              <Button type="submit" disabled={saving}>
-                {saving ? 'Salvando...' : editing ? 'Atualizar' : 'Criar'}
-              </Button>
-            </SheetFooter>
-          </form>
-        </SheetContent>
-      </Sheet>
+        <div className="space-y-2">
+          <Label htmlFor="status">Status</Label>
+          <Select
+            value={formData.status}
+            onValueChange={(value: 'ativo' | 'inativo' | 'manutencao') =>
+              setFormData((prev) => ({ ...prev, status: value }))
+            }
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {statusOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </CRUDFormSheet>
     </div>
   )
 }

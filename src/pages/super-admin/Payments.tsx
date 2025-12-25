@@ -1,4 +1,4 @@
-import { useCallback, useMemo,useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import {
   Check,
   CheckCircle,
@@ -6,23 +6,17 @@ import {
   Copy,
   CreditCard,
   ExternalLink,
-  MoreHorizontal,
   Plus,
   Search,
   XCircle,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
+import { CRUDFormSheet } from '@/components/crud/CRUDFormSheet'
+import { TableActionMenu } from '@/components/crud/TableActionMenu'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent } from '@/components/ui/Card'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/DropdownMenu'
 import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
 import {
@@ -32,14 +26,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/Select'
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/Sheet'
 import { Skeleton } from '@/components/ui/Skeleton'
 import {
   Table,
@@ -547,41 +533,21 @@ export default function PaymentsPage() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleOpenEdit(payment)}>
-                              Editar
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            {payment.status === 'pendente' && (
-                              <DropdownMenuItem onClick={() => updateStatus(payment, 'processando')}>
-                                Marcar Processando
-                              </DropdownMenuItem>
-                            )}
-                            {(payment.status === 'pendente' || payment.status === 'processando') && (
-                              <DropdownMenuItem onClick={() => updateStatus(payment, 'concluido')}>
-                                Marcar Concluído
-                              </DropdownMenuItem>
-                            )}
-                            {payment.status !== 'cancelado' && payment.status !== 'concluido' && (
-                              <DropdownMenuItem onClick={() => updateStatus(payment, 'cancelado')}>
-                                Cancelar
-                              </DropdownMenuItem>
-                            )}
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              className="text-error"
-                              onClick={() => handleDelete(payment)}
-                            >
-                              Excluir
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                        <TableActionMenu
+                          actions={[
+                            { label: 'Editar', onClick: () => handleOpenEdit(payment) },
+                            ...(payment.status === 'pendente'
+                              ? [{ label: 'Marcar Processando', onClick: () => updateStatus(payment, 'processando') }]
+                              : []),
+                            ...(payment.status === 'pendente' || payment.status === 'processando'
+                              ? [{ label: 'Marcar Concluído', onClick: () => updateStatus(payment, 'concluido') }]
+                              : []),
+                            ...(payment.status !== 'cancelado' && payment.status !== 'concluido'
+                              ? [{ label: 'Cancelar', onClick: () => updateStatus(payment, 'cancelado') }]
+                              : []),
+                            { label: 'Excluir', onClick: () => handleDelete(payment), variant: 'destructive' as const },
+                          ]}
+                        />
                       </TableCell>
                     </TableRow>
                   )
@@ -593,250 +559,234 @@ export default function PaymentsPage() {
       </Card>
 
       {/* Sheet de criação/edição */}
-      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent side="right" className="sm:max-w-lg overflow-y-auto">
-          <SheetHeader>
-            <SheetTitle>
-              {editing ? 'Editar Pagamento' : 'Novo Pagamento'}
-            </SheetTitle>
-            <SheetDescription>
-              {editing
-                ? 'Altere as informações do pagamento abaixo.'
-                : 'Preencha as informações para criar um novo pagamento.'}
-            </SheetDescription>
-          </SheetHeader>
+      <CRUDFormSheet
+        open={sheetOpen}
+        onOpenChange={setSheetOpen}
+        title={editing ? 'Editar Pagamento' : 'Novo Pagamento'}
+        description={
+          editing
+            ? 'Altere as informações do pagamento abaixo.'
+            : 'Preencha as informações para criar um novo pagamento.'
+        }
+        onSubmit={handleSubmit}
+        onCancel={handleCloseSheet}
+        saving={saving}
+        isEditing={!!editing}
+      >
+        <div className="space-y-2">
+          <Label htmlFor="organization_id">Organização *</Label>
+          <Select
+            value={formData.organization_id?.toString() || ''}
+            onValueChange={(value) =>
+              setFormData((prev) => ({
+                ...prev,
+                organization_id: Number(value),
+                pool_id: null,
+                wallet_id: null,
+              }))
+            }
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione uma organização" />
+            </SelectTrigger>
+            <SelectContent>
+              {organizations.map((org) => (
+                <SelectItem key={org.id} value={org.id.toString()}>
+                  {org.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4 mt-6">
-            <div className="space-y-2">
-              <Label htmlFor="organization_id">Organização *</Label>
-              <Select
-                value={formData.organization_id?.toString() || ''}
-                onValueChange={(value) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    organization_id: Number(value),
-                    pool_id: null,
-                    wallet_id: null,
-                  }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione uma organização" />
-                </SelectTrigger>
-                <SelectContent>
-                  {organizations.map((org) => (
-                    <SelectItem key={org.id} value={org.id.toString()}>
-                      {org.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="pool_id">Pool (opcional)</Label>
+            <Select
+              value={formData.pool_id?.toString() || 'none'}
+              onValueChange={(value) =>
+                setFormData((prev) => ({ ...prev, pool_id: value === 'none' ? null : Number(value) }))
+              }
+              disabled={!formData.organization_id}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Nenhum</SelectItem>
+                {filteredPools.map((pool) => (
+                  <SelectItem key={pool.id} value={pool.id.toString()}>
+                    {pool.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="pool_id">Pool (opcional)</Label>
-                <Select
-                  value={formData.pool_id?.toString() || 'none'}
-                  onValueChange={(value) =>
-                    setFormData((prev) => ({ ...prev, pool_id: value === 'none' ? null : Number(value) }))
-                  }
-                  disabled={!formData.organization_id}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Nenhum</SelectItem>
-                    {filteredPools.map((pool) => (
-                      <SelectItem key={pool.id} value={pool.id.toString()}>
-                        {pool.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+          <div className="space-y-2">
+            <Label htmlFor="wallet_id">Carteira *</Label>
+            <Select
+              value={formData.wallet_id?.toString() || ''}
+              onValueChange={(value) => {
+                const wallet = wallets.find(w => w.id === Number(value))
+                setFormData((prev) => ({
+                  ...prev,
+                  wallet_id: Number(value),
+                  currency_id: wallet?.currency_id || prev.currency_id,
+                }))
+              }}
+              disabled={!formData.organization_id}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione" />
+              </SelectTrigger>
+              <SelectContent>
+                {filteredWallets.map((wallet) => (
+                  <SelectItem key={wallet.id} value={wallet.id.toString()}>
+                    {wallet.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="wallet_id">Carteira *</Label>
-                <Select
-                  value={formData.wallet_id?.toString() || ''}
-                  onValueChange={(value) => {
-                    const wallet = wallets.find(w => w.id === Number(value))
-                    setFormData((prev) => ({
-                      ...prev,
-                      wallet_id: Number(value),
-                      currency_id: wallet?.currency_id || prev.currency_id,
-                    }))
-                  }}
-                  disabled={!formData.organization_id}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {filteredWallets.map((wallet) => (
-                      <SelectItem key={wallet.id} value={wallet.id.toString()}>
-                        {wallet.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="amount">Valor *</Label>
+            <Input
+              id="amount"
+              type="number"
+              step="0.00000001"
+              min={0}
+              value={formData.amount}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, amount: Number(e.target.value) }))
+              }
+              required
+            />
+          </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="amount">Valor *</Label>
-                <Input
-                  id="amount"
-                  type="number"
-                  step="0.00000001"
-                  min={0}
-                  value={formData.amount}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, amount: Number(e.target.value) }))
-                  }
-                  required
-                />
-              </div>
+          <div className="space-y-2">
+            <Label htmlFor="currency_id">Moeda *</Label>
+            <Select
+              value={formData.currency_id?.toString() || ''}
+              onValueChange={(value) =>
+                setFormData((prev) => ({ ...prev, currency_id: Number(value) }))
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione" />
+              </SelectTrigger>
+              <SelectContent>
+                {currencies.map((currency) => (
+                  <SelectItem key={currency.id} value={currency.id.toString()}>
+                    {currency.symbol} - {currency.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="currency_id">Moeda *</Label>
-                <Select
-                  value={formData.currency_id?.toString() || ''}
-                  onValueChange={(value) =>
-                    setFormData((prev) => ({ ...prev, currency_id: Number(value) }))
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {currencies.map((currency) => (
-                      <SelectItem key={currency.id} value={currency.id.toString()}>
-                        {currency.symbol} - {currency.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="type">Tipo</Label>
+            <Select
+              value={formData.type}
+              onValueChange={(value: string) =>
+                setFormData((prev) => ({ ...prev, type: value as PaymentType }))
+              }
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {typeOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="type">Tipo</Label>
-                <Select
-                  value={formData.type}
-                  onValueChange={(value: string) =>
-                    setFormData((prev) => ({ ...prev, type: value as PaymentType }))
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {typeOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+          <div className="space-y-2">
+            <Label htmlFor="fee">Taxa</Label>
+            <Input
+              id="fee"
+              type="number"
+              step="0.00000001"
+              min={0}
+              value={formData.fee}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, fee: Number(e.target.value) }))
+              }
+            />
+          </div>
+        </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="fee">Taxa</Label>
-                <Input
-                  id="fee"
-                  type="number"
-                  step="0.00000001"
-                  min={0}
-                  value={formData.fee}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, fee: Number(e.target.value) }))
-                  }
-                />
-              </div>
-            </div>
+        <div className="space-y-2">
+          <Label htmlFor="tx_hash">TX Hash</Label>
+          <Input
+            id="tx_hash"
+            value={formData.tx_hash}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, tx_hash: e.target.value }))
+            }
+            placeholder="Ex: abc123..."
+          />
+        </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="tx_hash">TX Hash</Label>
-              <Input
-                id="tx_hash"
-                value={formData.tx_hash}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, tx_hash: e.target.value }))
-                }
-                placeholder="Ex: abc123..."
-              />
-            </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="block_height">Block Height</Label>
+            <Input
+              id="block_height"
+              type="number"
+              min={0}
+              value={formData.block_height || ''}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, block_height: e.target.value ? Number(e.target.value) : null }))
+              }
+            />
+          </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="block_height">Block Height</Label>
-                <Input
-                  id="block_height"
-                  type="number"
-                  min={0}
-                  value={formData.block_height || ''}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, block_height: e.target.value ? Number(e.target.value) : null }))
-                  }
-                />
-              </div>
+          <div className="space-y-2">
+            <Label htmlFor="status">Status</Label>
+            <Select
+              value={formData.status}
+              onValueChange={(value: Payment['status']) =>
+                setFormData((prev) => ({ ...prev, status: value }))
+              }
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {statusOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="status">Status</Label>
-                <Select
-                  value={formData.status}
-                  onValueChange={(value: Payment['status']) =>
-                    setFormData((prev) => ({ ...prev, status: value }))
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {statusOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="notes">Observações</Label>
-              <Textarea
-                id="notes"
-                value={formData.notes}
-                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                  setFormData((prev) => ({ ...prev, notes: e.target.value }))
-                }
-                placeholder="Notas adicionais..."
-                rows={3}
-              />
-            </div>
-
-            <SheetFooter className="gap-2 sm:gap-0 mt-6">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleCloseSheet}
-                disabled={saving}
-              >
-                Cancelar
-              </Button>
-              <Button type="submit" disabled={saving}>
-                {saving ? 'Salvando...' : editing ? 'Atualizar' : 'Criar'}
-              </Button>
-            </SheetFooter>
-          </form>
-        </SheetContent>
-      </Sheet>
+        <div className="space-y-2">
+          <Label htmlFor="notes">Observações</Label>
+          <Textarea
+            id="notes"
+            value={formData.notes}
+            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+              setFormData((prev) => ({ ...prev, notes: e.target.value }))
+            }
+            placeholder="Notas adicionais..."
+            rows={3}
+          />
+        </div>
+      </CRUDFormSheet>
     </div>
   )
 }
