@@ -6,6 +6,7 @@ import { Topbar } from './Topbar'
 import type { NavItem } from '@/components/nav-main'
 import type { NavUserProps } from '@/components/nav-user'
 import { supabase } from '@/lib/supabase/client'
+import { handleError } from '@/lib/error-handler'
 
 // Super Admin navigation items
 const superAdminNavItems: NavItem[] = [
@@ -51,7 +52,7 @@ export function SuperAdminLayout() {
           .single()
 
         if (error) {
-          console.error('Erro ao buscar usuário:', error)
+          handleError(error, 'buscar dados do usuário')
           // Se não encontrar dados do usuário, usar dados básicos da sessão
           setUser({
             name: session.user.email?.split('@')[0] || 'Usuário',
@@ -67,7 +68,7 @@ export function SuperAdminLayout() {
           })
         }
       } catch (error) {
-        console.error('Erro ao carregar usuário:', error)
+        handleError(error, 'carregar usuário')
       } finally {
         setLoading(false)
       }

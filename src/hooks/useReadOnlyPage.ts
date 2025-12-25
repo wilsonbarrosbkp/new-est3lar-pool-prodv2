@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
+import { handleError } from '@/lib/error-handler'
 import { useDataPage, type SortConfig } from './useDataPage'
 
 // Re-export SortConfig para manter compatibilidade
@@ -132,7 +133,7 @@ export function useReadOnlyPage<T extends { id: number | string }>(
     async (actionName: string, item: T, ...args: unknown[]) => {
       const action = customActionsRef.current[actionName]
       if (!action) {
-        console.error(`Ação customizada '${actionName}' não encontrada`)
+        handleError(new Error(`Ação customizada '${actionName}' não encontrada`), 'executeAction')
         return
       }
 
@@ -141,8 +142,8 @@ export function useReadOnlyPage<T extends { id: number | string }>(
         // Recarregar dados após executar a ação
         await baseHook.loadData()
       } catch (error) {
-        console.error(`Erro ao executar ação '${actionName}':`, error)
-        throw error
+        const appError = handleError(error, `executar ação '${actionName}'`)
+        throw appError.originalError
       }
     },
     [baseHook]

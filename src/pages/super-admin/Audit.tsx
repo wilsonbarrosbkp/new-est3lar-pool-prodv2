@@ -32,6 +32,7 @@ import {
   SelectValue,
 } from '@/components/ui/Select'
 import { supabase } from '@/lib/supabase/client'
+import { handleError } from '@/lib/error-handler'
 import { typography } from '@/design-system/tokens'
 import { formatDateTime } from '@/lib/formatters'
 import { useReadOnlyPage } from '@/hooks/useReadOnlyPage'
@@ -106,7 +107,7 @@ export default function AuditPage() {
         if (error) throw error
         setOrganizations(orgsData || [])
       } catch (error) {
-        console.error('Erro ao carregar organizations:', error)
+        handleError(error, 'carregar organizations')
       }
 
       // Extrair tipos de entidades únicos

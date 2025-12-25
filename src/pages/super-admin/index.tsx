@@ -33,6 +33,7 @@ import { usePoolStats, type Period } from '@/hooks/use-pool-stats'
 import { cn } from '@/lib/utils'
 import { formatHashrate, formatNumber, formatRelativeTime } from '@/lib/formatters'
 import { supabase } from '@/lib/supabase/client'
+import { handleError, showErrorToast } from '@/lib/error-handler'
 import { toast } from 'sonner'
 import { typography } from '@/design-system/tokens'
 
@@ -122,8 +123,8 @@ export default function SuperAdminDashboard() {
 
       setLastUpdate(new Date())
     } catch (error) {
-      console.error('Erro ao carregar dados:', error)
-      toast.error('Erro ao carregar dados do dashboard')
+      const appError = handleError(error, 'carregar dados do dashboard')
+      showErrorToast(appError)
     } finally {
       setLoading(false)
     }

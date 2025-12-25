@@ -46,6 +46,7 @@ import {
 } from '@/components/ui/Select'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
+import { handleError, showErrorToast } from '@/lib/error-handler'
 import { typography } from '@/design-system/tokens'
 import { formatAddress } from '@/lib/formatters'
 import { useCRUDPage } from '@/hooks/useCRUDPage'
@@ -221,8 +222,8 @@ export default function WalletsPage() {
       if (error) throw error
       loadData()
     } catch (error) {
-      console.error('Erro ao atualizar carteira:', error)
-      toast.error('Erro ao atualizar carteira')
+      const appError = handleError(error, 'atualizar carteira')
+      showErrorToast(appError)
     }
   }, [loadData])
 
@@ -245,8 +246,8 @@ export default function WalletsPage() {
       toast.success('Carteira definida como principal!')
       loadData()
     } catch (error) {
-      console.error('Erro ao definir carteira principal:', error)
-      toast.error('Erro ao definir carteira principal')
+      const appError = handleError(error, 'definir carteira principal')
+      showErrorToast(appError)
     }
   }, [loadData])
 

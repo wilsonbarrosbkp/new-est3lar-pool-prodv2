@@ -49,6 +49,7 @@ import {
 } from '@/components/ui/Select'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
+import { handleError, showErrorToast } from '@/lib/error-handler'
 import { typography } from '@/design-system/tokens'
 import { formatUptime } from '@/lib/formatters'
 import { useCRUDPage } from '@/hooks/useCRUDPage'
@@ -254,8 +255,8 @@ export default function HardwarePage() {
       const mappedServers = (data || []).map((s: ServerFromDB) => mapServerFromDB(s))
       setServers(mappedServers)
     } catch (error) {
-      console.error('Erro ao carregar servidores:', error)
-      toast.error('Erro ao carregar servidores')
+      const appError = handleError(error, 'carregar servidores')
+      showErrorToast(appError)
     } finally {
       setLoadingServers(false)
     }
@@ -285,8 +286,8 @@ export default function HardwarePage() {
       if (error) throw error
       loadData()
     } catch (error) {
-      console.error('Erro ao atualizar status:', error)
-      toast.error('Erro ao atualizar status')
+      const appError = handleError(error, 'atualizar status do hardware')
+      showErrorToast(appError)
     }
   }, [loadData])
 

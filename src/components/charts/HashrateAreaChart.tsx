@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from '@/components/ui/Select'
 import { supabase } from '@/lib/supabase/client'
+import { handleError } from '@/lib/error-handler'
 
 const chartConfig = {
   hashrate: {
@@ -70,7 +71,7 @@ export function HashrateAreaChart({ poolId = 1 }: HashrateAreaChartProps) {
         .order('collected_at', { ascending: true })
 
       if (error) {
-        console.error('Erro ao buscar hashrate:', error)
+        handleError(error, 'buscar hashrate')
         return
       }
 
@@ -87,7 +88,7 @@ export function HashrateAreaChart({ poolId = 1 }: HashrateAreaChartProps) {
 
       setChartData(points)
     } catch (err) {
-      console.error('Erro ao buscar dados:', err)
+      handleError(err, 'buscar dados do gráfico')
     } finally {
       setLoading(false)
     }

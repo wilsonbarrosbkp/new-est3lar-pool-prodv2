@@ -49,6 +49,7 @@ import {
 import { Switch } from '@/components/ui/Switch'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
+import { handleError, showErrorToast } from '@/lib/error-handler'
 import { typography } from '@/design-system/tokens'
 import { useCRUDPage } from '@/hooks/useCRUDPage'
 import type {
@@ -207,8 +208,8 @@ export default function EndpointsPage() {
       if (error) throw error
       loadData()
     } catch (error) {
-      console.error('Erro ao atualizar status:', error)
-      toast.error('Erro ao atualizar status')
+      const appError = handleError(error, 'atualizar status do endpoint')
+      showErrorToast(appError)
     }
   }, [loadData])
 

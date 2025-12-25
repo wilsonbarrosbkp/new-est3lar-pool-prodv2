@@ -2,6 +2,7 @@ import * as AlertDialogPrimitive from '@radix-ui/react-alert-dialog'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/Button'
 import { typography } from '@/design-system/tokens'
+import { handleError } from '@/lib/error-handler'
 
 /**
  * Props do ConfirmDialog
@@ -47,7 +48,7 @@ export function ConfirmDialog({
       onOpenChange(false)
     } catch (error) {
       // Erro tratado pelo callback
-      console.error('Erro na confirmação:', error)
+      handleError(error, 'confirmação de ação')
     }
   }
 

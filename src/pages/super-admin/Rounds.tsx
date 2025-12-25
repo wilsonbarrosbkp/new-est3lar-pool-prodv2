@@ -32,6 +32,7 @@ import {
 } from '@/components/ui/Select'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
+import { handleError } from '@/lib/error-handler'
 import { typography } from '@/design-system/tokens'
 import { formatDateTime, formatTxHash, formatBTC, formatShares } from '@/lib/formatters'
 import { useReadOnlyPage } from '@/hooks/useReadOnlyPage'
@@ -99,7 +100,7 @@ export default function RoundsPage() {
         if (error) throw error
         setPools(poolsData || [])
       } catch (error) {
-        console.error('Erro ao carregar pools:', error)
+        handleError(error, 'carregar pools')
       }
     },
     customLoadData: async () => {

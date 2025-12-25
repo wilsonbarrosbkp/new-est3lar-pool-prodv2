@@ -2,6 +2,7 @@ import { useState, useCallback, useRef, useEffect } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { capitalize } from '@/lib/formatters'
+import { handleError, showErrorToast } from '@/lib/error-handler'
 import { useDataPage, type SortConfig } from './useDataPage'
 
 // Re-export SortConfig para manter compatibilidade
@@ -305,8 +306,8 @@ export function useCRUDPage<T extends { id: number | string }, F>(
         handleCloseSheet()
         baseHook.loadData()
       } catch (error) {
-        console.error(`Erro ao salvar ${entityName}:`, error)
-        toast.error(msgs.saveError)
+        const appError = handleError(error, `salvar ${entityName}`)
+        showErrorToast(appError)
       } finally {
         setSaving(false)
       }
@@ -346,8 +347,8 @@ export function useCRUDPage<T extends { id: number | string }, F>(
       setItemToDelete(null)
       baseHook.loadData()
     } catch (error) {
-      console.error(`Erro ao excluir ${entityName}:`, error)
-      toast.error(msgs.deleteError)
+      const appError = handleError(error, `excluir ${entityName}`)
+      showErrorToast(appError)
     }
   }, [itemToDelete, tableName, baseHook, entityName, getMessages])
 

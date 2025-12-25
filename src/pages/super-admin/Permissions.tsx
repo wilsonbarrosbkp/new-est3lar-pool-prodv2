@@ -31,6 +31,7 @@ import {
 } from '@/components/ui/DropdownMenu'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
+import { handleError, showErrorToast } from '@/lib/error-handler'
 import { typography } from '@/design-system/tokens'
 import { useCRUDPage } from '@/hooks/useCRUDPage'
 import type { Permission } from '@/types/super-admin'
@@ -207,8 +208,8 @@ export default function PermissionsPage() {
       // Recarregar dados após mudança
       loadData()
     } catch (error) {
-      console.error('Erro ao atualizar permissão:', error)
-      toast.error('Erro ao atualizar permissão')
+      const appError = handleError(error, 'atualizar permissão')
+      showErrorToast(appError)
     }
   }, [rolePermissions, loadData])
 

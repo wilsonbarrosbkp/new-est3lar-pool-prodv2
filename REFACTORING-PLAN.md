@@ -187,15 +187,17 @@ src/components/crud/
 
 ### Checklist
 
-- [ ] **5.1** Auditar todas as ocorrencias de `console.error` em pages
-- [ ] **5.2** Substituir `console.error + toast.error` por `handleError()` do error-handler
-- [ ] **5.3** Atualizar useCRUDPage.ts para usar error-handler centralizado
-- [ ] **5.4** `pnpm run build` + teste
-- [ ] **5.5** Atualizar useReadOnlyPage.ts para usar error-handler centralizado
-- [ ] **5.6** `pnpm run build` + teste
-- [ ] **5.7** Remover console.logs de debug em producao
-- [ ] **5.8** `pnpm run build` + teste
-- [ ] **5.9** Commit: "refactor: standardize error handling with central handler"
+- [x] **5.1** Auditar todas as ocorrencias de `console.error` em pages - 29 ocorrencias encontradas
+- [x] **5.2** Substituir `console.error + toast.error` por `handleError()` do error-handler
+- [x] **5.3** Atualizar useDataPage.ts para usar error-handler centralizado
+- [x] **5.4** Atualizar useCRUDPage.ts para usar error-handler centralizado
+- [x] **5.5** `pnpm run build` + teste
+- [x] **5.6** Atualizar useReadOnlyPage.ts para usar error-handler centralizado
+- [x] **5.7** `pnpm run build` + teste
+- [x] **5.8** Atualizar todas as paginas super-admin (12 arquivos)
+- [x] **5.9** Atualizar componentes (SuperAdminLayout, HashrateAreaChart, ConfirmDialog)
+- [x] **5.10** `pnpm run build` final - SUCESSO
+- [x] **5.11** Commit: "refactor: standardize error handling with central handler" - CONCLUIDO
 
 ---
 

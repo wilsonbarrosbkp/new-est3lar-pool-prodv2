@@ -49,6 +49,7 @@ import {
 import { Checkbox } from '@/components/ui/Checkbox'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
+import { handleError, showErrorToast } from '@/lib/error-handler'
 import { typography } from '@/design-system/tokens'
 import { formatDateTime } from '@/lib/formatters'
 import { useCRUDPage } from '@/hooks/useCRUDPage'
@@ -229,8 +230,8 @@ export default function WebhooksPage() {
       if (error) throw error
       loadData()
     } catch (error) {
-      console.error('Erro ao atualizar status:', error)
-      toast.error('Erro ao atualizar status')
+      const appError = handleError(error, 'atualizar status do webhook')
+      showErrorToast(appError)
     }
   }, [loadData])
 

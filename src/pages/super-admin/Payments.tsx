@@ -50,6 +50,7 @@ import {
 import { Textarea } from '@/components/ui/Textarea'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
+import { handleError, showErrorToast } from '@/lib/error-handler'
 import { typography } from '@/design-system/tokens'
 import { formatAmount, formatDateTime, formatTxHash } from '@/lib/formatters'
 import { useCRUDPage } from '@/hooks/useCRUDPage'
@@ -309,8 +310,8 @@ export default function PaymentsPage() {
       if (error) throw error
       loadData()
     } catch (error) {
-      console.error('Erro ao atualizar status:', error)
-      toast.error('Erro ao atualizar status')
+      const appError = handleError(error, 'atualizar status do pagamento')
+      showErrorToast(appError)
     }
   }, [loadData])
 

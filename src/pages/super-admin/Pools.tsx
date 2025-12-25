@@ -43,8 +43,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/Select'
-import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
+import { handleError, showErrorToast } from '@/lib/error-handler'
 import { typography } from '@/design-system/tokens'
 import { useCRUDPage } from '@/hooks/useCRUDPage'
 import type {
@@ -230,8 +230,8 @@ export default function PoolsPage() {
       if (error) throw error
       loadData()
     } catch (error) {
-      console.error('Erro ao atualizar pool:', error)
-      toast.error('Erro ao atualizar pool')
+      const appError = handleError(error, 'atualizar pool')
+      showErrorToast(appError)
     }
   }
 

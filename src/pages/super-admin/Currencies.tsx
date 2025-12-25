@@ -43,8 +43,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/Select'
-import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
+import { handleError, showErrorToast } from '@/lib/error-handler'
 import { typography } from '@/design-system/tokens'
 import { useCRUDPage } from '@/hooks/useCRUDPage'
 
@@ -134,8 +134,8 @@ export default function CurrenciesPage() {
       if (error) throw error
       loadData()
     } catch (error) {
-      console.error('Erro ao atualizar moeda:', error)
-      toast.error('Erro ao atualizar moeda')
+      const appError = handleError(error, 'atualizar moeda')
+      showErrorToast(appError)
     }
   }, [loadData])
 

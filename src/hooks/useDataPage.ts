@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
-import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
+import { handleError, showErrorToast } from '@/lib/error-handler'
 
 /**
  * Configuração de ordenação - compartilhado entre todos os hooks de página
@@ -206,8 +206,8 @@ export function useDataPage<T extends { id: number | string }>(
       setData(items)
       onDataLoadedRef.current?.(items)
     } catch (error) {
-      console.error(`Erro ao carregar ${entityName}s:`, error)
-      toast.error(loadErrorMessage || `Erro ao carregar ${entityName}s`)
+      const appError = handleError(error, `carregar ${entityName}s`)
+      showErrorToast(appError)
     } finally {
       setLoading(false)
     }

@@ -47,6 +47,7 @@ import {
 } from '@/components/ui/Select'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
+import { handleError, showErrorToast } from '@/lib/error-handler'
 import { typography } from '@/design-system/tokens'
 import { formatHashrate, formatDate, formatBTC } from '@/lib/formatters'
 import type {
@@ -144,8 +145,8 @@ export default function RevenuePage() {
       setPools(poolsResult.data || [])
       setCurrencies(currenciesResult.data || [])
     } catch (error) {
-      console.error('Erro ao carregar dados:', error)
-      toast.error('Erro ao carregar dados')
+      const appError = handleError(error, 'carregar dados de receita')
+      showErrorToast(appError)
     } finally {
       setLoading(false)
     }
@@ -260,8 +261,8 @@ export default function RevenuePage() {
       handleCloseSheet()
       loadData()
     } catch (error) {
-      console.error('Erro ao salvar relatório:', error)
-      toast.error('Erro ao salvar relatório')
+      const appError = handleError(error, 'salvar relatório')
+      showErrorToast(appError)
     } finally {
       setSaving(false)
     }
@@ -283,8 +284,8 @@ export default function RevenuePage() {
       toast.success('Relatório excluído com sucesso!')
       loadData()
     } catch (error) {
-      console.error('Erro ao excluir relatório:', error)
-      toast.error('Erro ao excluir relatório')
+      const appError = handleError(error, 'excluir relatório')
+      showErrorToast(appError)
     }
   }
 
