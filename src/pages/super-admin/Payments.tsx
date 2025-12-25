@@ -51,6 +51,7 @@ import { Textarea } from '@/components/ui/Textarea'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
 import { typography } from '@/design-system/tokens'
+import { formatAmount, formatDateTime, formatTxHash } from '@/lib/formatters'
 import { useCRUDPage } from '@/hooks/useCRUDPage'
 import type {
   Payment,
@@ -313,20 +314,6 @@ export default function PaymentsPage() {
     }
   }, [loadData])
 
-  const formatAmount = useCallback((amount: number, symbol: string) => {
-    return `${amount.toFixed(8)} ${symbol}`
-  }, [])
-
-  const formatDate = useCallback((date: string | null) => {
-    if (!date) return '-'
-    return new Date(date).toLocaleString('pt-BR')
-  }, [])
-
-  const formatTxHash = useCallback((hash: string | null) => {
-    if (!hash) return '-'
-    return `${hash.slice(0, 8)}...${hash.slice(-6)}`
-  }, [])
-
   const getStatusBadge = useCallback((status: string) => {
     const option = statusOptions.find(s => s.value === status)
     return option || { label: status, color: 'secondary' }
@@ -549,7 +536,7 @@ export default function PaymentsPage() {
                         )}
                       </TableCell>
                       <TableCell>
-                        <span className={typography.body.small}>{formatDate(payment.created_at)}</span>
+                        <span className={typography.body.small}>{formatDateTime(payment.created_at)}</span>
                       </TableCell>
                       <TableCell>
                         <Badge variant={statusBadge.color as 'warning' | 'default' | 'success' | 'destructive' | 'secondary'}>

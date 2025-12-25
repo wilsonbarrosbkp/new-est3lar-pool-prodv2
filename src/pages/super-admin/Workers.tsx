@@ -47,6 +47,7 @@ import {
 } from '@/components/ui/Select'
 import { supabase } from '@/lib/supabase/client'
 import { typography } from '@/design-system/tokens'
+import { formatHashrate } from '@/lib/formatters'
 import { useCRUDPage } from '@/hooks/useCRUDPage'
 import type {
   Worker,
@@ -202,15 +203,6 @@ export default function WorkersPage() {
   )
 
   // Funções auxiliares
-  const formatHashrate = useCallback((hashrate: number) => {
-    if (hashrate >= 1e15) return `${(hashrate / 1e15).toFixed(2)} PH/s`
-    if (hashrate >= 1e12) return `${(hashrate / 1e12).toFixed(2)} TH/s`
-    if (hashrate >= 1e9) return `${(hashrate / 1e9).toFixed(2)} GH/s`
-    if (hashrate >= 1e6) return `${(hashrate / 1e6).toFixed(2)} MH/s`
-    if (hashrate >= 1e3) return `${(hashrate / 1e3).toFixed(2)} KH/s`
-    return `${hashrate} H/s`
-  }, [])
-
   const formatTimeAgo = useCallback((date: string | null) => {
     if (!date) return 'Nunca'
     const now = new Date()

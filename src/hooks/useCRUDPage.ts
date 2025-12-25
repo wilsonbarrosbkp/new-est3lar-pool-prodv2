@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import { toast } from 'sonner'
+import { capitalize } from '@/lib/formatters'
 
 /**
  * Configuração de ordenação
@@ -528,11 +529,4 @@ export function useCRUDPage<T extends { id: number | string }, F>(
     totalCount: data.length,
     filteredCount: filteredData.length,
   }
-}
-
-/**
- * Capitaliza a primeira letra de uma string
- */
-function capitalize(str: string): string {
-  return str.charAt(0).toUpperCase() + str.slice(1)
 }

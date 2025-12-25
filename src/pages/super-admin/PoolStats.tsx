@@ -35,6 +35,7 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 import { typography, chartStyles } from '@/design-system/tokens'
+import { formatHashrate, formatShares, formatUptime } from '@/lib/formatters'
 
 export default function PoolStatsPage() {
   const { stats: latestStats, loading: loadingLatest } = useLatestPoolStats(1)
@@ -52,28 +53,6 @@ export default function PoolStatsPage() {
     }, 60000)
     return () => clearInterval(interval)
   }, [])
-
-  const formatHashrate = (hashrate: number) => {
-    if (hashrate >= 1e15) return `${(hashrate / 1e15).toFixed(2)} PH/s`
-    if (hashrate >= 1e12) return `${(hashrate / 1e12).toFixed(2)} TH/s`
-    if (hashrate >= 1e9) return `${(hashrate / 1e9).toFixed(2)} GH/s`
-    if (hashrate >= 1e6) return `${(hashrate / 1e6).toFixed(2)} MH/s`
-    if (hashrate >= 1e3) return `${(hashrate / 1e3).toFixed(2)} KH/s`
-    return `${hashrate.toFixed(2)} H/s`
-  }
-
-  const formatShares = (shares: number) => {
-    if (shares >= 1e9) return `${(shares / 1e9).toFixed(2)} G`
-    if (shares >= 1e6) return `${(shares / 1e6).toFixed(2)} M`
-    if (shares >= 1e3) return `${(shares / 1e3).toFixed(2)} K`
-    return shares.toFixed(2)
-  }
-
-  const formatUptime = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600)
-    const minutes = Math.floor((seconds % 3600) / 60)
-    return `${hours}h ${minutes}m`
-  }
 
   const formatLastUpdate = (date: Date) => {
     const now = new Date()

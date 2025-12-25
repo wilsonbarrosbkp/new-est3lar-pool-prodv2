@@ -47,6 +47,7 @@ import {
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
 import { typography } from '@/design-system/tokens'
+import { formatAddress } from '@/lib/formatters'
 import { useCRUDPage } from '@/hooks/useCRUDPage'
 import type {
   Wallet,
@@ -248,11 +249,6 @@ export default function WalletsPage() {
       toast.error('Erro ao definir carteira principal')
     }
   }, [loadData])
-
-  const formatAddress = useCallback((address: string) => {
-    if (address.length <= 20) return address
-    return `${address.slice(0, 10)}...${address.slice(-8)}`
-  }, [])
 
   return (
     <div className="space-y-6">

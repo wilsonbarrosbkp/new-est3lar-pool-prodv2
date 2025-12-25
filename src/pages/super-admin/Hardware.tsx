@@ -50,6 +50,7 @@ import {
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
 import { typography } from '@/design-system/tokens'
+import { formatUptime } from '@/lib/formatters'
 import { useCRUDPage } from '@/hooks/useCRUDPage'
 import type {
   Hardware,
@@ -91,21 +92,6 @@ const statusOptions = [
   { value: 'inativo', label: 'Inativo', color: 'secondary' },
   { value: 'manutencao', label: 'Manutenção', color: 'warning' },
 ] as const
-
-// Função para converter uptime em segundos para formato legível
-function formatUptime(seconds: number): string {
-  const days = Math.floor(seconds / 86400)
-  const hours = Math.floor((seconds % 86400) / 3600)
-  const minutes = Math.floor((seconds % 3600) / 60)
-
-  if (days > 0) {
-    return `${days}d ${hours}h ${minutes}m`
-  }
-  if (hours > 0) {
-    return `${hours}h ${minutes}m`
-  }
-  return `${minutes}m`
-}
 
 // Interface para dados do banco
 interface ServerFromDB {

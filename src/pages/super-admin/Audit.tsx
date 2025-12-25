@@ -33,6 +33,7 @@ import {
 } from '@/components/ui/Select'
 import { supabase } from '@/lib/supabase/client'
 import { typography } from '@/design-system/tokens'
+import { formatDateTime } from '@/lib/formatters'
 import { useReadOnlyPage } from '@/hooks/useReadOnlyPage'
 import { useState } from 'react'
 
@@ -155,10 +156,6 @@ export default function AuditPage() {
     const matchesEntity = filters.entity === 'all' || !filters.entity || log.entity_type === filters.entity
     return matchesOrg && matchesAction && matchesEntity
   })
-
-  const formatDate = (date: string) => {
-    return new Date(date).toLocaleString('pt-BR')
-  }
 
   const getActionBadge = (action: string) => {
     const option = actionOptions.find(a => a.value === action)
@@ -390,7 +387,7 @@ export default function AuditPage() {
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <Clock className="h-4 w-4 text-text-secondary" />
-                            <span className={typography.body.small}>{formatDate(log.created_at)}</span>
+                            <span className={typography.body.small}>{formatDateTime(log.created_at)}</span>
                           </div>
                         </TableCell>
                         <TableCell>

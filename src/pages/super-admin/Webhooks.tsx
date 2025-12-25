@@ -50,6 +50,7 @@ import { Checkbox } from '@/components/ui/Checkbox'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
 import { typography } from '@/design-system/tokens'
+import { formatDateTime } from '@/lib/formatters'
 import { useCRUDPage } from '@/hooks/useCRUDPage'
 import type {
   Webhook,
@@ -239,11 +240,6 @@ export default function WebhooksPage() {
     setTimeout(() => {
       toast.success('Webhook testado com sucesso!')
     }, 1000)
-  }, [])
-
-  const formatDate = useCallback((date: string | null) => {
-    if (!date) return 'Nunca'
-    return new Date(date).toLocaleString('pt-BR')
   }, [])
 
   const toggleEvent = useCallback((event: string) => {
@@ -447,7 +443,7 @@ export default function WebhooksPage() {
                     <TableCell>{webhook.organization_name}</TableCell>
                     <TableCell>
                       <span className={`${typography.body.small} text-text-secondary`}>
-                        {webhook.last_triggered ? formatDate(webhook.last_triggered) : '-'}
+                        {webhook.last_triggered ? formatDateTime(webhook.last_triggered) : '-'}
                       </span>
                     </TableCell>
                     <TableCell>

@@ -48,6 +48,7 @@ import {
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
 import { typography } from '@/design-system/tokens'
+import { formatHashrate, formatDate, formatBTC } from '@/lib/formatters'
 import type {
   RevenueReport,
   OrganizationOption,
@@ -285,21 +286,6 @@ export default function RevenuePage() {
       console.error('Erro ao excluir relatório:', error)
       toast.error('Erro ao excluir relatório')
     }
-  }
-
-  const formatHashrate = (hashrate: number) => {
-    if (hashrate >= 1e15) return `${(hashrate / 1e15).toFixed(2)} PH/s`
-    if (hashrate >= 1e12) return `${(hashrate / 1e12).toFixed(2)} TH/s`
-    if (hashrate >= 1e9) return `${(hashrate / 1e9).toFixed(2)} GH/s`
-    return `${hashrate} H/s`
-  }
-
-  const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString('pt-BR')
-  }
-
-  const formatBTC = (value: number) => {
-    return `${value.toFixed(8)} BTC`
   }
 
   const totalGrossRevenue = filteredReports.reduce((acc, r) => acc + r.gross_revenue, 0)

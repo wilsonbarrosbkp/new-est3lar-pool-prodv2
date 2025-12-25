@@ -33,6 +33,7 @@ import {
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
 import { typography } from '@/design-system/tokens'
+import { formatDateTime, formatTxHash, formatBTC, formatShares } from '@/lib/formatters'
 import { useReadOnlyPage } from '@/hooks/useReadOnlyPage'
 
 interface Round {
@@ -167,27 +168,6 @@ export default function RoundsPage() {
     }
   }
 
-  const formatDate = (date: string | null) => {
-    if (!date) return '-'
-    return new Date(date).toLocaleString('pt-BR')
-  }
-
-  const formatHash = (hash: string) => {
-    return `${hash.slice(0, 8)}...${hash.slice(-8)}`
-  }
-
-  const formatReward = (reward: number) => {
-    return `${reward.toFixed(8)} BTC`
-  }
-
-  const formatShares = (shares: number) => {
-    if (shares >= 1e12) return `${(shares / 1e12).toFixed(2)}T`
-    if (shares >= 1e9) return `${(shares / 1e9).toFixed(2)}B`
-    if (shares >= 1e6) return `${(shares / 1e6).toFixed(2)}M`
-    if (shares >= 1e3) return `${(shares / 1e3).toFixed(2)}K`
-    return shares.toString()
-  }
-
   const getStatusBadge = (status: string) => {
     const option = statusOptions.find(s => s.value === status)
     return option || { label: status, color: 'secondary', icon: Clock }
@@ -267,7 +247,7 @@ export default function RoundsPage() {
               </div>
               <div>
                 <p className={`${typography.kpi.title} text-text-secondary`}>Recompensa Total</p>
-                <p className={`${typography.kpi.value} ${typography.weight.bold}`}>{formatReward(totalReward)}</p>
+                <p className={`${typography.kpi.value} ${typography.weight.bold}`}>{formatBTC(totalReward)}</p>
               </div>
             </div>
           </CardContent>
@@ -344,7 +324,7 @@ export default function RoundsPage() {
                       <TableCell>{round.pool_name}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <code className={typography.table.small}>{formatHash(round.hash)}</code>
+                          <code className={typography.table.small}>{formatTxHash(round.hash)}</code>
                           <Button
                             variant="ghost"
                             size="sm"
@@ -369,7 +349,7 @@ export default function RoundsPage() {
                       </TableCell>
                       <TableCell>
                         <div>
-                          <span className="font-mono">{formatReward(round.reward)}</span>
+                          <span className="font-mono">{formatBTC(round.reward)}</span>
                           {round.transaction_fees > 0 && (
                             <p className={`${typography.table.small} text-text-secondary`}>
                               +{round.transaction_fees.toFixed(8)} fees
@@ -385,9 +365,9 @@ export default function RoundsPage() {
                       </TableCell>
                       <TableCell>
                         <div>
-                          <p className={typography.table.cell}>{formatDate(round.found_at)}</p>
+                          <p className={typography.table.cell}>{formatDateTime(round.found_at)}</p>
                           {round.status === 'maturo' && round.mature_at && (
-                            <p className={`${typography.table.small} text-success`}>Maturo: {formatDate(round.mature_at)}</p>
+                            <p className={`${typography.table.small} text-success`}>Maturo: {formatDateTime(round.mature_at)}</p>
                           )}
                         </div>
                       </TableCell>
