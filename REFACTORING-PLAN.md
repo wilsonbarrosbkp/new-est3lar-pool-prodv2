@@ -120,16 +120,16 @@ Os dois hooks principais compartilham ~60% do codigo:
 
 ### Checklist
 
-- [ ] **3.1** Criar hook base `useDataPage.ts` com logica compartilhada
-- [ ] **3.2** Extrair `SortConfig` e logica de ordenacao para modulo separado
-- [ ] **3.3** Extrair logica de filtros para modulo separado
-- [ ] **3.4** Refatorar `useCRUDPage` para usar hook base
-- [ ] **3.5** `pnpm run build` + teste
-- [ ] **3.6** Refatorar `useReadOnlyPage` para usar hook base
-- [ ] **3.7** `pnpm run build` + teste
-- [ ] **3.8** Testar todas as paginas CRUD
-- [ ] **3.9** Testar todas as paginas read-only (Audit, Rounds)
-- [ ] **3.10** Commit: "refactor: consolidate data hooks with shared base"
+- [x] **3.1** Criar hook base `useDataPage.ts` com logica compartilhada
+- [x] **3.2** Extrair `SortConfig` e logica de ordenacao para modulo separado
+- [x] **3.3** Extrair logica de filtros para modulo separado
+- [x] **3.4** Refatorar `useCRUDPage` para usar hook base
+- [x] **3.5** `pnpm run build` + teste
+- [x] **3.6** Refatorar `useReadOnlyPage` para usar hook base
+- [x] **3.7** `pnpm run build` + teste
+- [x] **3.8** Testar todas as paginas CRUD
+- [x] **3.9** Testar todas as paginas read-only (Audit, Rounds)
+- [x] **3.10** Commit: "refactor: consolidate data hooks with shared base" - CONCLUIDO
 
 ---
 

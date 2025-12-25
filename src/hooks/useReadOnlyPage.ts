@@ -1,14 +1,8 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
-import { toast } from 'sonner'
-import { supabase } from '@/lib/supabase/client'
+import { useState, useCallback, useRef, useEffect } from 'react'
+import { useDataPage, type SortConfig } from './useDataPage'
 
-/**
- * Configuração de ordenação
- */
-export type SortConfig<T> = {
-  key: keyof T
-  direction: 'asc' | 'desc'
-} | null
+// Re-export SortConfig para manter compatibilidade
+export type { SortConfig }
 
 /**
  * Opções para configurar o hook useReadOnlyPage
@@ -78,6 +72,7 @@ export interface UseReadOnlyPageReturn<T extends { id: number | string }> {
 /**
  * Hook genérico para páginas read-only (somente leitura)
  * Simplificado em relação ao useCRUDPage, focado em listagem e visualização
+ * Estende useDataPage com funcionalidades específicas de visualização
  */
 export function useReadOnlyPage<T extends { id: number | string }>(
   options: UseReadOnlyPageOptions<T>
@@ -95,38 +90,33 @@ export function useReadOnlyPage<T extends { id: number | string }>(
     customActions = {},
   } = options
 
-  // Refs para funções callback e objetos (evita loops infinitos)
-  const customLoadDataRef = useRef(customLoadData)
-  const onDataLoadedRef = useRef(onDataLoaded)
-  const defaultOrderByRef = useRef(defaultOrderBy)
+  // Usar o hook base para dados, busca, filtros e ordenação
+  const baseHook = useDataPage<T>({
+    tableName,
+    selectFields,
+    searchFields,
+    defaultOrderBy,
+    limit,
+    customLoadData,
+    onDataLoaded,
+    loadErrorMessage: messages.loadError,
+    entityName,
+  })
+
+  // Refs para funções callback (evita loops infinitos)
   const customActionsRef = useRef(customActions)
-  const messagesRef = useRef(messages)
 
   // Atualizar refs quando as funções/objetos mudarem
   useEffect(() => {
-    customLoadDataRef.current = customLoadData
-    onDataLoadedRef.current = onDataLoaded
-    defaultOrderByRef.current = defaultOrderBy
     customActionsRef.current = customActions
-    messagesRef.current = messages
   })
 
-  // Estados principais
-  const [data, setData] = useState<T[]>([])
-  const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState('')
-  const [filters, setFilters] = useState<Record<string, string>>({})
-  const [sortConfig, setSortConfig] = useState<SortConfig<T>>(null)
+  // Estados específicos de visualização
   const [expandedIds, setExpandedIds] = useState<Set<number | string>>(new Set())
-
-  // Função para definir um filtro
-  const setFilter = useCallback((key: string, value: string) => {
-    setFilters(prev => ({ ...prev, [key]: value }))
-  }, [])
 
   // Função para expandir/colapsar um item
   const toggleExpand = useCallback((id: number | string) => {
-    setExpandedIds(prev => {
+    setExpandedIds((prev) => {
       const newSet = new Set(prev)
       if (newSet.has(id)) {
         newSet.delete(id)
@@ -134,121 +124,6 @@ export function useReadOnlyPage<T extends { id: number | string }>(
         newSet.add(id)
       }
       return newSet
-    })
-  }, [])
-
-  // Carregar dados
-  const loadData = useCallback(async () => {
-    setLoading(true)
-    try {
-      let items: T[]
-
-      if (customLoadDataRef.current) {
-        // Usar função customizada se fornecida
-        items = await customLoadDataRef.current()
-      } else {
-        // Query padrão
-        let query = supabase.from(tableName).select(selectFields)
-
-        // Ordenação
-        const orderBy = defaultOrderByRef.current
-        if (orderBy) {
-          query = query.order(orderBy.column, {
-            ascending: orderBy.ascending ?? false,
-          })
-        }
-
-        // Limite
-        if (limit) {
-          query = query.limit(limit)
-        }
-
-        const { data: result, error } = await query
-
-        if (error) throw error
-
-        items = (result as unknown as T[]) || []
-      }
-
-      setData(items)
-      onDataLoadedRef.current?.(items)
-    } catch (error) {
-      console.error(`Erro ao carregar ${entityName}s:`, error)
-      const msgs = messagesRef.current
-      toast.error(msgs.loadError || `Erro ao carregar ${entityName}s`)
-    } finally {
-      setLoading(false)
-    }
-  }, [tableName, selectFields, limit, entityName])
-
-  // Carregar dados na montagem
-  useEffect(() => {
-    loadData()
-  }, [loadData])
-
-  // Dados filtrados e ordenados
-  const filteredData = useMemo(() => {
-    let result = [...data]
-
-    // Busca textual
-    if (search && searchFields.length > 0) {
-      const searchLower = search.toLowerCase()
-      result = result.filter((item) =>
-        searchFields.some((field) => {
-          const value = item[field]
-          if (value == null) return false
-          return String(value).toLowerCase().includes(searchLower)
-        })
-      )
-    }
-
-    // Nota: filtros customizados (filters state) devem ser aplicados
-    // pelo componente que usa o hook, pois cada página tem lógica diferente
-
-    // Ordenação
-    if (sortConfig) {
-      result.sort((a, b) => {
-        const aValue = a[sortConfig.key]
-        const bValue = b[sortConfig.key]
-
-        // Null/undefined handling
-        if (aValue == null && bValue == null) return 0
-        if (aValue == null) return sortConfig.direction === 'asc' ? -1 : 1
-        if (bValue == null) return sortConfig.direction === 'asc' ? 1 : -1
-
-        // Date handling
-        if (sortConfig.key.toString().includes('_at') || sortConfig.key.toString().includes('date')) {
-          const aTime = new Date(String(aValue)).getTime()
-          const bTime = new Date(String(bValue)).getTime()
-          return sortConfig.direction === 'asc' ? aTime - bTime : bTime - aTime
-        }
-
-        // Number handling
-        if (typeof aValue === 'number' && typeof bValue === 'number') {
-          return sortConfig.direction === 'asc' ? aValue - bValue : bValue - aValue
-        }
-
-        // String handling
-        const aStr = String(aValue).toLowerCase()
-        const bStr = String(bValue).toLowerCase()
-        if (aStr < bStr) return sortConfig.direction === 'asc' ? -1 : 1
-        if (aStr > bStr) return sortConfig.direction === 'asc' ? 1 : -1
-        return 0
-      })
-    }
-
-    return result
-  }, [data, search, searchFields, sortConfig])
-
-  // Handler de ordenação
-  const handleSort = useCallback((key: keyof T) => {
-    setSortConfig((prev) => {
-      if (prev?.key === key) {
-        return prev.direction === 'asc'
-          ? { key, direction: 'desc' }
-          : null
-      }
-      return { key, direction: 'asc' }
     })
   }, [])
 
@@ -264,37 +139,41 @@ export function useReadOnlyPage<T extends { id: number | string }>(
       try {
         await action(item, ...args)
         // Recarregar dados após executar a ação
-        await loadData()
+        await baseHook.loadData()
       } catch (error) {
         console.error(`Erro ao executar ação '${actionName}':`, error)
         throw error
       }
     },
-    [loadData]
+    [baseHook]
   )
 
   return {
-    // Estados
-    data,
-    loading,
-    search,
-    setSearch,
-    filters,
-    setFilter,
-    sortConfig,
-    handleSort,
+    // Estados do hook base
+    data: baseHook.data,
+    loading: baseHook.loading,
+    search: baseHook.search,
+    setSearch: baseHook.setSearch,
+    filters: baseHook.filters,
+    setFilter: baseHook.setFilter,
+    sortConfig: baseHook.sortConfig,
+    handleSort: baseHook.handleSort,
+
+    // Estados específicos de visualização
     expandedIds,
     toggleExpand,
 
-    // Ações
-    loadData,
+    // Ações do hook base
+    loadData: baseHook.loadData,
+
+    // Ações específicas
     executeAction,
 
     // Dados filtrados
-    filteredData,
+    filteredData: baseHook.filteredData,
 
     // Contadores
-    totalCount: data.length,
-    filteredCount: filteredData.length,
+    totalCount: baseHook.totalCount,
+    filteredCount: baseHook.filteredCount,
   }
 }

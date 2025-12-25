@@ -1,15 +1,11 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { capitalize } from '@/lib/formatters'
+import { useDataPage, type SortConfig } from './useDataPage'
 
-/**
- * Configuração de ordenação
- */
-export type SortConfig<T> = {
-  key: keyof T
-  direction: 'asc' | 'desc'
-} | null
+// Re-export SortConfig para manter compatibilidade
+export type { SortConfig }
 
 /**
  * Opções para configurar o hook useCRUDPage
@@ -128,6 +124,7 @@ export interface UseCRUDPageReturn<T extends { id: number | string }, F> {
 /**
  * Hook genérico para páginas CRUD
  * Encapsula lógica comum de listagem, criação, edição e exclusão
+ * Estende useDataPage com funcionalidades de CRUD
  */
 export function useCRUDPage<T extends { id: number | string }, F>(
   options: UseCRUDPageOptions<T, F>
@@ -154,10 +151,21 @@ export function useCRUDPage<T extends { id: number | string }, F>(
     entityName = 'registro',
   } = options
 
-  // Refs para funções callback e objetos (evita loops infinitos)
-  const customLoadDataRef = useRef(customLoadData)
+  // Usar o hook base para dados, busca, filtros e ordenação
+  const baseHook = useDataPage<T>({
+    tableName,
+    selectFields,
+    searchFields,
+    defaultOrderBy,
+    limit,
+    customLoadData,
+    onDataLoaded,
+    loadErrorMessage: messages.loadError,
+    entityName,
+  })
+
+  // Refs para callbacks CRUD (evita loops infinitos)
   const customSubmitRef = useRef(customSubmit)
-  const onDataLoadedRef = useRef(onDataLoaded)
   const onBeforeCreateRef = useRef(onBeforeCreate)
   const onBeforeUpdateRef = useRef(onBeforeUpdate)
   const onAfterCreateRef = useRef(onAfterCreate)
@@ -166,14 +174,11 @@ export function useCRUDPage<T extends { id: number | string }, F>(
   const validateFormRef = useRef(validateForm)
   const mapFormToDataRef = useRef(mapFormToData)
   const mapDataToFormRef = useRef(mapDataToForm)
-  const defaultOrderByRef = useRef(defaultOrderBy)
   const messagesRef = useRef(messages)
 
   // Atualizar refs quando as funções/objetos mudarem
   useEffect(() => {
-    customLoadDataRef.current = customLoadData
     customSubmitRef.current = customSubmit
-    onDataLoadedRef.current = onDataLoaded
     onBeforeCreateRef.current = onBeforeCreate
     onBeforeUpdateRef.current = onBeforeUpdate
     onAfterCreateRef.current = onAfterCreate
@@ -182,16 +187,10 @@ export function useCRUDPage<T extends { id: number | string }, F>(
     validateFormRef.current = validateForm
     mapFormToDataRef.current = mapFormToData
     mapDataToFormRef.current = mapDataToForm
-    defaultOrderByRef.current = defaultOrderBy
     messagesRef.current = messages
   })
 
-  // Estados principais
-  const [data, setData] = useState<T[]>([])
-  const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState('')
-  const [filters, setFilters] = useState<Record<string, string>>({})
-  const [sortConfig, setSortConfig] = useState<SortConfig<T>>(null)
+  // Estados específicos do CRUD
   const [sheetOpen, setSheetOpen] = useState(false)
   const [editing, setEditing] = useState<T | null>(null)
   const [formData, setFormData] = useState<F>(initialFormData)
@@ -216,127 +215,6 @@ export function useCRUDPage<T extends { id: number | string }, F>(
     }
   }, [entityName])
 
-  // Função para definir um filtro
-  const setFilter = useCallback((key: string, value: string) => {
-    setFilters(prev => ({ ...prev, [key]: value }))
-  }, [])
-
-  // Carregar dados
-  const loadData = useCallback(async () => {
-    setLoading(true)
-    try {
-      let items: T[]
-
-      if (customLoadDataRef.current) {
-        // Usar função customizada se fornecida
-        items = await customLoadDataRef.current()
-      } else {
-        // Query padrão
-        let query = supabase.from(tableName).select(selectFields)
-
-        // Ordenação
-        const orderBy = defaultOrderByRef.current
-        if (orderBy) {
-          query = query.order(orderBy.column, {
-            ascending: orderBy.ascending ?? false,
-          })
-        }
-
-        // Limite
-        if (limit) {
-          query = query.limit(limit)
-        }
-
-        const { data: result, error } = await query
-
-        if (error) throw error
-
-        items = (result as unknown as T[]) || []
-      }
-
-      setData(items)
-      onDataLoadedRef.current?.(items)
-    } catch (error) {
-      console.error(`Erro ao excluir ${entityName}:`, error)
-      // Usar mensagem customizada se fornecida, senão usar a do error handler
-      const errorMessage = getMessages().loadError
-      toast.error(errorMessage)
-    } finally {
-      setLoading(false)
-    }
-  }, [tableName, selectFields, limit, entityName, getMessages])
-
-  // Carregar dados na montagem
-  useEffect(() => {
-    loadData()
-  }, [loadData])
-
-  // Dados filtrados e ordenados
-  const filteredData = useMemo(() => {
-    let result = [...data]
-
-    // Busca textual
-    if (search && searchFields.length > 0) {
-      const searchLower = search.toLowerCase()
-      result = result.filter((item) =>
-        searchFields.some((field) => {
-          const value = item[field]
-          if (value == null) return false
-          return String(value).toLowerCase().includes(searchLower)
-        })
-      )
-    }
-
-    // Filtros customizados (aplicados externamente via filteredData customizado se necessário)
-    // Os filtros específicos devem ser aplicados pelo componente que usa o hook
-
-    // Ordenação
-    if (sortConfig) {
-      result.sort((a, b) => {
-        const aValue = a[sortConfig.key]
-        const bValue = b[sortConfig.key]
-
-        // Null/undefined handling
-        if (aValue == null && bValue == null) return 0
-        if (aValue == null) return sortConfig.direction === 'asc' ? -1 : 1
-        if (bValue == null) return sortConfig.direction === 'asc' ? 1 : -1
-
-        // Date handling
-        if (sortConfig.key.toString().includes('_at') || sortConfig.key.toString().includes('date')) {
-          const aTime = new Date(String(aValue)).getTime()
-          const bTime = new Date(String(bValue)).getTime()
-          return sortConfig.direction === 'asc' ? aTime - bTime : bTime - aTime
-        }
-
-        // Number handling
-        if (typeof aValue === 'number' && typeof bValue === 'number') {
-          return sortConfig.direction === 'asc' ? aValue - bValue : bValue - aValue
-        }
-
-        // String handling
-        const aStr = String(aValue).toLowerCase()
-        const bStr = String(bValue).toLowerCase()
-        if (aStr < bStr) return sortConfig.direction === 'asc' ? -1 : 1
-        if (aStr > bStr) return sortConfig.direction === 'asc' ? 1 : -1
-        return 0
-      })
-    }
-
-    return result
-  }, [data, search, searchFields, sortConfig])
-
-  // Handler de ordenação
-  const handleSort = useCallback((key: keyof T) => {
-    setSortConfig((prev) => {
-      if (prev?.key === key) {
-        return prev.direction === 'asc'
-          ? { key, direction: 'desc' }
-          : null
-      }
-      return { key, direction: 'asc' }
-    })
-  }, [])
-
   // Abrir sheet para criar
   const handleOpenCreate = useCallback(() => {
     setEditing(null)
@@ -345,14 +223,11 @@ export function useCRUDPage<T extends { id: number | string }, F>(
   }, [initialFormData])
 
   // Abrir sheet para editar
-  const handleOpenEdit = useCallback(
-    (item: T) => {
-      setEditing(item)
-      setFormData(mapDataToFormRef.current(item))
-      setSheetOpen(true)
-    },
-    []
-  )
+  const handleOpenEdit = useCallback((item: T) => {
+    setEditing(item)
+    setFormData(mapDataToFormRef.current(item))
+    setSheetOpen(true)
+  }, [])
 
   // Fechar sheet
   const handleCloseSheet = useCallback(() => {
@@ -383,7 +258,7 @@ export function useCRUDPage<T extends { id: number | string }, F>(
         if (customSubmitRef.current) {
           await customSubmitRef.current(formData, editing)
           handleCloseSheet()
-          loadData()
+          baseHook.loadData()
           return
         }
 
@@ -428,24 +303,15 @@ export function useCRUDPage<T extends { id: number | string }, F>(
         }
 
         handleCloseSheet()
-        loadData()
+        baseHook.loadData()
       } catch (error) {
-        console.error(`Erro ao excluir ${entityName}:`, error)
-        // Usar mensagem customizada se fornecida, senão usar a do error handler
+        console.error(`Erro ao salvar ${entityName}:`, error)
         toast.error(msgs.saveError)
       } finally {
         setSaving(false)
       }
     },
-    [
-      formData,
-      editing,
-      tableName,
-      handleCloseSheet,
-      loadData,
-      entityName,
-      getMessages,
-    ]
+    [formData, editing, tableName, handleCloseSheet, baseHook, entityName, getMessages]
   )
 
   // Abrir dialog de confirmação de delete
@@ -461,44 +327,42 @@ export function useCRUDPage<T extends { id: number | string }, F>(
   )
 
   // Executar delete após confirmação
-  const handleConfirmDelete = useCallback(
-    async () => {
-      if (!itemToDelete) return
+  const handleConfirmDelete = useCallback(async () => {
+    if (!itemToDelete) return
 
-      const msgs = getMessages()
+    const msgs = getMessages()
 
-      try {
-        const { error } = await supabase
-          .from(tableName)
-          .delete()
-          .eq('id', itemToDelete.id)
+    try {
+      const { error } = await supabase
+        .from(tableName)
+        .delete()
+        .eq('id', itemToDelete.id)
 
-        if (error) throw error
+      if (error) throw error
 
-        toast.success(msgs.deleteSuccess)
-        onAfterDeleteRef.current?.(itemToDelete.id)
-        setDeleteDialogOpen(false)
-        setItemToDelete(null)
-        loadData()
-      } catch (error) {
-        console.error(`Erro ao excluir ${entityName}:`, error)
-        // Usar mensagem customizada se fornecida, senão usar a do error handler
-        toast.error(msgs.deleteError)
-      }
-    },
-    [itemToDelete, tableName, loadData, entityName, getMessages]
-  )
+      toast.success(msgs.deleteSuccess)
+      onAfterDeleteRef.current?.(itemToDelete.id)
+      setDeleteDialogOpen(false)
+      setItemToDelete(null)
+      baseHook.loadData()
+    } catch (error) {
+      console.error(`Erro ao excluir ${entityName}:`, error)
+      toast.error(msgs.deleteError)
+    }
+  }, [itemToDelete, tableName, baseHook, entityName, getMessages])
 
   return {
-    // Estados
-    data,
-    loading,
-    search,
-    setSearch,
-    filters,
-    setFilter,
-    sortConfig,
-    setSortConfig,
+    // Estados do hook base
+    data: baseHook.data,
+    loading: baseHook.loading,
+    search: baseHook.search,
+    setSearch: baseHook.setSearch,
+    filters: baseHook.filters,
+    setFilter: baseHook.setFilter,
+    sortConfig: baseHook.sortConfig,
+    setSortConfig: baseHook.setSortConfig,
+
+    // Estados específicos CRUD
     sheetOpen,
     setSheetOpen,
     editing,
@@ -512,21 +376,23 @@ export function useCRUDPage<T extends { id: number | string }, F>(
     itemToDelete,
     deleteConfirmMessage,
 
-    // Ações
-    loadData,
+    // Ações do hook base
+    loadData: baseHook.loadData,
+    handleSort: baseHook.handleSort,
+
+    // Ações específicas CRUD
     handleOpenCreate,
     handleOpenEdit,
     handleCloseSheet,
     handleSubmit,
     handleDelete,
     handleConfirmDelete,
-    handleSort,
 
     // Dados filtrados
-    filteredData,
+    filteredData: baseHook.filteredData,
 
     // Contadores
-    totalCount: data.length,
-    filteredCount: filteredData.length,
+    totalCount: baseHook.totalCount,
+    filteredCount: baseHook.filteredCount,
   }
 }
