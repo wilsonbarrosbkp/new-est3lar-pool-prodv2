@@ -96,13 +96,13 @@ src/components/ui/
 
 ### Checklist
 
-- [ ] **2.1** Renomear `password-input.tsx` para `PasswordInput.tsx`
-- [ ] **2.2** Atualizar imports afetados
-- [ ] **2.3** `pnpm run build` + teste
-- [ ] **2.4** Renomear `confirm-dialog.tsx` para `ConfirmDialog.tsx`
-- [ ] **2.5** Atualizar imports afetados
-- [ ] **2.6** `pnpm run build` + teste
-- [ ] **2.7** Commit: "refactor: standardize component file naming to PascalCase"
+- [x] **2.1** Renomear `password-input.tsx` para `PasswordInput.tsx`
+- [x] **2.2** Atualizar imports afetados
+- [x] **2.3** `pnpm run build` + teste
+- [x] **2.4** Renomear `confirm-dialog.tsx` para `ConfirmDialog.tsx`
+- [x] **2.5** Atualizar imports afetados
+- [x] **2.6** `pnpm run build` + teste
+- [x] **2.7** Commit: "refactor: standardize component file naming to PascalCase" - CONCLUIDO
 
 ---
 

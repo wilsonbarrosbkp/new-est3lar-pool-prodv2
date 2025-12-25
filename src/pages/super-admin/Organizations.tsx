@@ -52,7 +52,7 @@ import type { Organization } from '@/types/super-admin'
 import { supabase } from '@/lib/supabase/client'
 import { typography } from '@/design-system/tokens'
 import { useCRUDPage } from '@/hooks/useCRUDPage'
-import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 
 type FormData = {
   name: string
