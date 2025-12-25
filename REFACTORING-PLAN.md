@@ -71,7 +71,7 @@ Este documento consolida a analise completa do projeto genesis-pool e apresenta 
 - [x] **1.23** Atualizar Wallets.tsx - usar formatadores centralizados
 - [x] **1.24** Atualizar useCRUDPage.ts - importar capitalize de formatters
 - [x] **1.25** `pnpm run build` final - SUCESSO
-- [ ] **1.26** Commit: "refactor: centralize formatters in lib/formatters.ts"
+- [x] **1.26** Commit: "refactor: centralize formatters in lib/formatters.ts" - CONCLUIDO
 
 ---
 
